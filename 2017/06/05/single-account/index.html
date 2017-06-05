@@ -1,0 +1,701 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="iplan,账号管理," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="某日小明得知iPlan推出了个人资源库功能，兴致勃勃的申请了账号想尝个鲜。可是小明是个不爱吃独食的好同学，于是他把自己的账户分享给了好基友小智。花了一份钱实际得到了两个账户，小明暗暗为自己的智商点了个赞。 蜜月期总是充满惊喜的，刚打开资源库，发现好几个分类已经在那儿摆好造型等我光顾了直接搜索机器人，能想到的机器人都有了，想用哪个用哪个菜篮子都填的严严实实的，也不用费脑子选这选那了">
+<meta name="keywords" content="iplan,账号管理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="账户登录唯一性方案">
+<meta property="og:url" content="http://yoursite.com/2017/06/05/single-account/index.html">
+<meta property="og:site_name" content="白话架构实践">
+<meta property="og:description" content="某日小明得知iPlan推出了个人资源库功能，兴致勃勃的申请了账号想尝个鲜。可是小明是个不爱吃独食的好同学，于是他把自己的账户分享给了好基友小智。花了一份钱实际得到了两个账户，小明暗暗为自己的智商点了个赞。 蜜月期总是充满惊喜的，刚打开资源库，发现好几个分类已经在那儿摆好造型等我光顾了直接搜索机器人，能想到的机器人都有了，想用哪个用哪个菜篮子都填的严严实实的，也不用费脑子选这选那了">
+<meta property="og:image" content="https://mmbiz.qlogo.cn/mmbiz_jpg/PDTtbak2SbicZGRIB4BKbbia5HVUW0ngzA0gl5ZhZ15X15wyiafBytFPOQ4a7AI0HicHumA0qtD8gzEQ5eibHz7oEibw/0?wx_fmt=jpeg">
+<meta property="og:image" content="https://mmbiz.qlogo.cn/mmbiz_jpg/PDTtbak2SbicZGRIB4BKbbia5HVUW0ngzAhH5uPaTH8r5SyaTibwPIcreFD3uJDvsyYAkmTTDuMvstsV7Jbnz3kZA/0?wx_fmt=jpeg">
+<meta property="og:image" content="https://mmbiz.qlogo.cn/mmbiz_png/PDTtbak2SbicZGRIB4BKbbia5HVUW0ngzA1LbLfcdzmj2hAkIdhgwzx6zarhLDbLd36LcsMqMeubKL3OGh1hrBxg/0?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qlogo.cn/mmbiz_png/PDTtbak2SbicZGRIB4BKbbia5HVUW0ngzA8gRmokAiacSQCkTo2Mg33Sibey0s6xOe9v84c7IJcqibUJl4Mib3EO8xrQ/0?wx_fmt=png">
+<meta property="og:image" content="https://mmbiz.qlogo.cn/mmbiz_jpg/PDTtbak2SbicZGRIB4BKbbia5HVUW0ngzAc6EWtDntulibPYhLbhBGsL7QprHFyEWhq6pIQat6vt5Q83cRd3A715Q/0?wx_fmt=jpeg">
+<meta property="og:updated_time" content="2017-06-05T07:58:04.030Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="账户登录唯一性方案">
+<meta name="twitter:description" content="某日小明得知iPlan推出了个人资源库功能，兴致勃勃的申请了账号想尝个鲜。可是小明是个不爱吃独食的好同学，于是他把自己的账户分享给了好基友小智。花了一份钱实际得到了两个账户，小明暗暗为自己的智商点了个赞。 蜜月期总是充满惊喜的，刚打开资源库，发现好几个分类已经在那儿摆好造型等我光顾了直接搜索机器人，能想到的机器人都有了，想用哪个用哪个菜篮子都填的严严实实的，也不用费脑子选这选那了">
+<meta name="twitter:image" content="https://mmbiz.qlogo.cn/mmbiz_jpg/PDTtbak2SbicZGRIB4BKbbia5HVUW0ngzA0gl5ZhZ15X15wyiafBytFPOQ4a7AI0HicHumA0qtD8gzEQ5eibHz7oEibw/0?wx_fmt=jpeg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"hide","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/06/05/single-account/"/>
+
+
+
+
+
+  <title> 账户登录唯一性方案 | 白话架构实践 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?3d9f1c0a19e759d91c0cf06e0076c4ee";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">白话架构实践</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">路易斯的软件架构历程</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/05/single-account/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Luis Chen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/tx.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="白话架构实践">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                账户登录唯一性方案
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-05T15:11:43+08:00">
+                2017-06-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>某日小明得知iPlan推出了个人资源库功能，兴致勃勃的申请了账号想尝个鲜。可是小明是个不爱吃独食的好同学，于是他把自己的账户分享给了好基友小智。花了一份钱实际得到了两个账户，小明暗暗为自己的智商点了个赞。</p>
+<p>蜜月期总是充满惊喜的，<br>刚打开资源库，发现好几个分类已经在那儿摆好造型等我光顾了<br>直接搜索机器人，能想到的机器人都有了，想用哪个用哪个<br>菜篮子都填的严严实实的，也不用费脑子选这选那了<br><a id="more"></a><br><a href="https://mmbiz.qlogo.cn/mmbiz_jpg/PDTtbak2SbicZGRIB4BKbbia5HVUW0ngzA0gl5ZhZ15X15wyiafBytFPOQ4a7AI0HicHumA0qtD8gzEQ5eibHz7oEibw/0?wx_fmt=jpeg" target="_blank" rel="external"><img src="https://mmbiz.qlogo.cn/mmbiz_jpg/PDTtbak2SbicZGRIB4BKbbia5HVUW0ngzA0gl5ZhZ15X15wyiafBytFPOQ4a7AI0HicHumA0qtD8gzEQ5eibHz7oEibw/0?wx_fmt=jpeg" alt=""></a></p>
+<p>然而小明的喜悦才持续几分钟就发现了不对。<br>随便打开个分类，系统就显示：“对不起，您操作的分类可能已删除”<br>编辑个资源看看？系统提示：“对不起，该资源已删除”<br>好嘛，那我加到菜篮子里先，然而过一会儿再去看的时候，菜篮子已经空空如也</p>
+<p><img src="https://mmbiz.qlogo.cn/mmbiz_jpg/PDTtbak2SbicZGRIB4BKbbia5HVUW0ngzAhH5uPaTH8r5SyaTibwPIcreFD3uJDvsyYAkmTTDuMvstsV7Jbnz3kZA/0?wx_fmt=jpeg" alt=""></p>
+<p>什么鬼？这iPlan不会骗钱吧，赶紧找客服，这不找不知道一找吓一跳。<font color="red">客服提示：您的账户在异地登录并进行了大量操作，请保管好你的账号</font></p>
+<p>一切已经真相大白了，还是好基友搞的鬼，看来自己的账户还是不能随便分享给别人啊。<br>咋办呢？<br>改密码？这是要友尽的节奏啊；<br>直接说？丢不了这人啊。</p>
+<p>正在小明内心万马奔腾的档口，iPlan客服又很贴心的给出了反馈：<font color="red"><br>我们鉴于部分用户在多台机器终端使用同一账户的操作可能造成数据错误和体验下滑，大制决定完善账户管理规则，单账户同时只能在一台终端使用。后续发布会加上限制措施，确保用户体验。</font></p>
+<p>这客服也太贴心了，小明立马找到好基友传达了这个反馈，基友也给力，当即决定自己也买个账号以后使用资源分享功能一样可以在iPlan协（gao）作（ji）。</p>
+<p>本来到这里，小明就可以坐等升级继续搞基了，然后小明是个闲不住的主，打电话给客服一定要弄清楚限制措施是怎么实现的。</p>
+<p>———————————正经的分割线—————————————————-<br>小明遇到的问题，我们将他称为<strong>单一登录</strong>问题，区别于单点登录（SSO）。</p>
+<p><em>单一登录是指同一账号只允许在一台终端（浏览器，PAD）进行登录和相关操作，主要适用于应用型系统，可以有效的防止数据错误和脏操作。<br>单点登录则是指对于多系统采用统一的认证机制，以至于用户只需要登录一次就可以获得多个系统的信任进行相关操作，主要适用于企业业务整合解决方案。</em></p>
+<p>如果不实现单一登录会有什么问题呢，</p>
+<ol>
+<li>你看到的东西可能不是最新的（其他终端正在编辑呢）<br>小明看到了一个分类，点进去发现小智在其他终端已经删除了这个分类</li>
+<li>你编辑进去的东西可能不会保存（其他终端可能马上就把你改掉了）<br>小明加了很多东西在菜篮子里，过一会儿再进去看小智已经帮你清空了</li>
+</ol>
+<p>仔细看看这不就是我们数据库事务经常遇到了不可重复读和幻读问题吗？<br>我们的解决思路也可以参照数据库事务的控制策略，加入版本控制（MVCC）的用户登录级别控制。思路如下：</p>
+<p><img src="https://mmbiz.qlogo.cn/mmbiz_png/PDTtbak2SbicZGRIB4BKbbia5HVUW0ngzA1LbLfcdzmj2hAkIdhgwzx6zarhLDbLd36LcsMqMeubKL3OGh1hrBxg/0?wx_fmt=png" alt=""></p>
+<p>a)    小明首次登录的时候，服务器针对xiaoming这个账户分配一个版本号的令牌，并在小明本地和服务器上同时保存，如图所示（xiaoming-0001）</p>
+<p>b)    之后小明每一次和服务器对话都需要验证一下令牌，<br>小明：我是小明，此地无银三百两<br>服务器：一枝红杏出墙来，成交</p>
+<p>c)    在小明玩的正high的时候，好基友小智上线，当然用的还是xiaoming这个账号，于是服务器很公平的给了小智一个新的令牌（xiaoming-0002），<br>小智也开始不停的和服务器对话了</p>
+<p>小智：我是小明，天王盖地虎<br>服务器：宝宝心里苦，成交</p>
+<p>d)    轮到小明了</p>
+<p>小明：我是小明，此地无银三百两<br>服务器：宝宝心里苦，失败。<br>服务器：您已经成功被绿，请重新登录。</p>
+<p>于是乎小明就只能眼睁睁的看着曾今的最爱iPlan和好基友小智眉来眼去了。</p>
+<p>那么有没有办法不被绿呢？<br>很简单，捂好你的账号，再好的基友也不能借。<br>或者土豪一点直接买个账号送给基友，这不刚好过年了嘛。</p>
+<p>———————————技术的分割线—————————————————-<br>最后在技术实现层面进行简略说明，满足一下小明的好奇心。</p>
+<p>其实这个功能实现的重点在于令牌的生成，需要确保不同终端用户获取到的令牌是不一致的。</p>
+<p>a)    很容易就想到的一个策略是通过系统时间来作为生成令牌的基础，这当然是一个思路，毕竟毫秒级完全相同的请求概率非常小；<br>b)    通过http头信息获取用户登录ip也是一种可行的策略，这种方式需要解决通过代理登录的伪IP或者隐藏IP；<br>c)    还有一种直接使用sessionID作为生成令牌的基础，因为sessionID是由服务器生成并保证唯一性的随机值</p>
+<p>最终考虑方案复杂度，选定sessionID作为令牌的生成基础。在动手之前先梳理一下session在tomcat下的工作机制。<br><img src="https://mmbiz.qlogo.cn/mmbiz_png/PDTtbak2SbicZGRIB4BKbbia5HVUW0ngzA8gRmokAiacSQCkTo2Mg33Sibey0s6xOe9v84c7IJcqibUJl4Mib3EO8xrQ/0?wx_fmt=png" alt=""><br>1)    客户端向服务器发出请求<br>2)    服务器生成session，并返回sessionId给客户端，包含setCookie在头部<br>3)    浏览器将sessionId保存在cookie中，失效期为会话结束<br>4)    正常会话的时候在request head携带sessionId<br>5)    会话结束（关闭浏览器），cookie失效</p>
+<p><img src="https://mmbiz.qlogo.cn/mmbiz_jpg/PDTtbak2SbicZGRIB4BKbbia5HVUW0ngzAc6EWtDntulibPYhLbhBGsL7QprHFyEWhq6pIQat6vt5Q83cRd3A715Q/0?wx_fmt=jpeg" alt=""></p>
+<p><strong>实现步骤</strong><br>1，    登录方法<br>在用户登录成功的时候，刷新服务器令牌列表，考虑令牌操作的高频，令牌存储使用redis高速缓存。<br>基本逻辑：<br>  <em>If findToken (userName)<br>        ReplaceToken(username, newToken)<br>  Else addToken(username, token)</em><br>注意：在新申请令牌的时候设定失效时间，默认为8小时</p>
+<p>2，    拦截器方法<br>在用户和服务器交互的时候需要反复验证token，如果验证通过则放行，否则提示重新登录。<br>基本逻辑：<br>      <em>If !validateToken(username, myToken)<br>            redirect to login;return false;</em><br>注意：这段逻辑需要在套餐检查逻辑之前所以如果验证通过继续套餐验证，不需要return true;</p>
+<p>3，    监控维护<br>在技术管理下面增加一个菜单维护所有令牌的使用情况，可以删除令牌，可以监控用户登录情况</p>
+<p>终于的终于小明若有所思的说：好像很简单的样子，可是我还是不明白，要不你们还是给我免费升级个套餐吧，我想玩玩企业资源库。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+<div id="wechat_subscriber" style="display: block; padding: 10px 0; margin: 20px auto; width: 100%; text-align: center">
+    <img id="wechat_subscriber_qcode" src="/uploads/qrcode.jpg" alt="Luis Chen wechat" style="width: 200px; max-width: 100%;"/>
+    <div>扫描二维码关注公众号，获取最新文章更新</div>
+</div>
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iplan/" rel="tag"># iplan</a>
+          
+            <a href="/tags/账号管理/" rel="tag"># 账号管理</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/06/05/hello-world/" rel="next" title="Hello World">
+                <i class="fa fa-chevron-left"></i> Hello World
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/tx.jpg"
+               alt="Luis Chen" />
+          <p class="site-author-name" itemprop="name">Luis Chen</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Luis Chen</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
