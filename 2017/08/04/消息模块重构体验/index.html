@@ -71,7 +71,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="重构," />
 
 
 
@@ -87,12 +87,25 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="白话架构实践">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta name="description" content="重构一直是个很热门的词汇，特别在技术需求日新月异的今天，技术部门可能隔三差五就要或主动或被动的来一次重构。这个重构可能是技术的升级，也可能是代码优化。 那么重构到底是个什么东西呢？下面我们一起来体验一次重构的经历吧，通过这次体验应该可以带来一些重构的模糊印象。 本文不准备在概念或者方法论上做重复论述，有很多经典书籍已经做了定义，退而求其次你可以到网上搜索一堆读书笔记。">
+<meta name="keywords" content="重构">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重构初体验">
+<meta property="og:url" content="http://yoursite.com/2017/08/04/消息模块重构体验/index.html">
 <meta property="og:site_name" content="白话架构实践">
+<meta property="og:description" content="重构一直是个很热门的词汇，特别在技术需求日新月异的今天，技术部门可能隔三差五就要或主动或被动的来一次重构。这个重构可能是技术的升级，也可能是代码优化。 那么重构到底是个什么东西呢？下面我们一起来体验一次重构的经历吧，通过这次体验应该可以带来一些重构的模糊印象。 本文不准备在概念或者方法论上做重复论述，有很多经典书籍已经做了定义，退而求其次你可以到网上搜索一堆读书笔记。">
+<meta property="og:image" content="http://yoursite.com/2017/08/04/消息模块重构体验/message_const_before.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/08/04/消息模块重构体验/db_before.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/08/04/消息模块重构体验/class_before.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/08/04/消息模块重构体验/message_const_after.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/08/04/消息模块重构体验/controller.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/08/04/消息模块重构体验/class_after.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/08/04/消息模块重构体验/modal_mapping.jpg">
+<meta property="og:updated_time" content="2017-08-04T05:11:37.929Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="白话架构实践">
+<meta name="twitter:title" content="重构初体验">
+<meta name="twitter:description" content="重构一直是个很热门的词汇，特别在技术需求日新月异的今天，技术部门可能隔三差五就要或主动或被动的来一次重构。这个重构可能是技术的升级，也可能是代码优化。 那么重构到底是个什么东西呢？下面我们一起来体验一次重构的经历吧，通过这次体验应该可以带来一些重构的模糊印象。 本文不准备在概念或者方法论上做重复论述，有很多经典书籍已经做了定义，退而求其次你可以到网上搜索一堆读书笔记。">
+<meta name="twitter:image" content="http://yoursite.com/2017/08/04/消息模块重构体验/message_const_before.jpg">
 
 
 
@@ -120,13 +133,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/"/>
+  <link rel="canonical" href="http://yoursite.com/2017/08/04/消息模块重构体验/"/>
 
 
 
 
 
-  <title> 白话架构实践 </title>
+  <title> 重构初体验 | 白话架构实践 </title>
   <meta name="baidu-site-verification" content="lJRxP1YNyu" />
 </head>
 
@@ -164,9 +177,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-   page-home 
- ">
+  <div class="container sidebar-position-left page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -292,9 +303,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -324,10 +335,7 @@
             
             
               
-                
-                <a class="post-title-link" href="/2017/08/04/消息模块重构体验/" itemprop="url">
-                  重构初体验
-                </a>
+                重构初体验
               
             
           </h1>
@@ -362,6 +370,11 @@
           
 
           
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv">本文总阅读量
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+            </span>
+          
 
           
 
@@ -378,433 +391,142 @@
       
 
       
-        
-          <p>重构一直是个很热门的词汇，特别在技术需求日新月异的今天，技术部门可能隔三差五就要或主动或被动的来一次重构。<br>这个重构可能是技术的升级，也可能是代码优化。</p>
+        <p>重构一直是个很热门的词汇，特别在技术需求日新月异的今天，技术部门可能隔三差五就要或主动或被动的来一次重构。<br>这个重构可能是技术的升级，也可能是代码优化。</p>
 <p>那么重构到底是个什么东西呢？<br>下面我们一起来体验一次重构的经历吧，通过这次体验应该可以带来一些重构的模糊印象。</p>
 <p><em>本文不准备在概念或者方法论上做重复论述，有很多经典书籍已经做了定义，退而求其次你可以到网上搜索一堆读书笔记。</em></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/08/04/消息模块重构体验/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
+<a id="more"></a>
+<h1 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h1><p>用户消息重构旨在通过重构完成对用户消息模块的封装，通过高内聚低耦合的思路完成消息模块的独立运作。<br>重构目的主要体现在以下方面</p>
+<ol>
+<li>优化数据结构</li>
+<li>梳理消息发送流程</li>
+<li>封装API形成高内聚接口</li>
+<li>消息模块稳定性提升<br>作为重构的另外一个必要条件一定要保证模块的测试覆盖率，这是我们在进行重构的同时同步进行的工作。</li>
+</ol>
+<h1 id="架构梳理"><a href="#架构梳理" class="headerlink" title="架构梳理"></a>架构梳理</h1><h3 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h3><p>首先从数据模型入手，基于UserMessageConstants类可以看出划分的几个维度<br>a)    消息状态<br>b)    消息标识<br>c)    消息类型<br>d)    发送状态<br>e)    发送类型<br><img src="/2017/08/04/消息模块重构体验/message_const_before.jpg" alt="logo"></p>
+<p>从上图可以看出，消息分类的维度有很大的重叠，比如发送类型和消息类型，消息状态和发送状态。当然出现这种情况和用户消息的整体设计有关系，但是从单个点来看，这是需要优化的，因此我们得到了第一个优化点<br><br><font color="red"><strong>OPT001：消息状态重新分类，去除不必要的分类</strong></font></p>
+<h3 id="数据存储"><a href="#数据存储" class="headerlink" title="数据存储"></a>数据存储</h3><p>接下来从数据库表结构来看当前消息存储<br><img src="/2017/08/04/消息模块重构体验/db_before.jpg" alt="logo"><br>从数据模型看，<br>t_message_text其实扮演的是message_send的职责记录消息发送的记录；t_message扮演的是message_receive的职责记录消息接收的记录；<br>综上我们可以将消息发送分成两段式，第一步发送消息记录到t_message_text表，第二步根据消息性质进行分发并通过t_message进行接收。<br>所以在OPT001部分记录的优化，其实应该分成两个部分：消息发送分类，消息分类。消息发送分类对应行为分类，消息分类对应消息本身的属性分类。<br>同样对于数据模型我们通过重命名表，使得模型定义更有意义<br><br><font color="red"><strong>OPT002： 重命名表使得更加符合业务意义</strong></font></p>
+<h3 id="类图流转"><a href="#类图流转" class="headerlink" title="类图流转"></a>类图流转</h3><p><img src="/2017/08/04/消息模块重构体验/class_before.jpg" alt="logo"><br>从上图可以看出，用户消息按照分层架构实现。<br>Controller层分为同步和异步两个接口，具体逻辑都是通过统一的service层实现，而service由于处理逻辑较多，又会对应多个dao层。<br>首先controller层的划分基本符合要求，我们要做的是严格区分哪些动作是消息维护相关，哪些动作接口调用<br>所以我们针对controller层的优化为<br><br><font color="red"><strong>OPT003：区分接口，使得接口做到内聚</strong></font><br>Service层的设计体现了大而全的特点，直接导致了模型UserMessage类的臃肿，这里我们引出了第二个优化点<br><br><font color="red"><strong>OPT004：UserMessage瘦身，拆分出消息发送的属性到单独的数据模型</strong></font></p>
+<p>对于UserMessageService，我们可以看出既包含了message维护的方法如load，update等，又包含了发送消息的方法，职责严重混乱，所以我们也产生了第三个优化<br><br><font color="red"><strong>OPT005：UserMessageService拆分为UserMessageManageService和UserMessageIntfService，尽量保证单一职责</strong></font></p>
+<h1 id="重构说明"><a href="#重构说明" class="headerlink" title="重构说明"></a>重构说明</h1><p>进入具体重构阶段，我们按照在重构梳理部分梳理的重构点来依次进行。</p>
+<h3 id="OPT001"><a href="#OPT001" class="headerlink" title="OPT001"></a>OPT001</h3><p><img src="/2017/08/04/消息模块重构体验/message_const_after.jpg" alt="logo"></p>
+<p>发送状态：</p>
+<ul>
+<li>发送状态扩展为：待发送，发送中，发送完成/发送失败，删除</li>
+<li>发送类型改名：系统广播，用户发送（包含点对点和点对面）</li>
+</ul>
+<p>消息属性：</p>
+<ul>
+<li>发送类型限制为：系统消息，用户消息</li>
+</ul>
+<h3 id="OPT002"><a href="#OPT002" class="headerlink" title="OPT002"></a>OPT002</h3><p>这步优化主要针对t_message_text, t_message两张表，<br>t_message_text 重命名为t_message_send<br>t_message重命名为t_message_recv</p>
+<h3 id="OPT003"><a href="#OPT003" class="headerlink" title="OPT003"></a>OPT003</h3><p>这步优化主要通过接口重新分类做到接口职责明确，接口高内聚。<br><img src="/2017/08/04/消息模块重构体验/controller.jpg" alt="logo"></p>
+<p>按照上表的分类，我们将controller分成三个</p>
+<ul>
+<li>UserMessageRoutController<br>主要包含页面跳转相关的路由方法和相关逻辑，优化的主要部分在代码部分</li>
+<li>UserMessageMtController<br>包含消息管理页面相关的处理逻辑，通过ajax提供<br>优化的主要部分在代码部分，包括API合并去重复代码，参数优化，异常处理</li>
+<li>UserMessageIntfController<br>消息模块提供给其他模块的接口方法，主要消费者为方案模块和管理员模块，其中管理员模块涉及到全局消息的部分后续进行开发不做优化。<br>这部分的优化工作主要是API的简化，通过隐藏实现细节完成对API的封装减少调用难度</li>
+</ul>
+<h3 id="OPT004"><a href="#OPT004" class="headerlink" title="OPT004"></a>OPT004</h3><p>这步通过对数据模型进行瘦身，重新定义数据流转<br><img src="/2017/08/04/消息模块重构体验/class_after.jpg" alt="logo"></p>
+<p>拆分后发消息的数据流程变更为：</p>
+<ol>
+<li>用户发送消息，记录消息内容和发送者</li>
+<li>定时任务扫描未发送消息，进行发送（如果不成功则failCount++）</li>
+<li>发送成功则在用户消息接收表生成一条实例数据<br>a)    如果是系统消息则对每一个没有接收过的用户生成实例<br>b)    如果是用户消息则对对应的receiver每人生成一条实例</li>
+</ol>
+<h3 id="OPT005"><a href="#OPT005" class="headerlink" title="OPT005"></a>OPT005</h3><p>这部分优化其实算是延续OPT003 接口内聚的。<br>通过拆分UserMessageManageService主要包含用户消息管理的相关功能：<br>加载，添加，删除，更新，计数，浏览<br>UserMessageIntfService主要包含用户消息模块对外提供的接口功能：<br>发送消息</p>
+<h1 id="数据迁移"><a href="#数据迁移" class="headerlink" title="数据迁移"></a>数据迁移</h1><p>首先比较前后数据模型，整理出mapping关系表格，再根据mapping关系编写迁移脚本就容易多了。<br><img src="/2017/08/04/消息模块重构体验/modal_mapping.jpg" alt="logo"></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t_message_send(message_id,sender_id,receiver,message_content,fail_count,send_status,send_type,insert_time,update_time)</div><div class="line"><span class="keyword">select</span> t.message_id,t.sender_id,<span class="literal">null</span>,t.message_text,<span class="number">0</span>,<span class="keyword">if</span>(t.send_status=<span class="number">0</span>,<span class="number">2</span>,<span class="number">4</span>),t.send_flag+<span class="number">1</span>,t.post_date,t.post_date <span class="keyword">from</span> t_message_text t;</div></pre></td></tr></table></figure>
+<h1 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h1><p>以上几步可能根据不同的重构会有选择，但是这一步一定不能省略。<br>正如我们在目标中提及的，<strong>测试的完备性永远是先于重构的</strong>。</p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>我们通过用户消息模块的一次代码重构作为契机了解了重构的一些关注点和基本方法。<br>通过这次重构确实达到了预先定义的目标，</p>
+<ul>
+<li>API更加易用</li>
+<li>流程更加清晰</li>
+<li>模型职责分明易扩展</li>
+</ul>
+<p>很多人喜欢把重构和敏捷放到一起讨论，有一点两者确实是很类似的。<br>敏捷也好重构也罢都没有一个标准的方法或者流程，只有适合的才是最好的。<br>只有通过不停的体验和实践才能找到适合你的最佳实践。共勉！</p>
+
       
     </div>
 
     <div>
       
+        
+
+      
     </div>
 
     <div>
       
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/07/你可能不会注意的Timestamp/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Luis Chen">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/tx.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="白话架构实践">
-    </span>
-
-    
-      <header class="post-header">
-
         
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2017/06/07/你可能不会注意的Timestamp/" itemprop="url">
-                  你可能不会注意的Timestamp
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-07T17:23:12+08:00">
-                2017-06-07
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
+  <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+    <div>您的支持将鼓励我继续创作！</div>
+    <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+      <span>赏</span>
+    </button>
+    <div id="QR" style="display: none;">
+      
+        <div id="wechat" style="display: inline-block">
+          <img id="wechat_qr" src="/uploads/wechat_pay.jpg" alt="Luis Chen WeChat Pay"/>
+          <p>微信打赏</p>
         </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
       
       
+    </div>
+  </div>
 
+
+      
+    </div>
+
+    <div>
       
         
-          <p>提起java里面的时间戳，相信很多人都用过。<br>不就是java.sql.Timestamp类，两个构造器，13个方法，这也许属于java中最简单的基础类了。</p>
-<font color="red">俗话说淹死的都是会游泳的，同样在开发中让我们栽跟头的往往都是耳熟能详的一些类库。</font>
 
-<h2 id="引子"><a href="#引子" class="headerlink" title="引子"></a>引子</h2><p>首先让我们看看以下几行代码的输出结果吧</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">Timestamp t1 = <span class="keyword">new</span> Timestamp(<span class="number">0</span>);</div><div class="line">System.out.println(t1);</div><div class="line"></div><div class="line">Timestamp t2 = Timestamp.valueOf(<span class="string">"2037-12-31 23:59:59"</span>);</div><div class="line">System.out.println(t2.getTime());</div><div class="line">System.out.println(t2.getTime() == <span class="keyword">new</span> Long(Integer.MAX_VALUE) * <span class="number">1000</span>);</div><div class="line"></div><div class="line">Timestamp t3 = <span class="keyword">new</span> Timestamp(<span class="keyword">new</span> Long(Integer.MAX_VALUE) * <span class="number">1000</span>);</div><div class="line">System.out.println(t3);</div><div class="line"></div><div class="line">Timestamp t21 = Timestamp.valueOf(<span class="string">"9999-12-31 23:59:59"</span>);</div><div class="line">System.out.println(t21.getTime());</div><div class="line">Timestamp t22 = <span class="keyword">new</span> Timestamp(t21.getTime());</div><div class="line">System.out.println(t22);</div><div class="line"></div><div class="line">Date d1 = <span class="keyword">new</span> Date(<span class="number">0</span>);</div><div class="line">System.out.println(d1.equals(t1));</div><div class="line">System.out.println(t1.equals(d1));</div></pre></td></tr></table></figure>
-<p>如果你能很明确的说出每一个输出结果是什么以及为什么，那么你已经不需要继续往下看了。<br>如果你对一个或者更多的结果感到迷茫，就让我们来一起踩踩坑吧。<br></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/06/07/你可能不会注意的Timestamp/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
       
     </div>
 
     <footer class="post-footer">
       
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/05/single-account/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Luis Chen">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/tx.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="白话架构实践">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2017/06/05/single-account/" itemprop="url">
-                  账户登录唯一性方案
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-05T15:11:43+08:00">
-                2017-06-05
-              </time>
-            
-
-            
-
-            
-          </span>
-
+        <div class="post-tags">
           
-
+            <a href="/tags/重构/" rel="tag"># 重构</a>
           
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
         </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
         
-          <p>某日小明得知iPlan推出了个人资源库功能，兴致勃勃的申请了账号想尝个鲜。可是小明是个不爱吃独食的好同学，于是他把自己的账户分享给了好基友小智。花了一份钱实际得到了两个账户，小明暗暗为自己的智商点了个赞。</p>
-<p>蜜月期总是充满惊喜的，<br>刚打开资源库，发现好几个分类已经在那儿摆好造型等我光顾了<br>直接搜索机器人，能想到的机器人都有了，想用哪个用哪个<br>菜篮子都填的严严实实的，也不用费脑子选这选那了<br></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/06/05/single-account/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/06/07/你可能不会注意的Timestamp/" rel="next" title="你可能不会注意的Timestamp">
+                <i class="fa fa-chevron-left"></i> 你可能不会注意的Timestamp
+              </a>
+            
           </div>
-          <!--/noindex-->
-        
-      
-    </div>
 
-    <div>
-      
-    </div>
+          <span class="post-nav-divider"></span>
 
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/05/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Luis Chen">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/tx.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="白话架构实践">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
+          <div class="post-nav-prev post-nav-item">
             
-            
-              
-                
-                <a class="post-title-link" href="/2017/06/05/hello-world/" itemprop="url">
-                  Hello World
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-05T12:21:24+08:00">
-                2017-06-05
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
+          </div>
         </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
-        
-          <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="external">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="external">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="external">GitHub</a>.</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/06/05/hello-world/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -812,6 +534,10 @@
 
 
           
+  <div class="comments" id="comments">
+    
+  </div>
+
 
         </div>
         
@@ -1039,6 +765,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
 
   
 
