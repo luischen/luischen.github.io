@@ -71,7 +71,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="解决方案,startup," />
 
 
 
@@ -87,12 +87,27 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="白话架构实践">
-<meta property="og:url" content="http://yoursite.com/tags/Spring-Boot/index.html">
+<meta name="description" content="平台上线快一年了，注册人数却始终不见起色，看着下面这注册走势可把大伙儿急的。 一着急一上火一刷朋友圈，灵感来了有没有？如果我们可以支持微信登录，那么微信日活5.7亿岂不都是我们的潜在客户了？不用多久升职加薪，当上总经理，出任CEO，迎娶白富美，走上人生巅峰。想想还有点小激动呢。">
+<meta name="keywords" content="解决方案,startup">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微信登录集成">
+<meta property="og:url" content="http://yoursite.com/2017/09/01/微信登录集成/index.html">
 <meta property="og:site_name" content="白话架构实践">
+<meta property="og:description" content="平台上线快一年了，注册人数却始终不见起色，看着下面这注册走势可把大伙儿急的。 一着急一上火一刷朋友圈，灵感来了有没有？如果我们可以支持微信登录，那么微信日活5.7亿岂不都是我们的潜在客户了？不用多久升职加薪，当上总经理，出任CEO，迎娶白富美，走上人生巅峰。想想还有点小激动呢。">
+<meta property="og:image" content="http://yoursite.com/2017/09/01/微信登录集成/trend.png">
+<meta property="og:image" content="http://yoursite.com/2017/09/01/微信登录集成/datamodel.png">
+<meta property="og:image" content="http://yoursite.com/2017/09/01/微信登录集成/flowchart.png">
+<meta property="og:image" content="http://yoursite.com/2017/09/01/微信登录集成/login.png">
+<meta property="og:image" content="http://yoursite.com/2017/09/01/微信登录集成/classdiagram.png">
+<meta property="og:image" content="http://yoursite.com/2017/09/01/微信登录集成/syslogin.png">
+<meta property="og:image" content="http://yoursite.com/2017/09/01/微信登录集成/scan.png">
+<meta property="og:image" content="http://yoursite.com/2017/09/01/微信登录集成/bindinfo.png">
+<meta property="og:image" content="http://yoursite.com/2017/09/01/微信登录集成/bind.png">
+<meta property="og:updated_time" content="2017-09-01T07:38:32.480Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="白话架构实践">
+<meta name="twitter:title" content="微信登录集成">
+<meta name="twitter:description" content="平台上线快一年了，注册人数却始终不见起色，看着下面这注册走势可把大伙儿急的。 一着急一上火一刷朋友圈，灵感来了有没有？如果我们可以支持微信登录，那么微信日活5.7亿岂不都是我们的潜在客户了？不用多久升职加薪，当上总经理，出任CEO，迎娶白富美，走上人生巅峰。想想还有点小激动呢。">
+<meta name="twitter:image" content="http://yoursite.com/2017/09/01/微信登录集成/trend.png">
 
 
 
@@ -120,13 +135,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/tags/Spring-Boot/"/>
+  <link rel="canonical" href="http://yoursite.com/2017/09/01/微信登录集成/"/>
 
 
 
 
 
-  <title> 标签: Spring Boot | 白话架构实践 </title>
+  <title> 微信登录集成 | 白话架构实践 </title>
   <meta name="baidu-site-verification" content="lJRxP1YNyu" />
 </head>
 
@@ -164,7 +179,7 @@
     
   
 
-  <div class="container sidebar-position-left  ">
+  <div class="container sidebar-position-left page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -291,46 +306,239 @@
           <div id="content" class="content">
             
 
-  <div id="posts" class="posts-collapse">
-    <div class="collection-title">
-      <h2 >
-        Spring Boot
-        <small>标签</small>
-      </h2>
-    </div>
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/09/01/微信登录集成/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Luis Chen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/tx.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="白话架构实践">
+    </span>
 
     
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                微信登录集成
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-01T15:02:01+08:00">
+                2017-09-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv">本文总阅读量
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
       
 
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+      
+        <p>平台上线快一年了，注册人数却始终不见起色，看着下面这注册走势可把大伙儿急的。<br><img src="/2017/09/01/微信登录集成/trend.png" alt="trend"></p>
+<p>一着急一上火一刷朋友圈，灵感来了有没有？<br>如果我们可以支持微信登录，那么微信日活5.7亿岂不都是我们的潜在客户了？<br>不用多久升职加薪，当上总经理，出任CEO，迎娶白富美，走上人生巅峰。想想还有点小激动呢。</p>
+<a id="more"></a>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>说干就干，<font color="red">程序员一般套路：代码未动，文档先行。</font><br>先找到微信开放平台（<a href="https://open.weixin.qq.com）-&gt;" target="_blank" rel="external">https://open.weixin.qq.com）-&gt;</a> 资源中心-&gt; 网站应用，把开发文档刷一遍。不管看没看懂咱都是看过源代码，噢不原文档的人了。</p>
+<p>象征性的总结一下，主要分三步走：</p>
+<ol>
+<li>授权换code（开门）</li>
+<li>code换token（找钥匙）</li>
+<li>token获取用户消息（该干啥干啥）</li>
+</ol>
+<p>当然，如果你觉得找到了钥匙你就拥有了全世界那你就羊羊了。用着人家的文档，坐拥5.7亿的日活，不交点保护费合适吗？<br>首先你要在开放平台注册一个账号，并通过开发者资质认证（300大洋一年）。<br>然后到管理中心，创建一个网站应用并通过审核，这个不要钱。</p>
+<p>OK，到此为止，你才真正拥有了全世界。</p>
+<h2 id="设计"><a href="#设计" class="headerlink" title="设计"></a>设计</h2><p>既然是登录集成首先我们需要审视用户模型，我们原来的用户模型是简单的用户密码认证方式，简单来说就是一张主用户表，加一堆外延表。<br>这无疑给我们用户的扩展提供了便利，本着KISS的原则，我们的用户模型最终如下：<br><img src="/2017/09/01/微信登录集成/datamodel.png" alt="datamodel"></p>
+<p>主要的改动点就是增加了一个t_wx_bind_info表，围绕这个数据模型，我们的逻辑可以如下展开</p>
+<ul>
+<li><p>首次微信登录<br>获取用户信息后保存至t_wx_bind_info, 此时的微信注册信息处于<font color="red">游离态</font>，用户通过后续选择a) 绑定到现有用户 b) 创建新用户 将微信注册用户转化为<font color="red">激活态</font></p>
+</li>
+<li><p>未绑定微信用户登录<br>用户授权后获取access token，通过token里面的unionId获取加载t_wx_bind_info中游离态的用户信息，用户同样需要通过选择来将游离态转化为激活态</p>
+</li>
+<li><p>已绑定微信用户登录<br>用户授权后获取access token，通过token里面的unionId获取t_wx_bind_info中激活态的用户并做正常登陆，之后用户可以通过用户管理模块进行微信解绑</p>
+</li>
+<li><p>iPlan账号登录<br>普通账号可以通过账号管理模块进行账号绑定和解绑</p>
+</li>
+</ul>
+<p>或许来张图会更加清晰一点<br><img src="/2017/09/01/微信登录集成/flowchart.png" alt="flowchart"></p>
+<p>关于用户解绑后t_wx_bind_info的思考<br>正常来说我们有两个选择，</p>
+<ul>
+<li>删除这条信息，每次绑定从头来过</li>
+<li>恢复至游离态，下次绑定的时候直接使用</li>
+</ul>
+<p>至于取舍见仁见智，每个选择都是优劣并存的，其实只要明白各自的优劣使用哪种方案并不重要。</p>
+<h2 id="开发"><a href="#开发" class="headerlink" title="开发"></a>开发</h2><p>俗话说的好，<font color="red">talk is cheap, show me the code</font>.<br>那接下来就是coding show了，主要是记录一下开发的过程，方便以后用到的时候复制粘贴。</p>
+<h5 id="登录页面"><a href="#登录页面" class="headerlink" title="登录页面"></a>登录页面</h5><p>登录页面增加微信登录的按钮，至于背景图片可以到开放平台的资源中心下载相应尺寸的背景图片。<br>给登录按钮添加事件<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> dName = <span class="built_in">document</span>.domain;</div><div class="line"><span class="keyword">var</span> redirectUri = <span class="built_in">encodeURIComponent</span>(<span class="string">"http://"</span> +dName+</div><div class="line"><span class="string">"&lt;%=request.getContextPath()%&gt;/wechat_callback.do?rout=fromLogin"</span>);</div><div class="line"><span class="keyword">var</span> wechatLoginUrl =     <span class="string">"https://open.weixin.qq.com/connect/qrconnectappid=xxx"</span></div><div class="line">+<span class="string">"&amp;redirect_uri="</span>+redirectUri</div><div class="line">+<span class="string">"&amp;response_type=code&amp;scope=snsapi_login&amp;state=123#wechat_redirect"</span>;</div><div class="line">location.href = wechatLoginUrl;</div></pre></td></tr></table></figure></p>
+<p>实现的效果，是点击按钮后会跳到微信自己的二维码页面。</p>
+<p><img src="/2017/09/01/微信登录集成/login.png" alt="login"></p>
+<p>注意点：</p>
+<ul>
+<li>RedirectUrl需要经过urlEncode</li>
+<li>AppId需要通过微信开发者资质认证后获得</li>
+<li>其他参数按照文档填写即可</li>
+</ul>
+<h5 id="后台程序实现"><a href="#后台程序实现" class="headerlink" title="后台程序实现"></a>后台程序实现</h5><p>程序入口是redirectUrl指向的地址，一般是一个restful的资源。<br>类图如下：<br><img src="/2017/09/01/微信登录集成/classdiagram.png" alt="classdiagram"></p>
+<p>在wechatCallback类中有两个分支分别处理扫码登录后的回调和账号登录后绑定微信的回调。主要的区别是重定向的页面和错误页面不同</p>
+<ul>
+<li><p>扫码登录<br>成功后跳转到信息补全页面<br>失败后跳转到登录页面并提示错误信息</p>
+</li>
+<li><p>登录绑定<br>成功后跳转到当前页面<br>失败后跳转到当前页面并提示错误信息</p>
+</li>
+</ul>
+<p>BindService主要处理t_wx_bind_info表的CRUD操作，sync方法用于同步微信信息和账户信息<br>WechatUtil类是连接微信API的工具类，主要逻辑是通过httpClient组装请求信息与微信服务器进行信息交换。代码见类图。</p>
+<h5 id="效果展示"><a href="#效果展示" class="headerlink" title="效果展示"></a>效果展示</h5><p>登录页面<br><img src="/2017/09/01/微信登录集成/syslogin.png" alt="syslogin"><br>扫码成功<br><img src="/2017/09/01/微信登录集成/scan.png" alt="scan"><br>跳转到信息补全页面，可以选择新创建账号还是绑定已有账号<br><img src="/2017/09/01/微信登录集成/bindinfo.png" alt="bindinfo"><br>选择绑定到已有账户，输入用户密码后就直接完成登录并可以看到微信绑定状态是已绑定<br><img src="/2017/09/01/微信登录集成/bind.png" alt="bind"></p>
+<h2 id="可能遇到的问题"><a href="#可能遇到的问题" class="headerlink" title="可能遇到的问题"></a>可能遇到的问题</h2><ol>
+<li><p>AppId参数不对<br>这个问题主要是在开发者资质认证阶段，我随便编个参数遇到的问题，填写正确的appId就可以了</p>
+</li>
+<li><p>RedirectUrl参数不对<br>在网站申请的时候回调域名一定要和开发的redirectUrl一致。比如申请的回调域名是manulism.com, redirectUrl使用test.manulism.com则会出现这个问题。</p>
+</li>
+<li><p>本地测试的问题<br>由于微信平台配置的时候只接受回调域名，所以在本地要测试需要修改hosts文件里的域名mapping，文件目录在C:\Windows\System32\drivers\etc<br>新增一行：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">192.168.8.254    test.manulism.com</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>另外强烈推荐下载微信web开发者工具，真的很好用</p>
 
-      <h1 class="post-title">
+      
+    </div>
+
+    <div>
+      
         
-            <a class="post-title-link" href="/2017/08/16/搜索前置服务架构/" itemprop="url">
-              
-                <span itemprop="name">搜索前置服务架构</span>
-              
-            </a>
+
+      
+    </div>
+
+    <div>
+      
         
-      </h1>
+  <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+    <div>您的支持将鼓励我继续创作！</div>
+    <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+      <span>赏</span>
+    </button>
+    <div id="QR" style="display: none;">
+      
+        <div id="wechat" style="display: inline-block">
+          <img id="wechat_qr" src="/uploads/wechat_pay.jpg" alt="Luis Chen WeChat Pay"/>
+          <p>微信打赏</p>
+        </div>
+      
+      
+    </div>
+  </div>
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2017-08-16T14:45:45+08:00"
-              content="2017-08-16" >
-          08-16
-        </time>
-      </div>
 
-    </header>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/解决方案/" rel="tag"># 解决方案</a>
+          
+            <a href="/tags/startup/" rel="tag"># startup</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/16/搜索前置服务架构/" rel="next" title="搜索前置服务架构">
+                <i class="fa fa-chevron-left"></i> 搜索前置服务架构
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </article>
 
 
-    
-  </div>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -338,6 +546,10 @@
 
 
           
+  <div class="comments" id="comments">
+    
+  </div>
+
 
         </div>
         
@@ -565,6 +777,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
 
   
 
