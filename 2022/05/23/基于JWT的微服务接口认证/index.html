@@ -18,33 +18,33 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha256-DfWjNxDkM94fVBWx1H5BMMp0Zq7luBlV8QRcSES7s+0=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.11.1","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"luischen.gitee.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.11.1","exturl":false,"sidebar":{"position":"left","width":300,"display":"always","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="在前后端分离的实践中接口定义问题是无法回避的。关于接口的认证和访问权限设置，这里记录一些个人想法。 接口分级首先我们将接口分为几个不同的访问等级：  level-1 开放接口，对所有人开放无需认证 level-2 认证接口，仅对认证用户开放，每次访问需要通过用户token进行认证 level-3 内部接口，仅对内部开放，通过内部约定的token进行认证  根据接口等级的定义，我们可以得到接口的几种">
 <meta property="og:type" content="article">
 <meta property="og:title" content="基于JWT的微服务接口认证">
-<meta property="og:url" content="http://example.com/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/index.html">
+<meta property="og:url" content="https://luischen.gitee.io/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/index.html">
 <meta property="og:site_name" content="路易斯小屋">
 <meta property="og:description" content="在前后端分离的实践中接口定义问题是无法回避的。关于接口的认证和访问权限设置，这里记录一些个人想法。 接口分级首先我们将接口分为几个不同的访问等级：  level-1 开放接口，对所有人开放无需认证 level-2 认证接口，仅对认证用户开放，每次访问需要通过用户token进行认证 level-3 内部接口，仅对内部开放，通过内部约定的token进行认证  根据接口等级的定义，我们可以得到接口的几种">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/encode-decode.png">
-<meta property="og:image" content="http://example.com/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/user-get-token.png">
-<meta property="og:image" content="http://example.com/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/user-use-token.png">
-<meta property="og:image" content="http://example.com/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/user-expire-token.png">
+<meta property="og:image" content="https://luischen.gitee.io/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/encode-decode.png">
+<meta property="og:image" content="https://luischen.gitee.io/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/user-get-token.png">
+<meta property="og:image" content="https://luischen.gitee.io/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/user-use-token.png">
+<meta property="og:image" content="https://luischen.gitee.io/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/user-expire-token.png">
 <meta property="article:published_time" content="2022-05-23T03:10:11.000Z">
-<meta property="article:modified_time" content="2022-05-23T08:33:32.151Z">
+<meta property="article:modified_time" content="2022-05-24T04:09:55.061Z">
 <meta property="article:author" content="Luis Chen">
 <meta property="article:tag" content="架构设计">
 <meta property="article:tag" content="微服务">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/encode-decode.png">
+<meta name="twitter:image" content="https://luischen.gitee.io/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/encode-decode.png">
 
 
-<link rel="canonical" href="http://example.com/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/">
+<link rel="canonical" href="https://luischen.gitee.io/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/","path":"2022/05/23/基于JWT的微服务接口认证/","title":"基于JWT的微服务接口认证"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://luischen.gitee.io/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/","path":"2022/05/23/基于JWT的微服务接口认证/","title":"基于JWT的微服务接口认证"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>基于JWT的微服务接口认证 | 路易斯小屋</title>
@@ -128,6 +128,8 @@
 
         <div class="site-overview-wrap sidebar-panel">
           <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Luis Chen"
+      src="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
   <p class="site-author-name" itemprop="name">Luis Chen</p>
   <div class="site-description" itemprop="description"></div>
 </div>
@@ -135,7 +137,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -146,7 +148,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -188,10 +190,10 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/">
+    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
       <meta itemprop="name" content="Luis Chen">
     </span>
 
@@ -216,9 +218,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2022-05-23 11:10:11 / 修改时间：16:33:32" itemprop="dateCreated datePublished" datetime="2022-05-23T11:10:11+08:00">2022-05-23</time>
+      <time title="创建时间：2022-05-23 11:10:11" itemprop="dateCreated datePublished" datetime="2022-05-23T11:10:11+08:00">2022-05-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-05-24 12:09:55" itemprop="dateModified" datetime="2022-05-24T12:09:55+08:00">2022-05-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -255,6 +263,8 @@
 <li>第三方调用 </li>
 <li>公开调用</li>
 </ul>
+<span id="more"></span>
+
 <p>最终我们可以汇总出接口的访问矩阵</p>
 <table>
 <thead>
@@ -296,8 +306,6 @@
 <td>×</td>
 </tr>
 </tbody></table>
-<span id="more"></span>
-
 <h2 id="名词解释"><a href="#名词解释" class="headerlink" title="名词解释"></a>名词解释</h2><p>JWT，全称Json Web Tokens，是一个开放的、符合工业标准RFC 7519的认证方法，主要用于满足交互双方的安全需求。</p>
 <blockquote>
 <p>JSON Web Tokens are an open, industry standard RFC 7519 method for representing claims securely between two parties.</p>
@@ -309,7 +317,7 @@
 <p>payload是信息的主体，可以包含任何想要传递的信息，但是从安全考虑包含的信息应该是不敏感的信息。</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;userId&quot;</span><span class="punctuation">:</span> <span class="string">&quot;12&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;userName&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Test&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
-<p>header和payload部分都通过base64UrlEncode对内容进行编码。<br>signature是token的签名部分，主要用于确保token没有被篡改。签名算法如下：</p>
+<p>header和payload部分都通过base64UrlEncode对内容进行编码。signature是token的签名部分，主要用于确保token没有被篡改。签名算法如下：</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">HMACSHA256</span>( <span class="title function_">base64UrlEncode</span>(header) + <span class="string">&quot;.&quot;</span> + <span class="title function_">base64UrlEncode</span>(payload), secret)</span><br></pre></td></tr></table></figure>
 
 <p>这里的 HMACSHA256 是在header部分指定的加密算法，secret是约定的密钥，是安全的保证。</p>
@@ -338,8 +346,7 @@
 <li><p>Token失效</p>
 <img src="user-expire-token.png" alt="Image" style="zoom:67%;" /></li>
 </ol>
-<h3 id="模块认证"><a href="#模块认证" class="headerlink" title="模块认证"></a>模块认证</h3><p>模块认证的目的在于确保内部接口只有内部可以访问，所以对于所有需要访问的模块可以共同约定一个内部Token作为JWT的payload。</p>
-<p>相对于用户认证的流程，模块认证只需要关注接口访问部分。</p>
+<h3 id="模块认证"><a href="#模块认证" class="headerlink" title="模块认证"></a>模块认证</h3><p>模块认证的目的在于确保内部接口只有内部可以访问，所以对于所有需要访问的模块可以共同约定一个内部Token作为JWT的payload。<br>相对于用户认证的流程，模块认证只需要关注接口访问部分。</p>
 <h3 id="服务认证"><a href="#服务认证" class="headerlink" title="服务认证"></a>服务认证</h3><p>服务认证目前考虑节点和主站之间互联的认证问题，和用户认证的Token相比差异主要在payload部分：</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;nodeId&quot;</span><span class="punctuation">:</span> <span class="string">&quot;12&quot;</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
@@ -381,6 +388,23 @@
     
 
     <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Luis Chen
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://luischen.gitee.io/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/" title="基于JWT的微服务接口认证">https://luischen.gitee.io/2022/05/23/基于JWT的微服务接口认证/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
           <div class="post-tags">
               <a href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag"># 架构设计</a>
               <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag"># 微服务</a>
@@ -395,6 +419,9 @@
                 </a>
             </div>
             <div class="post-nav-item">
+                <a href="/2022/05/24/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/" rel="next" title="设计模式实战之状态模式">
+                  设计模式实战之状态模式 <i class="fa fa-chevron-right"></i>
+                </a>
             </div>
           </div>
     </footer>
