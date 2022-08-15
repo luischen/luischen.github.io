@@ -23,35 +23,22 @@
     <meta name="description" content="摘要在IT和OT融合的道路上，数据能力是很重要的一环。在设备端我们通过软PLC的解决方案覆盖了常见的数采方式和工业协议，那么采来的海量数据如何存储就成了我们当前的重中之重。 在调研了流行的数据存储方案后，我们决定基于开源时序数据库打造一款工业适用、业务定制的数据存储引擎。而接下来要介绍的路由网关可以认为是整个数据存储引擎的代理人，通过路由网关的引入，极大的透明了数据存储引擎的使用。不管是工业应用还">
 <meta property="og:type" content="article">
 <meta property="og:title" content="基于Spring Cloud Gateway的路由实践">
-<meta property="og:url" content="https://luischen.gitee.io/2022/08/15/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:url" content="https://luischen.gitee.io/2020/03/13/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/index.html">
 <meta property="og:site_name" content="路易斯小屋">
 <meta property="og:description" content="摘要在IT和OT融合的道路上，数据能力是很重要的一环。在设备端我们通过软PLC的解决方案覆盖了常见的数采方式和工业协议，那么采来的海量数据如何存储就成了我们当前的重中之重。 在调研了流行的数据存储方案后，我们决定基于开源时序数据库打造一款工业适用、业务定制的数据存储引擎。而接下来要介绍的路由网关可以认为是整个数据存储引擎的代理人，通过路由网关的引入，极大的透明了数据存储引擎的使用。不管是工业应用还">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://luischen.gitee.io/archi.png">
-<meta property="og:image" content="https://luischen.gitee.io/code1.png">
-<meta property="og:image" content="https://luischen.gitee.io/code2.png">
-<meta property="og:image" content="https://luischen.gitee.io/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5%5Ccode3.png">
-<meta property="og:image" content="https://luischen.gitee.io/class_diagram.png">
-<meta property="og:image" content="https://luischen.gitee.io/code4.png">
-<meta property="og:image" content="https://luischen.gitee.io/table.png">
-<meta property="og:image" content="https://luischen.gitee.io/table2.png">
-<meta property="og:image" content="https://luischen.gitee.io/rate.png">
-<meta property="og:image" content="https://luischen.gitee.io/code5.png">
-<meta property="og:image" content="https://luischen.gitee.io/code6.png">
-<meta property="og:image" content="https://luischen.gitee.io/code7.png">
-<meta property="article:published_time" content="2022-08-15T08:32:10.000Z">
-<meta property="article:modified_time" content="2022-08-15T09:12:36.928Z">
+<meta property="article:published_time" content="2020-03-13T08:32:10.000Z">
+<meta property="article:modified_time" content="2022-08-15T09:25:49.925Z">
 <meta property="article:author" content="Luis Chen">
 <meta property="article:tag" content="应用技术">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://luischen.gitee.io/archi.png">
 
 
-<link rel="canonical" href="https://luischen.gitee.io/2022/08/15/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/">
+<link rel="canonical" href="https://luischen.gitee.io/2020/03/13/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://luischen.gitee.io/2022/08/15/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/","path":"2022/08/15/基于Spring-Cloud-Gateway的路由实践/","title":"基于Spring Cloud Gateway的路由实践"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://luischen.gitee.io/2020/03/13/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/","path":"2020/03/13/基于Spring-Cloud-Gateway的路由实践/","title":"基于Spring Cloud Gateway的路由实践"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>基于Spring Cloud Gateway的路由实践 | 路易斯小屋</title>
@@ -197,7 +184,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2022/08/15/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/">
+    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2020/03/13/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
@@ -225,9 +212,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2022-08-15 16:32:10 / 修改时间：17:12:36" itemprop="dateCreated datePublished" datetime="2022-08-15T16:32:10+08:00">2022-08-15</time>
+      <time title="创建时间：2020-03-13 16:32:10" itemprop="dateCreated datePublished" datetime="2020-03-13T16:32:10+08:00">2020-03-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-08-15 17:25:49" itemprop="dateModified" datetime="2022-08-15T17:25:49+08:00">2022-08-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -272,7 +265,8 @@
 <p>This project provides a library for building an API Gateway on top of Spring MVC. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring&#x2F;metrics, and resiliency.</p>
 </blockquote>
 <p>主要突出了路由功能的简单有效，同时可以在安全、监控以及扩展性方面提供不错的支持，毕竟靠着Spring Cloud这面大树。</p>
-<h2 id="架构考虑"><a href="#架构考虑" class="headerlink" title="架构考虑"></a>架构考虑</h2><p><img src="/archi.png" alt="image-20220815163711554"></p>
+<h2 id="架构考虑"><a href="#架构考虑" class="headerlink" title="架构考虑"></a>架构考虑</h2><image src="archi.png"/>
+
 <p>这是官方网站的工作原理示意图，从上图可以看出SCG在整个流程中主要担任反向代理的角色。客户端请求抵达SCG后，SCG通过Handler Mapping将请求路由到Web Handler，Web Handler再通过Filter对原始请求进行处理，最终发送到被代理的服务端。</p>
 <p>在研究SCG之前，我们发现Spring Cloud下面已经有一个成熟的API套件Spring Cloud Netflix，提供了服务注册发现（Eureka），熔断器（Hystrix），智能路由（Zuul）和客户端负载均衡（Ribbon）等特性，其中就有我们需要的路由功能Zuul。</p>
 <p>那为什么在集成一个路由功能后，Spring Cloud还要自己开发一个用于路由的Gateway项目呢？我们来看看他们的一些对比，由于Spring Cloud只集成了Zuul1.0，所以比较也集中在Zuul1.0和SCG之间。</p>
@@ -319,22 +313,29 @@
 </ol>
 <p>但是我们实际需求中存在动态分配路由的场景，以上两种方式显然都不能满足需求。</p>
 <p>通过查看源代码发现SCG加载路由是通过RouteDefinitionLocator接口实现，有以下默认实现（框掉的部分可以暂时忽略，这是我们自己的实现）：</p>
-<p><img src="/code1.png" alt="image-20220815164611946"></p>
+<image src="code1.png"/>
+
 <p>在GatewayAutoConfiguration中通过Primary的方式指定CompositeRouteDefinitionLocator作为路由定义加载的入口，通过组合模式将所有的RouteDefinitionLocator代理。最终通过CompositeRouteDefinitionLocator的getRouteDefinitions方法将所有定义加载出来。</p>
-<p><img src="/code2.png" alt="image-20220815164656519"></p>
-<p><img src="/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5%5Ccode3.png" alt="image-20220815164709875"></p>
+<image src="code2.png"/>
+
+<image src="code3.png"/>
+
 <p>通过源代码的解读，我们发现如果需要定义新的路由加载方式，只需要增加一个RouteDefinitionLocator的实现即可，在实际操作中为了方便路由更新我们仿照已有的实现</p>
 <p>InMemoryRouteDefinitionRepository进行实现，类图如下：</p>
-<p><img src="/class_diagram.png" alt="image-20220815164742792"></p>
+<image src="class_diagram.png"/>
+
 <p>我们通过新增了一个抽象类类完成RouteDefinitionRepository的扩展，在抽象类里我们实现了基本的get, save, delete方法，另外新增了refresh方法用于刷新缓存，而缓存的实现参考了InMemory的实现方式。</p>
 <p>在需要进行扩展的时候我们可以通过继承AbstractRoutConfigure来增加我们自己的configure loader，再通过Configuration方式注入即可：</p>
-<p><img src="/code4.png" alt="image-20220815164840440"></p>
+<image src="code4.png"/>
+
 <p>最终的实现效果是我们通过数据库变更配置后，通过restful接口来调用refresh方法即可完成路由的动态刷新。</p>
 <h3 id="服务路由"><a href="#服务路由" class="headerlink" title="服务路由"></a>服务路由</h3><p>通过上面动态路由的基本实现，我们数据库中的配置是这样的：</p>
-<p><img src="/table.png" alt="image-20220815164929357"></p>
+<image src="table.png"/>
+
 <p>但是我们是要做微服务和集群的网关，直接写地址显然是不行的。</p>
 <p>针对这种情况，SCG提供了一种URI的格式：lb:&#x2F;&#x2F;main-service，其中main-service是我们微服务在注册中心的name。当URI以lb开头，则在进行URI解析的时候会去寻找zookeeper，consul，eureka对应的客户端实现。我们使用的是eureka，并且在数据库中加上以下配置：</p>
-<p><img src="/table2.png" alt="image-20220815165055863"></p>
+<image src="table2.png"/>
+
 <p>这样我们就可以成功代理微服务提供的接口了。</p>
 <h3 id="容错管理"><a href="#容错管理" class="headerlink" title="容错管理"></a>容错管理</h3><p>容错管理从以下两方面进行考虑：</p>
 <ol>
@@ -348,7 +349,8 @@
 </ol>
 <p>通过上面两点的配置，我们在请求出错如超时、服务宕机的情况都可以得到对应的错误信息，确保了网关服务的鲁棒性。</p>
 <h3 id="限流机制"><a href="#限流机制" class="headerlink" title="限流机制"></a>限流机制</h3><p>SCG使用的限流机制（Rate Limiter）基于令牌桶算法，我们先大致了解一下令牌桶算法。</p>
-<p><img src="/rate.png" alt="image-20220815165429195"></p>
+<image src="rate.png"/>
+
 <p>从上图可以看出，令牌桶算法的主要数据结构是个缓冲区。通过匀速生成的令牌来填充缓冲区相当于生产者，而实际流量则相当于消费者来消费缓冲区中的令牌。 </p>
 <p>我们再结合SCG中的实现来看看令牌桶算法如何限流的。</p>
 <p>SCG使用RateLimiter需要引入spring-boot-starter-data-redis-reactive，所以SCG的令牌桶实现是基于Redis的，这样可以满足分布式的要求。SCG在使用过程中需要设置三个参数replenishRate ，burstCapacity和KeyResolver。</p>
@@ -359,14 +361,17 @@
 </ul>
 <p>对于burstCapacity的理解，只有当replenishRate和burstCapacity相等时也就是请求处理基本是匀速的情况下，burstCapacity才表示一秒内允许的最大流量，否则解释为令牌桶的容量更加贴切。</p>
 <p>代码实现主要通过RedisRateLimiter.class和request_rate_limiter.lua两个文件，而主要逻辑是通过脚本文件实现。</p>
-<p><img src="/code5.png" alt="image-20220815165630451"></p>
+<image src="code5.png"/>
+
 <p>这里主要获取java传过来的参数，计算出ttl，ttl的逻辑是桶装满所需时间的两倍。</p>
-<p><img src="/code6.png" alt="image-20220815170637927"></p>
+<image src="code6.png"/>
+
 <p>上面这段代码是实现限流的关键，每次都会通过当前时间和上次刷新时间的间隔计算填充的令牌，只有填充后的令牌 &gt;&#x3D; 请求的令牌数才符合条件允许令牌获取。</p>
 <p>当新的请求获取令牌后，更新令牌桶的令牌数和最后刷新时间。</p>
 <p>在实际引用中我们根据我们服务器的压力来设定rate和capacity，通过不停的调节来寻求吞吐和负载的平衡。</p>
 <h3 id="日志配置"><a href="#日志配置" class="headerlink" title="日志配置"></a>日志配置</h3><p>日志配置方面除了基本的logback配置，需要加入access_log的配置，根据官方文档我们需要在logback配置文件中加入logger和appender的配置。</p>
-<p><img src="/code7.png" alt="image-20220815170805545"></p>
+<image src="code7.png"/>
+
 <p>如上图所示，通过定义logger接收netty的AccessLog，通过异步发射器发送到accessLog和errorLog两个Appender，在Appender中通过filter来区分日志类型。 </p>
 <p>这里需要注意的是Netty AccessLog的配置要到reactor-netty0.7.9之后才支持，所以在使用这个功能之前需要确保我们netty的版本满足要求，项目目前使用的spring版本如下，对应的reactor-netty版本为0.8.6。</p>
 <p>配置了这么多，然而access.log文件还是空空如也，因为你漏掉了很重要的一步：</p>
@@ -391,7 +396,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://luischen.gitee.io/2022/08/15/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/" title="基于Spring Cloud Gateway的路由实践">https://luischen.gitee.io/2022/08/15/基于Spring-Cloud-Gateway的路由实践/</a>
+      <a href="https://luischen.gitee.io/2020/03/13/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/" title="基于Spring Cloud Gateway的路由实践">https://luischen.gitee.io/2020/03/13/基于Spring-Cloud-Gateway的路由实践/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -407,11 +412,14 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2022/06/01/InfluxDB%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5MQTT/" rel="prev" title="InfluxDB数据接入MQTT">
-                  <i class="fa fa-chevron-left"></i> InfluxDB数据接入MQTT
+                <a href="/2016/05/26/hello-world/" rel="prev" title="Hello World">
+                  <i class="fa fa-chevron-left"></i> Hello World
                 </a>
             </div>
             <div class="post-nav-item">
+                <a href="/2022/05/18/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/" rel="next" title="设计模式实战之装饰模式">
+                  设计模式实战之装饰模式 <i class="fa fa-chevron-right"></i>
+                </a>
             </div>
           </div>
     </footer>
