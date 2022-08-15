@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha256-DfWjNxDkM94fVBWx1H5BMMp0Zq7luBlV8QRcSES7s+0=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"luischen.gitee.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.11.1","exturl":false,"sidebar":{"position":"left","width":300,"display":"always","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="摘要在IT和OT融合的道路上，数据能力是很重要的一环。在设备端我们通过软PLC的解决方案覆盖了常见的数采方式和工业协议，那么采来的海量数据如何存储就成了我们当前的重中之重。 在调研了流行的数据存储方案后，我们决定基于开源时序数据库打造一款工业适用、业务定制的数据存储引擎。而接下来要介绍的路由网关可以认为是整个数据存储引擎的代理人，通过路由网关的引入，极大的透明了数据存储引擎的使用。不管是工业应用还">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于Spring Cloud Gateway的路由实践">
+<meta property="og:url" content="https://luischen.gitee.io/2022/08/15/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="路易斯小屋">
+<meta property="og:description" content="摘要在IT和OT融合的道路上，数据能力是很重要的一环。在设备端我们通过软PLC的解决方案覆盖了常见的数采方式和工业协议，那么采来的海量数据如何存储就成了我们当前的重中之重。 在调研了流行的数据存储方案后，我们决定基于开源时序数据库打造一款工业适用、业务定制的数据存储引擎。而接下来要介绍的路由网关可以认为是整个数据存储引擎的代理人，通过路由网关的引入，极大的透明了数据存储引擎的使用。不管是工业应用还">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://luischen.gitee.io/archi.png">
+<meta property="og:image" content="https://luischen.gitee.io/code1.png">
+<meta property="og:image" content="https://luischen.gitee.io/code2.png">
+<meta property="og:image" content="https://luischen.gitee.io/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5%5Ccode3.png">
+<meta property="og:image" content="https://luischen.gitee.io/class_diagram.png">
+<meta property="og:image" content="https://luischen.gitee.io/code4.png">
+<meta property="og:image" content="https://luischen.gitee.io/table.png">
+<meta property="og:image" content="https://luischen.gitee.io/table2.png">
+<meta property="og:image" content="https://luischen.gitee.io/rate.png">
+<meta property="og:image" content="https://luischen.gitee.io/code5.png">
+<meta property="og:image" content="https://luischen.gitee.io/code6.png">
+<meta property="og:image" content="https://luischen.gitee.io/code7.png">
+<meta property="article:published_time" content="2022-08-15T08:32:10.000Z">
+<meta property="article:modified_time" content="2022-08-15T09:12:36.928Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="应用技术">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://luischen.gitee.io/archi.png">
+
+
+<link rel="canonical" href="https://luischen.gitee.io/2022/08/15/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://luischen.gitee.io/2022/08/15/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/","path":"2022/08/15/基于Spring-Cloud-Gateway的路由实践/","title":"基于Spring Cloud Gateway的路由实践"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>基于Spring Cloud Gateway的路由实践 | 路易斯小屋</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">路易斯小屋</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-number">1.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">基本介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84%E8%80%83%E8%99%91"><span class="nav-number">3.</span> <span class="nav-text">架构考虑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E5%85%B3%E5%AE%9E%E8%B7%B5"><span class="nav-number">4.</span> <span class="nav-text">网关实践</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">4.1.</span> <span class="nav-text">初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E8%B7%AF%E7%94%B1"><span class="nav-number">4.2.</span> <span class="nav-text">动态路由</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%8D%E5%8A%A1%E8%B7%AF%E7%94%B1"><span class="nav-number">4.3.</span> <span class="nav-text">服务路由</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%B9%E9%94%99%E7%AE%A1%E7%90%86"><span class="nav-number">4.4.</span> <span class="nav-text">容错管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%99%90%E6%B5%81%E6%9C%BA%E5%88%B6"><span class="nav-number">4.5.</span> <span class="nav-text">限流机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E9%85%8D%E7%BD%AE"><span class="nav-number">4.6.</span> <span class="nav-text">日志配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Luis Chen"
+      src="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
+  <p class="site-author-name" itemprop="name">Luis Chen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2022/08/15/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
+      <meta itemprop="name" content="Luis Chen">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="路易斯小屋">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="基于Spring Cloud Gateway的路由实践 | 路易斯小屋">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          基于Spring Cloud Gateway的路由实践
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2022-08-15 16:32:10 / 修改时间：17:12:36" itemprop="dateCreated datePublished" datetime="2022-08-15T16:32:10+08:00">2022-08-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" itemprop="url" rel="index"><span itemprop="name">技术总结</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>在IT和OT融合的道路上，数据能力是很重要的一环。在设备端我们通过软PLC的解决方案覆盖了常见的数采方式和工业协议，那么采来的海量数据如何存储就成了我们当前的重中之重。</p>
+<p>在调研了流行的数据存储方案后，我们决定基于开源时序数据库打造一款工业适用、业务定制的数据存储引擎。而接下来要介绍的路由网关可以认为是整个数据存储引擎的代理人，通过路由网关的引入，极大的透明了数据存储引擎的使用。不管是工业应用还是数采网关抑或是数据分析人员都可以方便的对数据进行读写操作，没有一点负担，没有一点门槛。</p>
+<span id="more"></span>
+
+<h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><p>Spring Cloud Gateway（下文以SCG代替）， 顾名思义这是由Spring 官方出品的一款网关产品，是Spring Cloud的子项目。再看一下官方介绍：</p>
+<blockquote>
+<p>This project provides a library for building an API Gateway on top of Spring MVC. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring&#x2F;metrics, and resiliency.</p>
+</blockquote>
+<p>主要突出了路由功能的简单有效，同时可以在安全、监控以及扩展性方面提供不错的支持，毕竟靠着Spring Cloud这面大树。</p>
+<h2 id="架构考虑"><a href="#架构考虑" class="headerlink" title="架构考虑"></a>架构考虑</h2><p><img src="/archi.png" alt="image-20220815163711554"></p>
+<p>这是官方网站的工作原理示意图，从上图可以看出SCG在整个流程中主要担任反向代理的角色。客户端请求抵达SCG后，SCG通过Handler Mapping将请求路由到Web Handler，Web Handler再通过Filter对原始请求进行处理，最终发送到被代理的服务端。</p>
+<p>在研究SCG之前，我们发现Spring Cloud下面已经有一个成熟的API套件Spring Cloud Netflix，提供了服务注册发现（Eureka），熔断器（Hystrix），智能路由（Zuul）和客户端负载均衡（Ribbon）等特性，其中就有我们需要的路由功能Zuul。</p>
+<p>那为什么在集成一个路由功能后，Spring Cloud还要自己开发一个用于路由的Gateway项目呢？我们来看看他们的一些对比，由于Spring Cloud只集成了Zuul1.0，所以比较也集中在Zuul1.0和SCG之间。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>连接方式</th>
+<th>支持服务器</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Zuul1.0</td>
+<td>Servlet API</td>
+<td>Tomcat，undertow</td>
+<td>基本路由规则，仅支持Path的路由</td>
+</tr>
+<tr>
+<td>SCG</td>
+<td>Reactor</td>
+<td>Netty</td>
+<td>较多路由规则，可以支持header，cookie，query，method等丰富的predict定义</td>
+</tr>
+</tbody></table>
+<p>从上面的对比来看，SCG基于Project Reactor可以获得更优秀的吞吐，在功能方面相当于Zuul的优化，更加灵活的配置可以满足几乎所有的网关路由需求。</p>
+<p>虽然说Zuul2.0也是基于Netty开发，并增强了路由和过滤器功能，然而他的多次跳票最终让Spring下决心自己做一款网关路由产品，并表示不会将Zuul2.0集成进以后的Spring Cloud中，也算一段趣闻吧。</p>
+<h2 id="网关实践"><a href="#网关实践" class="headerlink" title="网关实践"></a>网关实践</h2><p>下面我们实际动手实现一个网关，结合过程中遇到的问题来熟悉SCG的各项特性。</p>
+<h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><p>我们新建一个基于Spring Boot的Maven项目，添加SCG的依赖，主要是下面两个：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-gateway<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-webflux<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>我们这里选择的是最新的Spring Boot Release版本（2.1.4）以及支持2.1的Spring Cloud分支Greenwich。 </p>
+<p>最后建一个SpringBootApplication，参照首页的Demo去掉Hystrix和RateLimit相关的内容就可以跑起来了（<a target="_blank" rel="noopener" href="https://spring.io/projects/spring-cloud-gateway%EF%BC%89%E3%80%82">https://spring.io/projects/spring-cloud-gateway）。</a></p>
+<h3 id="动态路由"><a href="#动态路由" class="headerlink" title="动态路由"></a>动态路由</h3><p>光有个Demo肯定不行，我们的网关是要实际投产使用的，在分析了实际需求之后我们识别出急需的第一个功能是动态路由。</p>
+<p>在文档中提供了两种方式的路由配置方式：</p>
+<ol>
+<li><p>通过java API</p>
+<p>直接通过RouteLocatorBuilder构建如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">builder.routes().route(<span class="string">&quot;path_route&quot;</span>, r -&gt; r.path(<span class="string">&quot;/get&quot;</span>).uri(<span class="string">&quot;http://httpbin.org&quot;</span>)).build();</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>通过配置文件</p>
+<p>通过YAML文件构建路由如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="attr">routes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">host_route</span></span><br><span class="line">        <span class="attr">uri:</span> <span class="string">https://example.org</span></span><br><span class="line">        <span class="attr">predicates:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">path=/foo/&#123;segment&#125;,/bar/&#123;segment&#125;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>但是我们实际需求中存在动态分配路由的场景，以上两种方式显然都不能满足需求。</p>
+<p>通过查看源代码发现SCG加载路由是通过RouteDefinitionLocator接口实现，有以下默认实现（框掉的部分可以暂时忽略，这是我们自己的实现）：</p>
+<p><img src="/code1.png" alt="image-20220815164611946"></p>
+<p>在GatewayAutoConfiguration中通过Primary的方式指定CompositeRouteDefinitionLocator作为路由定义加载的入口，通过组合模式将所有的RouteDefinitionLocator代理。最终通过CompositeRouteDefinitionLocator的getRouteDefinitions方法将所有定义加载出来。</p>
+<p><img src="/code2.png" alt="image-20220815164656519"></p>
+<p><img src="/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5%5Ccode3.png" alt="image-20220815164709875"></p>
+<p>通过源代码的解读，我们发现如果需要定义新的路由加载方式，只需要增加一个RouteDefinitionLocator的实现即可，在实际操作中为了方便路由更新我们仿照已有的实现</p>
+<p>InMemoryRouteDefinitionRepository进行实现，类图如下：</p>
+<p><img src="/class_diagram.png" alt="image-20220815164742792"></p>
+<p>我们通过新增了一个抽象类类完成RouteDefinitionRepository的扩展，在抽象类里我们实现了基本的get, save, delete方法，另外新增了refresh方法用于刷新缓存，而缓存的实现参考了InMemory的实现方式。</p>
+<p>在需要进行扩展的时候我们可以通过继承AbstractRoutConfigure来增加我们自己的configure loader，再通过Configuration方式注入即可：</p>
+<p><img src="/code4.png" alt="image-20220815164840440"></p>
+<p>最终的实现效果是我们通过数据库变更配置后，通过restful接口来调用refresh方法即可完成路由的动态刷新。</p>
+<h3 id="服务路由"><a href="#服务路由" class="headerlink" title="服务路由"></a>服务路由</h3><p>通过上面动态路由的基本实现，我们数据库中的配置是这样的：</p>
+<p><img src="/table.png" alt="image-20220815164929357"></p>
+<p>但是我们是要做微服务和集群的网关，直接写地址显然是不行的。</p>
+<p>针对这种情况，SCG提供了一种URI的格式：lb:&#x2F;&#x2F;main-service，其中main-service是我们微服务在注册中心的name。当URI以lb开头，则在进行URI解析的时候会去寻找zookeeper，consul，eureka对应的客户端实现。我们使用的是eureka，并且在数据库中加上以下配置：</p>
+<p><img src="/table2.png" alt="image-20220815165055863"></p>
+<p>这样我们就可以成功代理微服务提供的接口了。</p>
+<h3 id="容错管理"><a href="#容错管理" class="headerlink" title="容错管理"></a>容错管理</h3><p>容错管理从以下两方面进行考虑：</p>
+<ol>
+<li><p>路由未定义</p>
+<p>针对路由未找到的情况，提供有意义的报错信息进行有效反馈。</p>
+<p>实现层面主要通过定义一个NotFound的路由，通过设置order确保NotFound路由在所有的路由之后执行，这样当所有的路由都没有匹配上的时候就会被路由到NotFound路由，从而反馈有意义的报错信息。</p>
+</li>
+<li><p>熔断器</p>
+<p>熔断器主要应用于请求超时，服务端错误等使用场景，SCG提供了Hystrix的集成，我们只需要在YAML配置文件里面配置default filter并加入fallbackUri的实现即可。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span> </span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="attr">default-filters:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Hystrix</span></span><br><span class="line">        <span class="attr">args:</span></span><br><span class="line">          <span class="attr">name:</span> <span class="string">fallbackcmd</span></span><br><span class="line">          <span class="attr">fallbackUri:</span> <span class="string">forward:/fallbackcontroller</span></span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>通过上面两点的配置，我们在请求出错如超时、服务宕机的情况都可以得到对应的错误信息，确保了网关服务的鲁棒性。</p>
+<h3 id="限流机制"><a href="#限流机制" class="headerlink" title="限流机制"></a>限流机制</h3><p>SCG使用的限流机制（Rate Limiter）基于令牌桶算法，我们先大致了解一下令牌桶算法。</p>
+<p><img src="/rate.png" alt="image-20220815165429195"></p>
+<p>从上图可以看出，令牌桶算法的主要数据结构是个缓冲区。通过匀速生成的令牌来填充缓冲区相当于生产者，而实际流量则相当于消费者来消费缓冲区中的令牌。 </p>
+<p>我们再结合SCG中的实现来看看令牌桶算法如何限流的。</p>
+<p>SCG使用RateLimiter需要引入spring-boot-starter-data-redis-reactive，所以SCG的令牌桶实现是基于Redis的，这样可以满足分布式的要求。SCG在使用过程中需要设置三个参数replenishRate ，burstCapacity和KeyResolver。</p>
+<ul>
+<li>replenishRate表示的是装桶的速率，也就是令牌生成的速率</li>
+<li>burstCapacity表示瞬间高爆发的容量，官方文档解释是一秒内允许的最大流量又补充了一句是令牌桶可以装下的令牌数</li>
+<li>KeyResolver很好理解，通过key的定义可以明确规定限流的层级，用户级还是IP级别等等</li>
+</ul>
+<p>对于burstCapacity的理解，只有当replenishRate和burstCapacity相等时也就是请求处理基本是匀速的情况下，burstCapacity才表示一秒内允许的最大流量，否则解释为令牌桶的容量更加贴切。</p>
+<p>代码实现主要通过RedisRateLimiter.class和request_rate_limiter.lua两个文件，而主要逻辑是通过脚本文件实现。</p>
+<p><img src="/code5.png" alt="image-20220815165630451"></p>
+<p>这里主要获取java传过来的参数，计算出ttl，ttl的逻辑是桶装满所需时间的两倍。</p>
+<p><img src="/code6.png" alt="image-20220815170637927"></p>
+<p>上面这段代码是实现限流的关键，每次都会通过当前时间和上次刷新时间的间隔计算填充的令牌，只有填充后的令牌 &gt;&#x3D; 请求的令牌数才符合条件允许令牌获取。</p>
+<p>当新的请求获取令牌后，更新令牌桶的令牌数和最后刷新时间。</p>
+<p>在实际引用中我们根据我们服务器的压力来设定rate和capacity，通过不停的调节来寻求吞吐和负载的平衡。</p>
+<h3 id="日志配置"><a href="#日志配置" class="headerlink" title="日志配置"></a>日志配置</h3><p>日志配置方面除了基本的logback配置，需要加入access_log的配置，根据官方文档我们需要在logback配置文件中加入logger和appender的配置。</p>
+<p><img src="/code7.png" alt="image-20220815170805545"></p>
+<p>如上图所示，通过定义logger接收netty的AccessLog，通过异步发射器发送到accessLog和errorLog两个Appender，在Appender中通过filter来区分日志类型。 </p>
+<p>这里需要注意的是Netty AccessLog的配置要到reactor-netty0.7.9之后才支持，所以在使用这个功能之前需要确保我们netty的版本满足要求，项目目前使用的spring版本如下，对应的reactor-netty版本为0.8.6。</p>
+<p>配置了这么多，然而access.log文件还是空空如也，因为你漏掉了很重要的一步：</p>
+<p>在启动参数中添加 <code>-Dreactor.netty.http.server.accessLogEnabled=true</code>. 注意这个属性是java系统属性而不是spring配置属性，也就是说只能通过启动参数注入。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我们通过一些简单的介绍了解了SCG的出现背景，然后通过实际的网关搭建实践来一步步的理解SCG的架构理念和实现细节。</p>
+<p>通过动态路由部分我们见证了SCG的可扩展性架构，在服务路由和容错管理部分我们主要和Spring Cloud已有组件（eureka， hystrix）进行集成，而在限流机制部分我们通过阅读源代码理解了基于令牌桶的限流算法以及如何结合Redis实现分布式系统限流，在日志配置部分主要是结合Netty的日志机制来完成网关的访问日志配置。</p>
+<p>在我们的实践中我们没有用上SCG的所有特性，但是就目前的情况用于我们自己的API 网关已经够用。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Luis Chen
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://luischen.gitee.io/2022/08/15/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/" title="基于Spring Cloud Gateway的路由实践">https://luischen.gitee.io/2022/08/15/基于Spring-Cloud-Gateway的路由实践/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E5%BA%94%E7%94%A8%E6%8A%80%E6%9C%AF/" rel="tag"># 应用技术</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/06/01/InfluxDB%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5MQTT/" rel="prev" title="InfluxDB数据接入MQTT">
+                  <i class="fa fa-chevron-left"></i> InfluxDB数据接入MQTT
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Luis Chen</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">30k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">27 分钟</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
