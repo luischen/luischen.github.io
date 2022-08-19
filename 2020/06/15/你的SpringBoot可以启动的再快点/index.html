@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha256-DfWjNxDkM94fVBWx1H5BMMp0Zq7luBlV8QRcSES7s+0=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"luischen.gitee.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.11.1","exturl":false,"sidebar":{"position":"left","width":300,"display":"always","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="背景介绍公司最近推出了一款一体机产品，于是老板就天天提个小箱子跑客户做POC，倍儿有范儿。跑了一阵子客户反响（问题）不错（不少），其中最大的问题就是开机进系统太慢，按照老板的说法：  我按下开机键已经准备天花乱坠了，愣是给我一个系统维护界面5分钟才能进去。只好跟他们解释说我们是工业一体机比较严谨，开机前要做好充分的自检。   其实开机慢我们是有预期的，我们的应用是云端微服务应用，为了快速响应公司号">
+<meta property="og:type" content="article">
+<meta property="og:title" content="你的SpringBoot可以启动的再快点">
+<meta property="og:url" content="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/index.html">
+<meta property="og:site_name" content="路易斯小屋">
+<meta property="og:description" content="背景介绍公司最近推出了一款一体机产品，于是老板就天天提个小箱子跑客户做POC，倍儿有范儿。跑了一阵子客户反响（问题）不错（不少），其中最大的问题就是开机进系统太慢，按照老板的说法：  我按下开机键已经准备天花乱坠了，愣是给我一个系统维护界面5分钟才能进去。只好跟他们解释说我们是工业一体机比较严谨，开机前要做好充分的自检。   其实开机慢我们是有预期的，我们的应用是云端微服务应用，为了快速响应公司号">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/time-distribute.png">
+<meta property="og:image" content="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/fast-startup.png">
+<meta property="og:image" content="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/fast-startup2.png">
+<meta property="og:image" content="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/shiro1.png">
+<meta property="og:image" content="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/path.png">
+<meta property="article:published_time" content="2020-06-15T03:04:13.000Z">
+<meta property="article:modified_time" content="2022-08-19T02:51:02.265Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="应用技术">
+<meta property="article:tag" content="性能优化">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/time-distribute.png">
+
+
+<link rel="canonical" href="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/","path":"2020/06/15/你的SpringBoot可以启动的再快点/","title":"你的SpringBoot可以启动的再快点"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>你的SpringBoot可以启动的再快点 | 路易斯小屋</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">路易斯小屋</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">背景介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%AE%9A%E4%BD%8D"><span class="nav-number">2.</span> <span class="nav-text">问题定位</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%9F%B3"><span class="nav-number">3.</span> <span class="nav-text">他山之石</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BB%B6%E8%BF%9F%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">3.1.</span> <span class="nav-text">延迟初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JVM%E5%90%AF%E5%8A%A8%E5%8F%82%E6%95%B0%E4%BC%98%E5%8C%96"><span class="nav-number">3.2.</span> <span class="nav-text">JVM启动参数优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90%E7%BB%84%E4%BB%B6%E7%B4%A2%E5%BC%95"><span class="nav-number">3.3.</span> <span class="nav-text">生成组件索引</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8A%E4%B8%8B%E6%B1%82%E7%B4%A2"><span class="nav-number">4.</span> <span class="nav-text">上下求索</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BB%B6%E8%BF%9F%E5%88%9D%E5%A7%8B%E5%8C%96-1"><span class="nav-number">4.1.</span> <span class="nav-text">延迟初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Shiro%E5%88%9D%E5%A7%8B%E5%8C%96%E4%BC%98%E5%8C%96"><span class="nav-number">4.2.</span> <span class="nav-text">Shiro初始化优化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B8%A9%E6%95%85%E7%9F%A5%E6%96%B0"><span class="nav-number">5.</span> <span class="nav-text">温故知新</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Luis Chen"
+      src="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
+  <p class="site-author-name" itemprop="name">Luis Chen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
+      <meta itemprop="name" content="Luis Chen">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="路易斯小屋">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="你的SpringBoot可以启动的再快点 | 路易斯小屋">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          你的SpringBoot可以启动的再快点
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-06-15 11:04:13" itemprop="dateCreated datePublished" datetime="2020-06-15T11:04:13+08:00">2020-06-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-08-19 10:51:02" itemprop="dateModified" datetime="2022-08-19T10:51:02+08:00">2022-08-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" itemprop="url" rel="index"><span itemprop="name">技术总结</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.3k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>公司最近推出了一款一体机产品，于是老板就天天提个小箱子跑客户做POC，倍儿有范儿。跑了一阵子客户反响（问题）不错（不少），其中最大的问题就是开机进系统太慢，按照老板的说法：</p>
+<blockquote>
+<p>我按下开机键已经准备天花乱坠了，愣是给我一个系统维护界面5分钟才能进去。只好跟他们解释说我们是工业一体机比较严谨，开机前要做好充分的自检。</p>
+</blockquote>
+<p> 其实开机慢我们是有预期的，我们的应用是云端微服务应用，为了快速响应公司号召稍加改造就变成了边缘应用。在资源配置各方面大幅缩水的情况下，不慢都对不起我们30w行的代码量。 </p>
+<p>言归正传，万里长征第一步：重现。通过秒表多次测量的结果显示：</p>
+<ul>
+<li><p>开机进入维护界面需要30s，</p>
+</li>
+<li><p>进入登录页需要2分30s，</p>
+</li>
+<li><p>登录进系统需要近4分钟</p>
+</li>
+</ul>
+<p>虽然没有反馈的那么夸张，这个速度也确实有点慢了。</p>
+<span id="more"></span>
+
+<h2 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h2><p>基于上面的测量结果，我们可以得到如下分布图：</p>
+<img src="time-distribute.png"/>
+
+<p>系统启动时间占比较小，而且在操作系统级别的优化比较复杂收益不高，我们将优化的重心放在应用启动和系统登录两个部分。</p>
+<ul>
+<li><p>应用启动</p>
+<p>我们通过查看应用日志可以发现应用的实际启动时间为109s，这个时间和我们之前实测的时间也比较吻合，可以作为我们应用优化的基线。</p>
+</li>
+<li><p>系统登录</p>
+<p>系统登录时间的消耗看起来不太合理，这是因为我们的应用使用了Eureka作为微服务的注册发现组件，导致了在应用启动后要经历多次心跳验证才能真正可用。这部分的优化策略是在一体机中去掉Eureka，RestTemplate直接访问本机Restful服务即可。</p>
+</li>
+</ul>
+<p>经过以上初步分析，我们明确了我们优化的对象就是109s的应用启动时间。在开始之前我们先说一下我们面临的应用规模，30w业务代码行，800+ spring管理的对象，Jar包大小70M左右。</p>
+<h2 id="他山之石"><a href="#他山之石" class="headerlink" title="他山之石"></a>他山之石</h2><p>通过查阅资料可以找到一些先行者，虽然案例大多是很简单的应用，比如说只有一个依赖的情况优化到1s之内，但是原理上还是相通的。</p>
+<h3 id="延迟初始化"><a href="#延迟初始化" class="headerlink" title="延迟初始化"></a>延迟初始化</h3><p>我们可以通过@Lazy指定单个bean的延迟初始化，或者通过@ComponentScan指定lazyInit&#x3D;true，也可以实现一个LazyInitBeanFactoryPostProcessor类来灵活的指定。</p>
+<p>在实际过程中我们发现不是所有的类都能设置为lazyInit的，比如消息队列的监听类如果一开始不进行实例化那么就永远不会被实例化，这会导致消息永远都不会被消费；还有定时任务类，同样不适合设置成lazyInit。</p>
+<p>最终我们采用LazyInitBeanFactoryPostProcessor的方式实现了两个数组进行灵活定制：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> String[] COMMON_INIT_LIST= &#123;</span><br><span class="line">		  <span class="string">&quot;springContextUtil&quot;</span>,</span><br><span class="line">		  <span class="string">&quot;custJobFactory&quot;</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> String[] CUST_INIT_LIST= &#123;</span><br><span class="line">		  <span class="string">&quot;userMsgReceiver&quot;</span>,</span><br><span class="line">		  <span class="string">&quot;dgnsOperateReceiver&quot;</span>,</span><br><span class="line">		  <span class="string">&quot;equipCondCalcReceiver&quot;</span>,</span><br><span class="line">		  <span class="string">&quot;modelAnalysisReceiver&quot;</span>,</span><br><span class="line">		  <span class="string">&quot;modelAnalysisScheduler&quot;</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">postProcessBeanFactory</span><span class="params">(ConfigurableListableBeanFactory beanFactory)</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (String beanName : beanFactory.getBeanDefinitionNames()) &#123;	   </span><br><span class="line">	<span class="keyword">if</span>(!needInitBean(beanName)) &#123;</span><br><span class="line">	    <span class="type">BeanDefinition</span> <span class="variable">definition</span> <span class="operator">=</span> beanFactory.getBeanDefinition(beanName);</span><br><span class="line">		definition.setLazyInit(<span class="literal">true</span>);</span><br><span class="line">	&#125;</span><br><span class="line">      &#125;</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line"><span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">needInitBean</span><span class="params">(String beanName)</span> &#123;</span><br><span class="line">	<span class="keyword">return</span> ArrayUtils.contains(COMMON_INIT_LIST, beanName) || ArrayUtils.contains(CUST_INIT_LIST, beanName);		  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>通过延迟初始化，应用启动时间从109s提升到48s，效果非常明显。</p>
+<h3 id="JVM启动参数优化"><a href="#JVM启动参数优化" class="headerlink" title="JVM启动参数优化"></a>JVM启动参数优化</h3><p>这里主要涉及的启动参数设置是下面两个：</p>
+<ol>
+<li><p>-XX:TieredStopAtLevel&#x3D;1</p>
+<p>使用C1编译器，又称为客户端模式，相对于C2也就是服务端模式，C1编译生成的机器码更加关注快速启动但是由于机器码没有经过编译优化所以不适合在线上环境稳定运行。</p>
+</li>
+<li><p>-Xverify:none&#x2F; -noverify</p>
+<p>通过去除字节码的验证来提升JVM启动速度，同样不适合线上对安全有要求的环境使用。</p>
+</li>
+</ol>
+<p>我们平时开发的时候可能注意到在IDE如Eclipse中启动一个SpringBoot应用的时候有一个选项叫Fast-startup，如图：</p>
+<img src="fast-startup.png"/>
+
+<p>我们一般都是默认勾选的，殊不知这个选项对应的参数就是以上两个JVM参数。</p>
+<img src="fast-startup2.png"/>
+
+<p>这两个参数的设置可以大大提升我们本地启动的速度，而本地启动不存在稳定性和安全性的问题，所以适用这两个参数。 </p>
+<p>实际案例中我们通过这两个参数的设置，可以将启动时间提升到40s。</p>
+<h3 id="生成组件索引"><a href="#生成组件索引" class="headerlink" title="生成组件索引"></a>生成组件索引</h3><p>通过引入Maven依赖spring-context-indexer在编译阶段来为组件生成索引加快类扫描速度。具体做法分为两步：</p>
+<ol>
+<li><p>添加Maven依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-context-indexer<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">optional</span>&gt;</span>true<span class="tag">&lt;/<span class="name">optional</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>配置Maven Plugin</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugins</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.4.2.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span><span class="comment">&lt;!--$NO-MVN-MAN-VER$--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">executable</span>&gt;</span>true<span class="tag">&lt;/<span class="name">executable</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">annotationProcessorPaths</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">path</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-context-indexer<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">path</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;/<span class="name">annotationProcessorPaths</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>通过Maven install命令运行后在生成的jar包的META-INF目录下面会生成spring.components文件。如果你的项目是多模块项目，那么在每个模块的jar下面都会生成一个索引文件。</p>
+<p>通过这步优化，启动时间可以提升到38s，效果不算明显。这和我们项目本身的规模还有路径扫描的速度有关，如果项目本身类不多或者路径扫描本身很快，那建索引就没有多大意义了，目前看来2s的提升聊胜于无吧。</p>
+</li>
+</ol>
+<h2 id="上下求索"><a href="#上下求索" class="headerlink" title="上下求索"></a>上下求索</h2><p>在通用优化建议的基础上，我们还根据自己的经验和尝试，进行了进一步的优化。</p>
+<h3 id="延迟初始化-1"><a href="#延迟初始化-1" class="headerlink" title="延迟初始化"></a>延迟初始化</h3><p>这次的延迟初始化是从代码层面来进行。通过第一步的延迟初始化处理，我们筛选出一些需要提前初始化的类。而这些类的初始化由于存在类依赖等因素又会牵扯出一大串的初始化，导致我们在少量类的初始化上花费了较多的时间。</p>
+<p>举个例子，我们有个消息消费类通过@Autowired强依赖类5个service，那么在这个Receiver类初始化的时候这5个service也会被触发初始化，service类中又通过@Autowired引入了其他类的初始化，层层传递导致一个类的初始化实际触发了几十个类的初始化，已经破坏了我们延迟初始化的设定。</p>
+<p>针对这种情况可以在@Autowired字段上加上@Lazy注解，但是容器在注册属性的时候会提示一个warning：AnnotationUtils - Failed to meta-introspect annotation。虽然不影响后续初始化，但是看着还是很糟心的。所以我选择的方式是干脆把这几个需要提前初始化的类里面的@Autowired字段全部移除，使用的时候到ApplicationContext获取。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="keyword">private</span> EquipCondService condService;</span><br><span class="line"><span class="comment">//替换为使用时获取,做到真正的延迟实例化</span></span><br><span class="line"><span class="type">EquipCondService</span> <span class="variable">condService</span> <span class="operator">=</span> SpringContextUtil.getBean(EquipCondService.class);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>通过代码改造之后的延迟初始化升级，启动时间提升到29s，效果还不错。</p>
+<h3 id="Shiro初始化优化"><a href="#Shiro初始化优化" class="headerlink" title="Shiro初始化优化"></a>Shiro初始化优化</h3><p>Shiro的问题是通过查看Spring debug日志中的跳变发现的。</p>
+<img src="shiro1.png"/>
+
+<p>在正常的日志中一般两个日志的间隔也就几十毫秒，而在shiro的初始化过程中我们发现了一段3s的间隔，那一定是发生了什么不可告人的事情。通过二分查找的Debug终于发现了问题所在。</p>
+<p>在shiroConfig中需要定一个securityManager，我们使用了Apache包里自带的DefaultWebSecurityManager。以下是DefaultWebSecurityManager类的构造函数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="title function_">DefaultWebSecurityManager</span><span class="params">()</span> &#123;</span><br><span class="line">	<span class="built_in">super</span>();</span><br><span class="line">	((DefaultSubjectDAO) <span class="built_in">this</span>.subjectDAO).setSessionStorageEvaluator(<span class="keyword">new</span></span><br><span class="line">                                                                     <span class="title class_">DefaultWebSessionStorageEvaluator</span>());</span><br><span class="line">	<span class="built_in">this</span>.sessionMode = HTTP_SESSION_MODE;</span><br><span class="line">	setSubjectFactory(<span class="keyword">new</span> <span class="title class_">DefaultWebSubjectFactory</span>());</span><br><span class="line">	setRememberMeManager(<span class="keyword">new</span> <span class="title class_">CookieRememberMeManager</span>());</span><br><span class="line">	setSessionManager(<span class="keyword">new</span> <span class="title class_">ServletContainerSessionManager</span>());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">AbstractRememberMeManager</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.serializer = <span class="keyword">new</span> <span class="title class_">DefaultSerializer</span>&lt;PrincipalCollection&gt;();</span><br><span class="line">        <span class="type">AesCipherService</span> <span class="variable">cipherService</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AesCipherService</span>();</span><br><span class="line">        <span class="built_in">this</span>.cipherService = cipherService;</span><br><span class="line">        setCipherKey(cipherService.generateNewKey().getEncoded());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们发现在SecurityManager初始化的时候会初始化依赖的CookieRememberMeManager，最终调用到抽象类的构造函数。在这里有一句话最终造成了3s的启动延时：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cipherService.generateNewKey()</span><br></pre></td></tr></table></figure>
+
+<p>这是生成对称加解密密钥的方法，通过单元测试发现这句话单独执行时间也是在3s左右，验证了我们的结论。</p>
+<p>解决方法简单粗暴，使用自定义的WebSecurityManager，去掉setRememberMeManager的调用即可。</p>
+<p>经过这一步优化后，启动时间优化到26s，刚好是3s的提升。</p>
+<h2 id="温故知新"><a href="#温故知新" class="headerlink" title="温故知新"></a>温故知新</h2><p>在一体机开机速度提升的需求驱动下，我们首先甄别出需要解决的关键问题就是应用启动时间。我们通过借鉴先行者的成功经验，成功的将应用启动时间从109s提升到38s。然后从日志分析入手，找出日志中的跳变点，解决了@Autowired引发的伪延迟问题和Shiro生成密钥的时间损耗。最终我们成功的将启动时间控制到了30s之内（26s），而相应的一体机从开机到老板开始天花乱坠也就只需要1分半钟，喝口水就掩饰过去了。</p>
+<p>下面罗列一下我们的优化路径，供后续参考借鉴。</p>
+<img src="path.png"/>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Luis Chen
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/" title="你的SpringBoot可以启动的再快点">https://luischen.gitee.io/2020/06/15/你的SpringBoot可以启动的再快点/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E5%BA%94%E7%94%A8%E6%8A%80%E6%9C%AF/" rel="tag"># 应用技术</a>
+              <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" rel="tag"># 性能优化</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/03/13/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/" rel="prev" title="基于Spring Cloud Gateway的路由实践">
+                  <i class="fa fa-chevron-left"></i> 基于Spring Cloud Gateway的路由实践
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/05/18/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/" rel="next" title="设计模式实战之装饰模式">
+                  设计模式实战之装饰模式 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Luis Chen</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">35k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">32 分钟</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
