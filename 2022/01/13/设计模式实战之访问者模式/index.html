@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-I5hRpZheEu">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha256-DfWjNxDkM94fVBWx1H5BMMp0Zq7luBlV8QRcSES7s+0=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"luischen.gitee.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.11.1","exturl":false,"sidebar":{"position":"left","width":300,"display":"always","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="概念介绍访问者模式主要解决了数据结构和数据行为的分离，通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展。所以访问者模式可以理解为重构模式。 访问者模式主要有四个角色：  Visitor接口，通过抽象的访问者接口定义了访问的行为 ConcreteVisitor实现类对访问行为进行具体的逻辑实现 Element接口定义了被访问者的基本操作 Element实现类定义了具体的被访问">
+<meta property="og:type" content="article">
+<meta property="og:title" content="设计模式实战之访问者模式">
+<meta property="og:url" content="https://luischen.gitee.io/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/index.html">
+<meta property="og:site_name" content="路易斯小屋">
+<meta property="og:description" content="概念介绍访问者模式主要解决了数据结构和数据行为的分离，通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展。所以访问者模式可以理解为重构模式。 访问者模式主要有四个角色：  Visitor接口，通过抽象的访问者接口定义了访问的行为 ConcreteVisitor实现类对访问行为进行具体的逻辑实现 Element接口定义了被访问者的基本操作 Element实现类定义了具体的被访问">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://luischen.gitee.io/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/class-diagram.png">
+<meta property="og:image" content="https://luischen.gitee.io/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/new-class-diagram.png">
+<meta property="og:image" content="https://luischen.gitee.io/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/future-class-diagram.png">
+<meta property="article:published_time" content="2022-01-13T08:06:49.000Z">
+<meta property="article:modified_time" content="2022-08-24T05:50:47.595Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="设计模式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://luischen.gitee.io/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/class-diagram.png">
+
+
+<link rel="canonical" href="https://luischen.gitee.io/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://luischen.gitee.io/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/","path":"2022/01/13/设计模式实战之访问者模式/","title":"设计模式实战之访问者模式"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>设计模式实战之访问者模式 | 路易斯小屋</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">路易斯小屋</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">概念介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">问题分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%A6%E7%BB%86%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.</span> <span class="nav-text">详细设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%E5%9B%9E%E9%A1%BE"><span class="nav-number">4.</span> <span class="nav-text">总结回顾</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Luis Chen"
+      src="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
+  <p class="site-author-name" itemprop="name">Luis Chen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
+      <meta itemprop="name" content="Luis Chen">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="路易斯小屋">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="设计模式实战之访问者模式 | 路易斯小屋">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          设计模式实战之访问者模式
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-01-13 16:06:49" itemprop="dateCreated datePublished" datetime="2022-01-13T16:06:49+08:00">2022-01-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-08-24 13:50:47" itemprop="dateModified" datetime="2022-08-24T13:50:47+08:00">2022-08-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" itemprop="url" rel="index"><span itemprop="name">技术总结</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="概念介绍"><a href="#概念介绍" class="headerlink" title="概念介绍"></a>概念介绍</h2><p>访问者模式主要解决了数据结构和数据行为的分离，通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展。所以访问者模式可以理解为重构模式。</p>
+<p>访问者模式主要有四个角色：</p>
+<ol>
+<li>Visitor接口，通过抽象的访问者接口定义了访问的行为</li>
+<li>ConcreteVisitor实现类对访问行为进行具体的逻辑实现</li>
+<li>Element接口定义了被访问者的基本操作</li>
+<li>Element实现类定义了具体的被访问对象实现</li>
+</ol>
+<span id="more"></span>
+
+<img src="class-diagram.png" alt="Image" />
+
+<p>访问者模式适用于数据结构相对固定而行为可变的场景，结合类图也就是说Element以及其实现类相对固定，而需要改变的是访问这些Element之后的行为。访问者模式的可扩展性体现在visitor的可扩展。</p>
+<p>访问者模式最重要的优点我认为是实现了单一职责原则，每一个visitor实现类实现了一个功能，职责划分非常清晰。</p>
+<p>访问者模式的缺点：</p>
+<ul>
+<li>Element被访问类不可扩展</li>
+<li>Visitor直接依赖具体的被访问对象，不符合依赖倒置原则</li>
+<li>Visitor直接访问被依赖对象内部的方法，不符合迪米特法则</li>
+</ul>
+<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><p>在模型计算的触发中我们定义了三种计算任务，分别是特征计算任务、累积损伤计算任务和异常诊断计算任务。任务类型是相对固定的，而计算任务所对应的行为是有扩展需求的，这恰恰符合了访问者模式定义的使用场景。</p>
+<blockquote>
+<p>通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展</p>
+</blockquote>
+<h2 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h2><p>在进行详细的类图设计之前，我们进行角色匹配</p>
+<ul>
+<li>Element角色定义了被访问者的通用属性，对应计算认为的抽象类Task</li>
+<li>Element1等具体被访问者就对应了我们场景中的计算任务：FeatureTask、ModelTask等</li>
+<li>Visitor角色定义了访问者的行为</li>
+<li>ConcreteVisitor角色定义了具体的访问行为，如计算行为可以对应一个具体的CalculateVisitor</li>
+</ul>
+<p>结合访问者模式得到类图如下：</p>
+<img src="new-class-diagram.png" alt="Image" />
+
+<p>CalculateVisitor实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CalculateVisitor</span> <span class="keyword">implements</span> <span class="title class_">Visitor</span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">visit</span><span class="params">(FeatureTask featureTask)</span> &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;开始执行特征计算任务，任务名：&quot;</span>+featureTask.getName());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">visit</span><span class="params">(ModelTask modelTask)</span> &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;开始执行模型计算任务，任务名：&quot;</span>+modelTask.getName());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于CalculateVisitor来说引起变化的原因只有计算逻辑的变化，因此是符合单一职责原则的。计算任务类型固定，不存在任务的扩展需求，所以从扩展角度来看访问者模式是可以满足要求的。</p>
+<p>我们再看一下上面访问者的类图，发现迪米特法则也好依赖倒置原则也罢，问题的根源在于Visitor直接依赖了实现类，那直接依赖接口会怎么样呢？</p>
+<img src="future-class-diagram.png" alt="Image" />
+
+<p>依赖倒置的问题解决，Task接口和Visitor接口可以分别扩展，开闭的问题也解决了。CalculateVisitor中的实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CalculateVisitor</span> <span class="keyword">implements</span> <span class="title class_">Visitor</span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> &lt;T <span class="keyword">extends</span> <span class="title class_">Task</span>&gt; <span class="keyword">void</span> <span class="title function_">visit</span><span class="params">(T task)</span> &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;开始执行特征计算任务，任务名：&quot;</span>+task.getName());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>客户端调用如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Task&gt; taskList = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">10</span>;i++)&#123;</span><br><span class="line">    taskList.add(<span class="keyword">new</span> <span class="title class_">FeatureTask</span>(<span class="string">&quot;F_&quot;</span>+i));</span><br><span class="line">    taskList.add(<span class="keyword">new</span> <span class="title class_">ModelTask</span>(<span class="string">&quot;M_&quot;</span>+i));</span><br><span class="line">&#125;</span><br><span class="line">Collections.shuffle(taskList);</span><br><span class="line"><span class="comment">//数据准备完成</span></span><br><span class="line"><span class="type">Visitor</span> <span class="variable">calculateVisitor</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CalculateVisitor</span>();</span><br><span class="line"><span class="keyword">for</span>(Task t: taskList)&#123;</span><br><span class="line">    t.accept(calculateVisitor);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>在上面的例子中我们首先引入经典的访问者模式，将数据结构和行为分离后发现违背依赖倒置原则引发的扩展性问题其实可以通过泛型来解决。经过改造之后，设计更加灵活，可扩展性更好。</p>
+<p>但是我们要谨记每一个设计模式都有其适用的场景，设计模式没有银弹。</p>
+<p>对比以上两种访问者模式实现可以发现，第二种设计扩展性更好的同时带来了架构的复杂性，对于被访问者的要求更高了，也就是说他们必须是同类，只有这样才能将公共行为抽取到接口来满足依赖倒置原则；反观第一种设计，由于访问者直接访问实现类，所以被访问者实现类之间只存在accept这一个共性约束，被访问者之间是同事类的关系即可。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Luis Chen
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://luischen.gitee.io/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/" title="设计模式实战之访问者模式">https://luischen.gitee.io/2022/01/13/设计模式实战之访问者模式/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag"># 设计模式</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/01/07/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/" rel="prev" title="设计模式实战之装饰模式">
+                  <i class="fa fa-chevron-left"></i> 设计模式实战之装饰模式
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/05/20/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/" rel="next" title="基于JWT的微服务接口认证">
+                  基于JWT的微服务接口认证 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Luis Chen</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

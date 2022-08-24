@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-I5hRpZheEu">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha256-DfWjNxDkM94fVBWx1H5BMMp0Zq7luBlV8QRcSES7s+0=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"luischen.gitee.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.11.1","exturl":false,"sidebar":{"position":"left","width":300,"display":"always","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="背景介绍系统启动阶段需要完成一些准备工作，最初是通过Spring Application Runner来实现，实现思路用业务语言描述就是：  首先进行启动参数准备 判断是否需要注册主站，如果需要则注册 判断是否需要进行数据同步，如果需要则同步数据 等待数据同步完成，系统准备完成  这种设计可以从某种程度上理解为责任链模式，四个Runner组成了一个责任链，流转到对应的节点判断是否属于该节点的责任并">
+<meta property="og:type" content="article">
+<meta property="og:title" content="设计模式实战之状态模式">
+<meta property="og:url" content="https://luischen.gitee.io/2021/12/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/index.html">
+<meta property="og:site_name" content="路易斯小屋">
+<meta property="og:description" content="背景介绍系统启动阶段需要完成一些准备工作，最初是通过Spring Application Runner来实现，实现思路用业务语言描述就是：  首先进行启动参数准备 判断是否需要注册主站，如果需要则注册 判断是否需要进行数据同步，如果需要则同步数据 等待数据同步完成，系统准备完成  这种设计可以从某种程度上理解为责任链模式，四个Runner组成了一个责任链，流转到对应的节点判断是否属于该节点的责任并">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://luischen.gitee.io/2021/12/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/state-class-diagram.png">
+<meta property="og:image" content="https://luischen.gitee.io/2021/12/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/state-flow-diagram.png">
+<meta property="article:published_time" content="2021-12-17T03:13:37.000Z">
+<meta property="article:modified_time" content="2022-08-24T05:51:30.543Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="设计模式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://luischen.gitee.io/2021/12/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/state-class-diagram.png">
+
+
+<link rel="canonical" href="https://luischen.gitee.io/2021/12/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://luischen.gitee.io/2021/12/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/","path":"2021/12/17/设计模式实战之状态模式/","title":"设计模式实战之状态模式"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>设计模式实战之状态模式 | 路易斯小屋</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">路易斯小屋</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">背景介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%8F%8D%E6%80%9D"><span class="nav-number">2.</span> <span class="nav-text">问题反思</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%A6%E7%BB%86%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.</span> <span class="nav-text">详细设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%E5%9B%9E%E9%A1%BE"><span class="nav-number">4.</span> <span class="nav-text">总结回顾</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Luis Chen"
+      src="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
+  <p class="site-author-name" itemprop="name">Luis Chen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2021/12/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
+      <meta itemprop="name" content="Luis Chen">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="路易斯小屋">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="设计模式实战之状态模式 | 路易斯小屋">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          设计模式实战之状态模式
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-12-17 11:13:37" itemprop="dateCreated datePublished" datetime="2021-12-17T11:13:37+08:00">2021-12-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-08-24 13:51:30" itemprop="dateModified" datetime="2022-08-24T13:51:30+08:00">2022-08-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" itemprop="url" rel="index"><span itemprop="name">技术总结</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>系统启动阶段需要完成一些准备工作，最初是通过Spring Application Runner来实现，实现思路用业务语言描述就是：</p>
+<ol>
+<li>首先进行启动参数准备</li>
+<li>判断是否需要注册主站，如果需要则注册</li>
+<li>判断是否需要进行数据同步，如果需要则同步数据</li>
+<li>等待数据同步完成，系统准备完成</li>
+</ol>
+<p>这种设计可以从某种程度上理解为责任链模式，四个Runner组成了一个责任链，流转到对应的节点判断是否属于该节点的责任并采取动作。</p>
+<h2 id="问题反思"><a href="#问题反思" class="headerlink" title="问题反思"></a>问题反思</h2><p>这样的启动流程设计和Spring容器耦合严重导致了可复用性不是很好，并且面向流程的设计不具备可扩展性。如果我们在RegisterRunner中由于网络原因没有注册成功，我们期望的结果是重新注册而不是重启Spring应用。</p>
+<p>我们发现在Runner对应的过程中体现的是状态的转移，例如RegisterRunner对应的是正在注册到注册成功或者注册失败状态的转移。而状态的转移又反映在类行为的变化。这正是状态模式适用的场景。</p>
+<blockquote>
+<p>当一个对象的内在状态改变时允许改变其行为，这个对象看起来像是改变了其类。</p>
+</blockquote>
+<span id="more"></span>
+
+<h2 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h2><p>首先结合业务逻辑定义了如下几个状态：</p>
+<table>
+<thead>
+<tr>
+<th>状态名</th>
+<th>状态描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>STARTING</td>
+<td>正在启动</td>
+</tr>
+<tr>
+<td>REGISTERING</td>
+<td>正在注册主站</td>
+</tr>
+<tr>
+<td>DATA_SYNC</td>
+<td>正在进行数据同步</td>
+</tr>
+<tr>
+<td>STARTUP_FAIL</td>
+<td>启动失败</td>
+</tr>
+<tr>
+<td>STARTUP_SUCCESS</td>
+<td>启动成功</td>
+</tr>
+<tr>
+<td>UNKNOWN</td>
+<td>未知状态</td>
+</tr>
+</tbody></table>
+<p>基于状态模式可以得到系统类图设计：</p>
+<img src="state-class-diagram.png" />
+
+<p>在 ProjectStartupContext 中定义的dispatch方法负责逻辑处理和状态转移，通过isTerminalState方法来判断是否终结状态并结束流转。结合定义的启动模式和类图设计得到的状态转移流程图如下：</p>
+<img src="state-flow-diagram.png" />
+
+<p>从状态角度考虑每个状态都需要包含自身的职责和状态的流转逻辑，STARTING状态的职责是进行启动参数初始化，如果初始化失败则直接流转到启动失败状态；如果初始化成功并且是网络模式，则进入主站注册状态，如果是单机模式则直接启动成功。</p>
+<p>REGISTERING状态的职责是进行主站注册，如果注册成功则进入数据同步状态，注册失败经过重连处理后进入启动失败状态。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">dispatch</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">AbsStartupState</span> <span class="variable">dataSyncState</span> <span class="operator">=</span> ProjectStartupStateFactory.</span><br><span class="line">                    getStartupState(ProjectStartupParamUtil.StartupStatusEnum.DATA_SYNC.getName());</span><br><span class="line">    <span class="type">AbsStartupState</span> <span class="variable">failState</span> <span class="operator">=</span> ProjectStartupStateFactory.</span><br><span class="line">                    getStartupState(ProjectStartupParamUtil.StartupStatusEnum.STARTUP_FAIL.getName());	</span><br><span class="line">    <span class="keyword">while</span>(!doRegisterToMaster(node))&#123;</span><br><span class="line">        tryTimes++;</span><br><span class="line">        <span class="keyword">if</span>(tryTimes &lt; REGISTER_RETRY_TIMES)&#123;</span><br><span class="line">            <span class="built_in">super</span>.startupContext.setState(<span class="built_in">this</span>);</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                Thread.sleep(RETRY_DURATION);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;<span class="comment">/*do nothing */</span>&#125;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="built_in">super</span>.startupContext.setState(failState);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">super</span>.startupContext.setState(dataSyncState);	</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">isTerminalState</span><span class="params">()</span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>DATA_SYNC状态的职责是进行数据同步和同步状态跟踪，如果同步成功则启动成功，否则启动失败。</p>
+<p>STARTUP_FAIL和STARTUP_SUCCESS这两个属于终结状态不需要进行任何逻辑处理和状态转移操作。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="title function_">StartFailState</span><span class="params">()</span>&#123;</span><br><span class="line">	<span class="built_in">super</span>(ProjectStartupParamUtil.StartupStatusEnum.STARTUP_FAIL);</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">dispatch</span><span class="params">()</span>  &#123;</span><br><span class="line">	LOG.error(<span class="string">&quot;entered dead code segment.&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">isTerminalState</span><span class="params">()</span> &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>在具体的调用中，我们通过一个service( ProjectStartupService.start )来提供状态模式的入口，实现代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">LOG.info(<span class="string">&quot;Project Startup Service begin.&quot;</span>);</span><br><span class="line"><span class="type">ProjectStartupContext</span> <span class="variable">context</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ProjectStartupContext</span>();</span><br><span class="line"><span class="type">AbsStartupState</span> <span class="variable">startingState</span> <span class="operator">=</span> ProjectStartupStateFactory.getStartupState(</span><br><span class="line">		ProjectStartupParamUtil.StartupStatusEnum.STARTING.getName()</span><br><span class="line">);</span><br><span class="line"><span class="type">AbsStartupState</span> <span class="variable">successState</span> <span class="operator">=</span> ProjectStartupStateFactory.getStartupState(</span><br><span class="line">		ProjectStartupParamUtil.StartupStatusEnum.STARTUP_SUCCESS.getName()</span><br><span class="line">);</span><br><span class="line"><span class="keyword">if</span>(ProjectStartupParamUtil.isNetMode())&#123;</span><br><span class="line">	context.setState(startingState,<span class="string">&quot;&quot;</span>);</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">	context.setState(successState,<span class="string">&quot;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">while</span>(!context.isTerminal())&#123;</span><br><span class="line">	context.dispatch();</span><br><span class="line">&#125;</span><br><span class="line">LOG.info(<span class="string">&quot;Project Startup Service end.&quot;</span>);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>通过封装使得系统启动准备做到了可复用，首次启动的场景中直接在Application Runner中读取参数，调用start方法；通过状态监测页面观测到系统状态为失败的时候，可以通过页面触发重启。反映到后台逻辑就是重置启动参数，执行start方法。</p>
+<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>在上面的例子中，我们利用状态模式对系统启动流程进行了优化重构。</p>
+<p>从可扩展性方面看，如果需要增加一个启动动作，如NTP对时，那我们可以通过新增一个状态 [NTP对时]，上游状态是 [注册节点] ，下游状态是 [数据同步]。涉及到的改动是注册节点的成功状态设置由 [数据同步] 改成 [NTP对时] 。</p>
+<p>乍看之下不符合开闭原则呀，确实状态模式封装了状态的行为和状态转移在应对新的状态加入时会涉及到原有状态类的修改。我们可以将状态路由单独提取出来，这样符合了封装不变开放变化的设计准则，但同时也会增加复杂度。换一个角度看，状态模式的应用场景大多数是状态类的数量相对固定并且转换规则已经基本确定的场景，通过状态模式实现封装来提高代码的可读性和设计的可复用。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Luis Chen
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://luischen.gitee.io/2021/12/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/" title="设计模式实战之状态模式">https://luischen.gitee.io/2021/12/17/设计模式实战之状态模式/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag"># 设计模式</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/11/27/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%AD%96%E7%95%A5%E6%9E%9A%E4%B8%BE/" rel="prev" title="设计模式实战之策略枚举">
+                  <i class="fa fa-chevron-left"></i> 设计模式实战之策略枚举
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/12/22/InfluxDB%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5MQTT/" rel="next" title="InfluxDB数据接入MQTT">
+                  InfluxDB数据接入MQTT <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Luis Chen</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

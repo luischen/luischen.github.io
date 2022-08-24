@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-I5hRpZheEu">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha256-DfWjNxDkM94fVBWx1H5BMMp0Zq7luBlV8QRcSES7s+0=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"luischen.gitee.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.11.1","exturl":false,"sidebar":{"position":"left","width":300,"display":"always","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="概念介绍装饰模式是指在不改变原类文件并且不使用继承结构的情况下，动态的扩展一个对象的功能。具体实现上是通过创建一个包装对象即一个装饰来包装真实对象，所以装饰模式又称为包装模式。 在装饰模式中主要有以下四个角色：  Component，原始的抽象对象 ConcreteComponent，具体的对象实现 Decorator，抽象的装饰，主要定义了装饰者的行为以及与原始抽象对象之间的关系 Concret">
+<meta property="og:type" content="article">
+<meta property="og:title" content="设计模式实战之装饰模式">
+<meta property="og:url" content="https://luischen.gitee.io/2022/01/07/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/index.html">
+<meta property="og:site_name" content="路易斯小屋">
+<meta property="og:description" content="概念介绍装饰模式是指在不改变原类文件并且不使用继承结构的情况下，动态的扩展一个对象的功能。具体实现上是通过创建一个包装对象即一个装饰来包装真实对象，所以装饰模式又称为包装模式。 在装饰模式中主要有以下四个角色：  Component，原始的抽象对象 ConcreteComponent，具体的对象实现 Decorator，抽象的装饰，主要定义了装饰者的行为以及与原始抽象对象之间的关系 Concret">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://luischen.gitee.io/2022/01/07/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/class-diagram.png">
+<meta property="og:image" content="https://luischen.gitee.io/2022/01/07/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/flow-diagram.png">
+<meta property="og:image" content="https://luischen.gitee.io/2022/01/07/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/biz-class-diagram.png">
+<meta property="og:image" content="https://luischen.gitee.io/2022/01/07/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/future-diagram.png">
+<meta property="article:published_time" content="2022-01-07T08:26:12.000Z">
+<meta property="article:modified_time" content="2022-08-24T05:51:09.743Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="设计模式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://luischen.gitee.io/2022/01/07/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/class-diagram.png">
+
+
+<link rel="canonical" href="https://luischen.gitee.io/2022/01/07/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://luischen.gitee.io/2022/01/07/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/","path":"2022/01/07/设计模式实战之装饰模式/","title":"设计模式实战之装饰模式"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>设计模式实战之装饰模式 | 路易斯小屋</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">路易斯小屋</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">概念介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">问题分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%A6%E7%BB%86%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.</span> <span class="nav-text">详细设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%E5%9B%9E%E9%A1%BE"><span class="nav-number">4.</span> <span class="nav-text">总结回顾</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Luis Chen"
+      src="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
+  <p class="site-author-name" itemprop="name">Luis Chen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2022/01/07/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
+      <meta itemprop="name" content="Luis Chen">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="路易斯小屋">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="设计模式实战之装饰模式 | 路易斯小屋">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          设计模式实战之装饰模式
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-01-07 16:26:12" itemprop="dateCreated datePublished" datetime="2022-01-07T16:26:12+08:00">2022-01-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-08-24 13:51:09" itemprop="dateModified" datetime="2022-08-24T13:51:09+08:00">2022-08-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" itemprop="url" rel="index"><span itemprop="name">技术总结</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="概念介绍"><a href="#概念介绍" class="headerlink" title="概念介绍"></a>概念介绍</h2><p>装饰模式是指在不改变原类文件并且不使用继承结构的情况下，动态的扩展一个对象的功能。具体实现上是通过创建一个包装对象即一个装饰来包装真实对象，所以装饰模式又称为包装模式。</p>
+<p>在装饰模式中主要有以下四个角色：</p>
+<ol>
+<li>Component，原始的抽象对象</li>
+<li>ConcreteComponent，具体的对象实现</li>
+<li>Decorator，抽象的装饰，主要定义了装饰者的行为以及与原始抽象对象之间的关系</li>
+<li>ConcreteDecorator，具体的装饰类</li>
+</ol>
+<span id="more"></span>
+
+<img src="class-diagram.png" alt="Image" />
+
+<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><p>在模型计算的设计中我们采用了模板方法定义了模型运算的基本框架，</p>
+<img src="flow-diagram.png" alt="Image" />
+
+<p>在Persist方法中我们主要实现计算结果保存到数据库，但是实际项目中会有更多针对模型结果的需求：</p>
+<ul>
+<li>发送统计到Redis</li>
+<li>发送到第三方平台进行展示</li>
+<li>回写网关进行反向控制</li>
+</ul>
+<p>目前的做法是在抽象类中实现相应的公用方法，然后到具体的实现类决定是否调用这些方法。</p>
+<img src="biz-class-diagram.png" alt="Image" />
+
+<p>如上图所示，在长链条的实现类里面调用了发送统计和反向控制两个方法，而驱动单元的实现类只调用了发送统计的方法。这样实现的问题是对于策略本身的侵入式实现导致策略实现无法灵活的增加和删除这些额外的增强功能，无法满足开闭原则。</p>
+<p>这时候我们可以换一种视角来看待这些增强，将发送统计、发送第三方和发送边缘视为策略的装饰，那么使用装饰模式来实现这些增强就显得恰到好处了。</p>
+<h2 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h2><p>使用装饰模式之前我们首先进行角色确认</p>
+<ol>
+<li>Component，原始的抽象对象，对应我们实例中的AbstractFanalysisStrategy</li>
+<li>ConcreteComponent，具体的对象实现，在我们的实例中包含了长链条的策略实现和驱动单元的策略实现</li>
+<li>Decorator，抽象的装饰器，需要新定义的接口FanalysisDecorator</li>
+<li>ConcreteDecorator，具体的装饰器实现，包含了RedisDecorator，ThirdPartyDecorator和EdgeDecorator</li>
+</ol>
+<p>类图如下：</p>
+<img src="future-diagram.png" alt="Image" />
+
+<p>通过FanalysisDecorator实现了抽象类的persist方法，同时定义作为增强类的统一行为run方法，FanalysisDecorator类的代码实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">FanalysisDecorator</span> <span class="keyword">extends</span> <span class="title class_">AbstractFanalysisStrategy</span>&#123;</span><br><span class="line">    <span class="keyword">private</span> AbstractFanalysisStrategy strategy;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="title function_">FanalysisDecorator</span><span class="params">(AbstractFanalysisStrategy _strategy)</span>&#123;</span><br><span class="line">        <span class="built_in">this</span>.strategy = _strategy;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">persist</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="built_in">this</span>.strategy.persist();</span><br><span class="line">        <span class="comment">//进行增强</span></span><br><span class="line">        <span class="built_in">this</span>.run();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在每个装饰实现类的run方法中实现具体的增强逻辑，对应之前抽象类中的公共方法。这样在调用的地方就可以由客户端等高层模块决定如何去增强而无需侵入原实现类了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//获取初始策略</span></span><br><span class="line"><span class="type">AbstractFanalysisStrategy</span> <span class="variable">chainStrategy</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ChainStrategy</span>();</span><br><span class="line"><span class="comment">//进行包装</span></span><br><span class="line"><span class="type">AbstractFanalysisStrategy</span> <span class="variable">decorated</span> <span class="operator">=</span></span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">RootCloudDecorator</span>(</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">RedisDecorator</span>(</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">EdgeDecorator</span>(chainStrategy)</span><br><span class="line">    ))</span><br><span class="line">;</span><br><span class="line">decorated.persist();</span><br></pre></td></tr></table></figure>
+
+<p>通过上面的装饰模式实现可以很好的实现功能的动态增强而无需修改原策略类。</p>
+<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>在这个例子中我们结合了模板方法和装饰模式对模型计算功能进行动态增强。</p>
+<p>我们在原始的实现中只是使用了模板方法，通过抽象类实现了功能的可复用，这种方式我们称之为静态增强。这时候如果需要新增新的增强方式，需要涉及抽象类的修改和模型实现类的修改，无法满足开闭原则，扩展性不好。</p>
+<p>如果引入装饰模式，使用包装类的方式对原始功能进行增强，理论上可以增加任意多的增强。装饰类的新增只需要高层模块的修改，不涉及已有功能的改动，符合了开闭原则。</p>
+<p>实际应用中可以结合模板方法，动静结合的对类进行增强。同时需要注意包装类的数量不宜过多，太多的增强可能引发代码复杂度的急剧增加带来维护的难度。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>Luis Chen
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://luischen.gitee.io/2022/01/07/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/" title="设计模式实战之装饰模式">https://luischen.gitee.io/2022/01/07/设计模式实战之装饰模式/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag"># 设计模式</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/12/22/InfluxDB%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5MQTT/" rel="prev" title="InfluxDB数据接入MQTT">
+                  <i class="fa fa-chevron-left"></i> InfluxDB数据接入MQTT
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/" rel="next" title="设计模式实战之访问者模式">
+                  设计模式实战之访问者模式 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Luis Chen</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>
