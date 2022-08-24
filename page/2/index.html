@@ -178,7 +178,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2020/03/13/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/">
+    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2022/05/24/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
@@ -196,7 +196,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/03/13/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/" class="post-title-link" itemprop="url">基于Spring Cloud Gateway的路由实践</a>
+          <a href="/2022/05/24/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/" class="post-title-link" itemprop="url">设计模式实战之状态模式</a>
         </h2>
 
         <div class="post-meta-container">
@@ -206,15 +206,9 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
+      
 
-      <time title="创建时间：2020-03-13 16:32:10" itemprop="dateCreated datePublished" datetime="2020-03-13T16:32:10+08:00">2020-03-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-08-15 17:25:49" itemprop="dateModified" datetime="2022-08-15T17:25:49+08:00">2022-08-15</time>
+      <time title="创建时间：2022-05-24 11:13:37 / 修改时间：12:10:31" itemprop="dateCreated datePublished" datetime="2022-05-24T11:13:37+08:00">2022-05-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -236,11 +230,22 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>在IT和OT融合的道路上，数据能力是很重要的一环。在设备端我们通过软PLC的解决方案覆盖了常见的数采方式和工业协议，那么采来的海量数据如何存储就成了我们当前的重中之重。</p>
-<p>在调研了流行的数据存储方案后，我们决定基于开源时序数据库打造一款工业适用、业务定制的数据存储引擎。而接下来要介绍的路由网关可以认为是整个数据存储引擎的代理人，通过路由网关的引入，极大的透明了数据存储引擎的使用。不管是工业应用还是数采网关抑或是数据分析人员都可以方便的对数据进行读写操作，没有一点负担，没有一点门槛。</p>
+          <h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>系统启动阶段需要完成一些准备工作，最初是通过Spring Application Runner来实现，实现思路用业务语言描述就是：</p>
+<ol>
+<li>首先进行启动参数准备</li>
+<li>判断是否需要注册主站，如果需要则注册</li>
+<li>判断是否需要进行数据同步，如果需要则同步数据</li>
+<li>等待数据同步完成，系统准备完成</li>
+</ol>
+<p>这种设计可以从某种程度上理解为责任链模式，四个Runner组成了一个责任链，流转到对应的节点判断是否属于该节点的责任并采取动作。</p>
+<h2 id="问题反思"><a href="#问题反思" class="headerlink" title="问题反思"></a>问题反思</h2><p>这样的启动流程设计和Spring容器耦合严重导致了可复用性不是很好，并且面向流程的设计不具备可扩展性。如果我们在RegisterRunner中由于网络原因没有注册成功，我们期望的结果是重新注册而不是重启Spring应用。</p>
+<p>我们发现在Runner对应的过程中体现的是状态的转移，例如RegisterRunner对应的是正在注册到注册成功或者注册失败状态的转移。而状态的转移又反映在类行为的变化。这正是状态模式适用的场景。</p>
+<blockquote>
+<p>当一个对象的内在状态改变时允许改变其行为，这个对象看起来像是改变了其类。</p>
+</blockquote>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/13/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/#more" rel="contents">
+              <a class="btn" href="/2022/05/24/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -271,7 +276,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2020/01/01/%E5%86%B3%E7%AD%96%E5%87%86%E7%BB%B3%E4%B9%8B%E6%88%91%E7%9A%84%E4%BB%B7%E5%80%BC%E8%A7%82/">
+    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
@@ -289,7 +294,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/01/01/%E5%86%B3%E7%AD%96%E5%87%86%E7%BB%B3%E4%B9%8B%E6%88%91%E7%9A%84%E4%BB%B7%E5%80%BC%E8%A7%82/" class="post-title-link" itemprop="url">决策准绳之我的价值观</a>
+          <a href="/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/" class="post-title-link" itemprop="url">基于JWT的微服务接口认证</a>
         </h2>
 
         <div class="post-meta-container">
@@ -300,125 +305,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2020-01-01 00:00:00" itemprop="dateCreated datePublished" datetime="2020-01-01T00:00:00+08:00">2020-01-01</time>
+      <time title="创建时间：2022-05-23 11:10:11" itemprop="dateCreated datePublished" datetime="2022-05-23T11:10:11+08:00">2022-05-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-08-23 15:43:34" itemprop="dateModified" datetime="2022-08-23T15:43:34+08:00">2022-08-23</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E4%BA%BA%E7%94%9F%E6%84%9F%E6%82%9F/" itemprop="url" rel="index"><span itemprop="name">人生感悟</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="价值-MUST"><a href="#价值-MUST" class="headerlink" title="价值 - MUST"></a><span style="color:red">价值 - MUST</span></h2><p>价值涵盖三个层面：客户价值、组织价值和个人价值。</p>
-<ul>
-<li><p>客户价值</p>
-<p>宏观层面是降本增效，微观层面可以体现为缩短流程、减少人工参与、避免用户误操作。具体分析客户价值的时候需要结合微观和宏观综合考虑</p>
-</li>
-<li><p>组织价值</p>
-<p>具体体现为带给企业和团队的增益。可以是增加销售额，降低实施成本，也可以是提升团队技能或者增强团队凝聚力</p>
-</li>
-<li><p>个人价值</p>
-<p>从自身出发考虑行动的收益。可以是收入的增加，可以是技能的提升，也可以是提升幸福感</p>
-</li>
-</ul>
-<h2 id="创新-BETTER-TO-HAVE"><a href="#创新-BETTER-TO-HAVE" class="headerlink" title="创新 - BETTER TO HAVE"></a><span style="color:green">创新 - BETTER TO HAVE</span></h2><p>创新可以从理论、技术和解决方案的角度来衡量。</p>
-<ul>
-<li><p>理论创新</p>
-<p>理论的创新会引发技术和解决方案的创新，从而引领行业的新思潮。例如云计算大行其道的时候，提出边缘计算的思路就是一种理论的创新</p>
-</li>
-<li><p>技术创新</p>
-<p>通过新技术践行理论创新，可以认为是技术创新。例如KubeEdge和OpenYurt这些开源技术就是紧跟边缘计算思潮的技术创新</p>
-</li>
-<li><p>解决方案创新</p>
-<p>解决方案创新体现的是一种整合的智慧，通过已有的技术组合创造性的解决生产中的难题或者创造价值。例如利用InfluxDB的订阅机制实现边缘数据库的备份和转发，Canal模拟MySQL的slave进行日志同步都可以认为是解决方案层面的创新</p>
-</li>
-</ul>
-<h2 id="先进-BETTER-TO-HAVE"><a href="#先进-BETTER-TO-HAVE" class="headerlink" title="先进 - BETTER TO HAVE"></a><span style="color:lightblue">先进 - BETTER TO HAVE</span></h2><p>先进性主要体现在技术和思想两个方面。应该努力避免技术定格和思想僵化。</p>
-<p>例如Java已经出到16了还抱着8就是一种技术的定格，技术定格的后果是难以引导或者追随创新，最终因为无法创造价值而被淘汰。</p>
-<p>思想的僵化也是同样的道理，边缘计算、工业互联网的浪潮中还抱着传统的产品化思想，自我设限的后果就是无路可走。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2019/07/12/%E4%B8%80%E6%AC%A1%E6%80%A7%E8%83%BD%E4%BA%8B%E6%95%85%E7%9A%84%E5%A4%84%E7%90%86%E5%92%8C%E6%80%BB%E7%BB%93/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
-      <meta itemprop="name" content="Luis Chen">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="路易斯小屋">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 路易斯小屋">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2019/07/12/%E4%B8%80%E6%AC%A1%E6%80%A7%E8%83%BD%E4%BA%8B%E6%95%85%E7%9A%84%E5%A4%84%E7%90%86%E5%92%8C%E6%80%BB%E7%BB%93/" class="post-title-link" itemprop="url">一次性能事故的处理和总结</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-07-12 13:39:12" itemprop="dateCreated datePublished" datetime="2019-07-12T13:39:12+08:00">2019-07-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-08-24 11:03:47" itemprop="dateModified" datetime="2022-08-24T11:03:47+08:00">2022-08-24</time>
+      <time title="修改时间：2022-05-24 12:09:55" itemprop="dateModified" datetime="2022-05-24T12:09:55+08:00">2022-05-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -440,143 +334,29 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="前情"><a href="#前情" class="headerlink" title="前情"></a>前情</h2><p>前几天做了一个工况统计的功能，查询最近7天的数据然后分析数据的分布。最终的效果是这样的：</p>
-<img src="overview.png"/>
-
-<p>从一开始接到这个需求就感觉哪里有点不对劲，上线一周后终于迎来了一次爆发：页面响应慢，多次查询后服务不可用。</p>
-<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>从线上环境拉取日志后发现两个异常表现，</p>
+          <p>在前后端分离的实践中接口定义问题是无法回避的。关于接口的认证和访问权限设置，这里记录一些个人想法。</p>
+<h2 id="接口分级"><a href="#接口分级" class="headerlink" title="接口分级"></a>接口分级</h2><p>首先我们将接口分为几个不同的访问等级：</p>
 <ol>
-<li>在进行查询分析的时候，后台会出现超时异常</li>
-<li>经历了两到三次的超时异常后，出现了OOM导致系统服务不可用</li>
+<li>level-1 开放接口，对所有人开放无需认证</li>
+<li>level-2 认证接口，仅对认证用户开放，每次访问需要通过用户token进行认证</li>
+<li>level-3 内部接口，仅对内部开放，通过内部约定的token进行认证</li>
 </ol>
-<p>从日志的表现我们可以大致还原一下事故现场。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; 用户点击查询分析功能，服务器开始吭哧吭哧的查询，由于数据量多导致查询的响应速度成为瓶颈</span><br><span class="line">&gt;&gt; 用户在等了好久之后觉得页面是不是挂了，于是刷新页面并重新发起一次查询</span><br><span class="line">&gt;&gt; 服务器重新启动一个线程继续开始漫长的吭哧吭哧之旅</span><br><span class="line">&gt;&gt; 某一次的查询终于达到了熔断点，返回了超时异常，但是内存依然占用无法及时回收</span><br><span class="line">&gt;&gt; 新的操作需要使用内存的时候，出现了OOM异常，系统服务不可用</span><br></pre></td></tr></table></figure>
-
-<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><p>我们从以下两方面进行验证，首先是通过问题重现验证我们关于事故现场的假设，其次通过分析代码来找出支持这种假设的依据。</p>
-<h3 id="问题重现"><a href="#问题重现" class="headerlink" title="问题重现"></a>问题重现</h3><p>问题重现很容易，我们从客户现场拿回了全量的数据文件在本地就可以克隆一个现场环境。</p>
-<p>然后按照我们设想的步骤进行操作，在第2步的时候等了将近1分钟，页面返回了一个空结果集，然后我们再点击一次查询，没过多久页面出现500错误服务已经不可用。</p>
-<p>查看后台日志的表现和线上环境的表现一致，所以我们可以认为我们基本还原了现场。</p>
-<p>唯一的不同是我们这边等了近1分钟后页面是有返回一个空的结果集，并不是设想中的一直等待。</p>
-<h3 id="代码验证"><a href="#代码验证" class="headerlink" title="代码验证"></a>代码验证</h3><p>查看了该功能的相关代码后，我们定位出几个可能导致问题的代码片段。</p>
-<img src="code_verify.png"/>
-
+<p>根据接口等级的定义，我们可以得到接口的几种访问形式：</p>
 <ul>
-<li>使用了线程池充分利用多线程的优势加快响应速度，这个没问题，但是当线程池被不恰当使用的时候很有可能造成系统资源得不到合理分配，最终导致OOM</li>
-<li>在这里通过两个线程分别查询前一天的数据和前七天的数据，事实上这两部分数据是有重复的，多余的查询动作造成了资源的浪费</li>
-<li>在线程阻塞的时候设置了15秒和30秒的查询超时时间，这里应该是造成日志中超时异常的根源</li>
+<li>服务内部模块调用 </li>
+<li>跨服务调用 </li>
+<li>前端调用 </li>
+<li>第三方调用 </li>
+<li>公开调用</li>
 </ul>
-<h3 id="交叉验证"><a href="#交叉验证" class="headerlink" title="交叉验证"></a>交叉验证</h3><p>结合问题重现和代码验证的结果，我们通过交叉验证进一步的确认症结所在。</p>
-<ul>
-<li><p>超时问题</p>
-<p>在代码验证的过程中我们定位了两个代码片段，接下来我们就修改这两个片段，去掉超时时间的指定，一直等待到执行完成。</p>
-<p>原代码：<code>dailyFuture.get(15, TimeUnit.SECONDS);</code></p>
-<p>修改后：<code>dailyFuture.get();</code></p>
-<p>通过这一步的验证，我们发现整个操作是可以返回结果的，只不过需要等将近2分钟，那么超时问题就转移为慢查询问题了。</p>
-<p>接下来我们比较测试数据和线上数据后发现，线上数据比测试数据翻了一倍，原因是现场加大了采集频率，这样导致了我们预先实验出来的超时时间设定不符合数据要求。</p>
-<p>由于数据量是我们不可控的，最终针对这个问题我们的解决思路是优化查询，减少查询所需要的时间。优化基线是数据量每天172w点,查询时间30秒，对象转换时间5-10秒。</p>
-</li>
-<li><p>OOM问题</p>
-<p>针对OOM问题我们定位的原因是多线程，于是我们将整个查询过程查询7天的数据都串行化后，发现一次查询的内存占用都在1G以下，由于串行后资源得到及时释放，多次查询也不会造成OOM问题。</p>
-<p>对比我们目前的设置，线程池设置的最大大小是30，每天的查询作为一个任务提交，理论上最多会在内存中保留30天的数据，OOM简直是一定的了。这样分析下来我们OOM的问题转移为线程池大小的合理设置问题，当然慢查询问题也是导致OOM问题的一个因素，因为查询一直没有返回导致资源无法被垃圾回收。</p>
-</li>
-</ul>
-<p>总结下来，解决目前问题（超时和服务不可用）的突破口是:</p>
-<ol>
-<li>优化慢查询</li>
-<li>合理设置线程池</li>
-</ol>
-<h2 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h2><p>通过上面的分析和验证过程我们已经找到了问题的两个突破口，其中设置线程池主要通过不断的优化调整完成，所以解决问题的重点我们放在了优化慢查询上。</p>
-<p>我们将整个分布分析过程分解如下：</p>
-<img src="query-flow.png"/>
-
-<p>其中Influx查询和客户端对象转换属于我们慢查询的优化范畴，开始优化之前我们明确一下我们优化的基线，</p>
-<table>
-<thead>
-<tr>
-<th>数据量</th>
-<th>Influx查询用时</th>
-<th>对象转换用时</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1728000（20Hz）</td>
-<td>30s</td>
-<td>5~10s</td>
-</tr>
-</tbody></table>
-<h3 id="Influx查询"><a href="#Influx查询" class="headerlink" title="Influx查询"></a>Influx查询</h3><p>对于Influx查询，我们首先分析执行过程：客户端通过Okhttp发送请求到Influx服务端，服务端执行查询语句，返回结果到客户端。</p>
-<p>分析下来影响查询响应时间的因素主要有，</p>
-<ol>
-<li>传输因素，数据量对于网络传输的时间消耗</li>
-<li>服务器因素，服务器负载性能对于influx的查询时间影响</li>
-<li>查询语句，查询语句的不合理书写影响了influx的查询性能，如未使用时间和标签等索引</li>
-</ol>
-<p>首先我们看看我们的查询语句：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> history <span class="keyword">WHERE</span> item_code<span class="operator">=</span><span class="string">&#x27;%s&#x27;</span> <span class="keyword">and</span> <span class="type">time</span><span class="operator">&gt;=</span><span class="operator">%</span>s <span class="keyword">and</span> <span class="type">time</span><span class="operator">&lt;</span><span class="operator">%</span>s</span><br></pre></td></tr></table></figure>
-
-<p>这个语句使用了time进行筛选，使用了item_code这个标签进行索引查询，但是在返回的结果集中使用了*返回了所有的字段。实际上我们这个需求只需要用到value字段，根据influx的查询接口我们针对每条记录只需要返回长度为2的数组，一个记录时间一个记录value。现在使用了*返回了很多无用的tag字段，结果集相当于翻倍了，改进后的查询语句：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">value</span> <span class="keyword">FROM</span> history <span class="keyword">WHERE</span> item_code<span class="operator">=</span><span class="string">&#x27;%s&#x27;</span> <span class="keyword">and</span> <span class="type">time</span><span class="operator">&gt;=</span><span class="operator">%</span>s <span class="keyword">and</span> <span class="type">time</span><span class="operator">&lt;</span><span class="operator">%</span>s</span><br></pre></td></tr></table></figure>
-
-<p>仅仅通过这个小小的改动，每次查询的平均时间减少到20s。</p>
-<p>顺着这个思路我们进一步缩减结果集，将原来写在代码中的一个过滤条件加入查询语句，最终的查询语句如下：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">value</span> <span class="keyword">FROM</span> history <span class="keyword">WHERE</span> <span class="built_in">ABS</span>(<span class="keyword">value</span>)<span class="operator">&gt;</span> <span class="operator">%</span>s <span class="keyword">and</span> item_code<span class="operator">=</span><span class="string">&#x27;%s&#x27;</span> <span class="keyword">and</span> <span class="type">time</span><span class="operator">&gt;=</span><span class="operator">%</span>s <span class="keyword">and</span> <span class="type">time</span><span class="operator">&lt;</span><span class="operator">%</span>s</span><br></pre></td></tr></table></figure>
-
-<p>优化后的查询时间稳定在15s左右。</p>
-<h3 id="对象转换"><a href="#对象转换" class="headerlink" title="对象转换"></a>对象转换</h3><p>对象转换阶段主要发生在influx客户端，通过InfluxDBResultMapper将服务端的Response转换成Pojo对象。</p>
-<p>在这一步中我们定位了几个可能的优化点，</p>
-<ol>
-<li><p>将Response转换成Pojo相比于直接操作Response，多了一倍的内存占用</p>
-<p>InfluxDB这样做可以确保通用性，而对于我们来说没有必要。</p>
-</li>
-<li><p>转换过程基于反射</p>
-<p>为了找到Pojo和字段的对应关系，需要通过反射来保证通用性，我们在已经知道顺序的情况下直接赋值即可。</p>
-</li>
-<li><p>在遍历结果集的使用的stream而没有使用parallelstream</p>
-<p>InfluxDB为了保证结果集解析的顺序性，而在我们的需求中对于顺序没有要求，所以可以利用并行流来提高处理效率。</p>
-</li>
-</ol>
-<p>最终我们的方案是直接解析Response进行分析计算，代码如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> List&lt;DataItem&gt; <span class="title function_">queryToDataItem</span><span class="params">(String ql, String dbName, String tableName, InfluxDB influxDB)</span> &#123;</span><br><span class="line">    	<span class="keyword">try</span> &#123;</span><br><span class="line">    		<span class="type">Query</span> <span class="variable">query</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Query</span>(ql, dbName);</span><br><span class="line">            <span class="type">QueryResult</span> <span class="variable">queryResult</span> <span class="operator">=</span> influxDB.query(query, TimeUnit.MILLISECONDS);</span><br><span class="line">            <span class="keyword">if</span>(!CommonUtil.isNullResponse(queryResult)) &#123;</span><br><span class="line">            	<span class="keyword">for</span>(Series s : queryResult.getResults().get(<span class="number">0</span>).getSeries()) &#123;</span><br><span class="line">            		<span class="keyword">if</span>(s.getName().equals(tableName)) &#123;				</span><br><span class="line">            			<span class="keyword">return</span> s.getValues().stream()</span><br><span class="line">            					.map(row -&gt; <span class="keyword">new</span> <span class="title class_">DataItem</span>(</span><br><span class="line">            					((Double)row.get(<span class="number">0</span>)).longValue(),	</span><br><span class="line">            					(Double)row.get(<span class="number">1</span>))).collect(Collectors.toList());        			</span><br><span class="line">            		&#125;</span><br><span class="line">            	&#125;</span><br><span class="line">            &#125;</span><br><span class="line">        	</span><br><span class="line">    	&#125;<span class="keyword">catch</span>(Exception ex) &#123;</span><br><span class="line">    		LOG.error(<span class="string">&quot;Exception when query &#123;&#125;&quot;</span>, ex.getMessage());</span><br><span class="line">    	&#125;</span><br><span class="line">    	</span><br><span class="line">        <span class="keyword">return</span> Collections.emptyList();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>通过这一步优化，我们每一次查询后的转换可以控制在2s之内，而且大大降低了内存使用。反观InfluxDB客户端的实现，这也体现了代码中通用性和运行效率的博弈，我们可以合理利用tradeoff来实现我们的目的。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我们通过一起线上的事故作为切入点，首先通过经验进行合理的假设分析，得到一个可以模拟的事故现场。然后通过问题重现、代码定位和交叉验证的方式定位到最终需要解决的问题。在解决问题阶段我们根据我们在解决一般性能问题的经验，迁移到时序数据库性能问题的解决上，而最终的解决方案也证实了性能问题都是相通的。</p>
-<p>通过以下表格可以看出我们优化的成效：</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>数据量</th>
-<th>Influx查询用时</th>
-<th>对象转换用时</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>优化前</td>
-<td>1728000</td>
-<td>30s</td>
-<td>5~10s</td>
-</tr>
-<tr>
-<td>优化后</td>
-<td>1728000</td>
-<td>15s</td>
-<td>2s</td>
-</tr>
-</tbody></table>
-<p>也许有人会觉得查询花费将近20s还是有点慢，下面就分享一个这个过程中的趣事。</p>
-<hr>
-<p>针对这个问题，我和另一个同事分别进行优化。在优化到7次查询用时80s左右的时候，我感觉已经没有多大的余地了，结果他给出了他的优化结果是60s，出于好奇心我又花了一天时间在考虑资源利用最大化的情况下也还是在80左右徘徊。</p>
-<p>最后我只能拿着他的方案过来研究一下，结果发现一跑要100多，于是检查一下机器配置后发现他的测试机是DDR4，而我的是DDR3。同样把我的优化方案放到他的机器上跑了一下，7天的查询时间为40s，相当于内存效率差了一倍。</p>
-<h3 id="花絮"><a href="#花絮" class="headerlink" title="花絮"></a>花絮</h3><p>此外分享在InfluxDB调优中的两个花絮，</p>
-<ol>
-<li><p>使用chunk的方式并不能提升查询效率</p>
-<p>chunk的方式其实是一种数据分页查询，通过串行的方式查询一个个子结果集。优点是可以快速返回并处理，减少资源锁时间。但是在百万级数据上的切分并没有到达查询引擎的临界点，相反增加了建立连接的次数和结果集处理的复杂度。</p>
-</li>
-<li><p>不使用绑定变量的方式查询速度更快</p>
-<p>使用关系型数据库如MySql的经验告诉我们，在查询的时候使用绑定变量可以更加安全并且可以获得较好的查询性能。安全是毋庸置疑的，但是Influx对于更快的查询性能方面似乎没有实现，经过实测使用绑定变量的查询反而会慢一点。</p>
-</li>
-</ol>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2022/05/23/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -602,7 +382,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2016/05/26/hello-world/">
+    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2022/05/20/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
@@ -620,7 +400,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2016/05/26/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
+          <a href="/2022/05/20/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/" class="post-title-link" itemprop="url">设计模式实战之访问者模式</a>
         </h2>
 
         <div class="post-meta-container">
@@ -631,14 +411,23 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2016-05-26 00:00:00" itemprop="dateCreated datePublished" datetime="2016-05-26T00:00:00+08:00">2016-05-26</time>
+      <time title="创建时间：2022-05-20 16:06:49" itemprop="dateCreated datePublished" datetime="2022-05-20T16:06:49+08:00">2022-05-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-05-24 16:47:27" itemprop="dateModified" datetime="2022-05-24T16:47:27+08:00">2022-05-24</time>
+      <time title="修改时间：2022-05-24 16:24:33" itemprop="dateModified" datetime="2022-05-24T16:24:33+08:00">2022-05-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" itemprop="url" rel="index"><span itemprop="name">技术总结</span></a>
+        </span>
     </span>
 
   
@@ -651,21 +440,227 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+          <h2 id="概念介绍"><a href="#概念介绍" class="headerlink" title="概念介绍"></a>概念介绍</h2><p>访问者模式主要解决了数据结构和数据行为的分离，通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展。所以访问者模式可以理解为重构模式。</p>
+<p>访问者模式主要有四个角色：</p>
+<ol>
+<li>Visitor接口，通过抽象的访问者接口定义了访问的行为</li>
+<li>ConcreteVisitor实现类对访问行为进行具体的逻辑实现</li>
+<li>Element接口定义了被访问者的基本操作</li>
+<li>Element实现类定义了具体的被访问对象实现</li>
+</ol>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2022/05/20/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+    
+    
+    
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-<h2 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h2><h3 id="生成的文件目录错乱"><a href="#生成的文件目录错乱" class="headerlink" title="生成的文件目录错乱"></a>生成的文件目录错乱</h3><p>原因是Next主题解析机制是二级目录、三级目录的按级解析，如果文章中出现了跳级的情况就会出现文件目录错乱。修复办法就是使用层层递进的目录定义。</p>
 
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2022/05/18/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
+      <meta itemprop="name" content="Luis Chen">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="路易斯小屋">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 路易斯小屋">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/05/18/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/" class="post-title-link" itemprop="url">设计模式实战之装饰模式</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-05-18 16:26:12" itemprop="dateCreated datePublished" datetime="2022-05-18T16:26:12+08:00">2022-05-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-05-24 16:44:52" itemprop="dateModified" datetime="2022-05-24T16:44:52+08:00">2022-05-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" itemprop="url" rel="index"><span itemprop="name">技术总结</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="概念介绍"><a href="#概念介绍" class="headerlink" title="概念介绍"></a>概念介绍</h2><p>装饰模式是指在不改变原类文件并且不使用继承结构的情况下，动态的扩展一个对象的功能。具体实现上是通过创建一个包装对象即一个装饰来包装真实对象，所以装饰模式又称为包装模式。</p>
+<p>在装饰模式中主要有以下四个角色：</p>
+<ol>
+<li>Component，原始的抽象对象</li>
+<li>ConcreteComponent，具体的对象实现</li>
+<li>Decorator，抽象的装饰，主要定义了装饰者的行为以及与原始抽象对象之间的关系</li>
+<li>ConcreteDecorator，具体的装饰类</li>
+</ol>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2022/05/18/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
+      <meta itemprop="name" content="Luis Chen">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="路易斯小屋">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 路易斯小屋">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/" class="post-title-link" itemprop="url">你的SpringBoot可以启动的再快点</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-06-15 11:04:13" itemprop="dateCreated datePublished" datetime="2020-06-15T11:04:13+08:00">2020-06-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-08-19 10:51:02" itemprop="dateModified" datetime="2022-08-19T10:51:02+08:00">2022-08-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" itemprop="url" rel="index"><span itemprop="name">技术总结</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>公司最近推出了一款一体机产品，于是老板就天天提个小箱子跑客户做POC，倍儿有范儿。跑了一阵子客户反响（问题）不错（不少），其中最大的问题就是开机进系统太慢，按照老板的说法：</p>
+<blockquote>
+<p>我按下开机键已经准备天花乱坠了，愣是给我一个系统维护界面5分钟才能进去。只好跟他们解释说我们是工业一体机比较严谨，开机前要做好充分的自检。</p>
+</blockquote>
+<p> 其实开机慢我们是有预期的，我们的应用是云端微服务应用，为了快速响应公司号召稍加改造就变成了边缘应用。在资源配置各方面大幅缩水的情况下，不慢都对不起我们30w行的代码量。 </p>
+<p>言归正传，万里长征第一步：重现。通过秒表多次测量的结果显示：</p>
+<ul>
+<li><p>开机进入维护界面需要30s，</p>
+</li>
+<li><p>进入登录页需要2分30s，</p>
+</li>
+<li><p>登录进系统需要近4分钟</p>
+</li>
+</ul>
+<p>虽然没有反馈的那么夸张，这个速度也确实有点慢了。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -684,7 +679,7 @@
 
 
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 </div>
@@ -720,8 +715,6 @@
       </span>
     </span>
 </div>
-  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
-  </div>
 
     </div>
   </footer>
