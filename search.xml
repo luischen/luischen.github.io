@@ -1,6 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>InfluxDB备份策略</title>
+    <url>/2021/08/19/InfluxDB%E5%A4%87%E4%BB%BD%E7%AD%96%E7%95%A5/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>设备数据采集的时序数据使用InfluxDB进行存储，InfluxDB提供了两大类备份策略来保障数据安全：</p>
+<ul>
+<li><p>数据库实时主备</p>
+<p>实时主备是指通过内置的subscription机制，将主库收到的请求通过go-routine的方式到从库进行重放来实现数据的主备存储。这种方式可以认为是热备。</p>
+</li>
+<li><p>数据定期备份</p>
+<p>定期备份是指通过客户端工具提供的backup命令将数据备份到其他地方进行保存，需要恢复的时候通过restore命令加载数据备份。这种方式根据数据备份的频率存在丢失数据的风险。</p>
+</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="备份策略"><a href="#备份策略" class="headerlink" title="备份策略"></a>备份策略</h2><h3 id="实时备份"><a href="#实时备份" class="headerlink" title="实时备份"></a>实时备份</h3><p>通过subscription的方式实现主备的架构如下图：</p>
+<img src="arch.png" />
+
+<p>首先在InfluxDB的主服务器上通过命令建立订阅，包含如下信息：</p>
+<ol>
+<li>订阅名称 mysub</li>
+<li>订阅的数据库和保留策略 mydb.autogen</li>
+<li>数据目的策略，可选ALL（全部发送）和ANY（Round Robin发送任一）</li>
+<li>数据目的地，以逗号分隔的目标主机信息</li>
+</ol>
+<p>创建完成后在主服务器上会生成一个类似路由表的数据结构，数采客户端发送数据（1）到主服务器后，主服务器根据路由策略生成一个或者多个writer（2）将数据同步发送到备库。</p>
+<h3 id="全量备份"><a href="#全量备份" class="headerlink" title="全量备份"></a>全量备份</h3><p>全量备份通过influxd命令行工具，主要语法如下：</p>
+<img src="command.png" />
+
+<p>基于全量备份的备份恢复策略可以用如下的流程图来表示：</p>
+<img src="flow.png" />
+
+<p>每天通过系统定时任务的方式触发 bk_influx.sh 的shell脚本进行数据备份，备份完成后传输到归档位置，可以是挂载的usb设备也可以是用户定义的网络位置。最后备份进行滚动替换，删除过期的备份数据。当数据库损坏或者需要搭建影子环境的时候只需要直接使用restore命令进行恢复即可。</p>
+<h3 id="增量备份"><a href="#增量备份" class="headerlink" title="增量备份"></a>增量备份</h3><p>增量备份的是在上述全量备份的时候通过指定start和end进行区间过滤，但是start和end的实现上存在缺陷使得我们即使进行了过滤，一样会占用很多的系统资源进行大量的无用数据文件读操作。恢复的时候需要额外写工具进行数据导入。备份恢复的流程如下：</p>
+<img src="flow2.png" />
+
+<p>从流程图上看增量备份的备份过程和全量备份基本一致，主要差异有：</p>
+<ol>
+<li>bk_influx.sh的逻辑差异，备份时需要指定开始结束时间</li>
+<li>由于是增量备份，每一个备份都是相对独立的不需要备份替换过程</li>
+<li>数据恢复过程需要一个临时库存储增量数据，然后使用工具通过java 客户端从临时库读取数据并写入到主库</li>
+</ol>
+<h3 id="离线备份"><a href="#离线备份" class="headerlink" title="离线备份"></a>离线备份</h3><p>离线备份是InfluxDB早期版本提供的功能，准确的说应该是在线备份离线恢复，对应于MySQL的物理备份。</p>
+<p>在InfluxDB的数据目录结构可以看出数据是分成meta、data和wal三个维度存储的。Meta存储的是元数据例如数据库结构，用户信息等；data目录中以tsm的文件格式存储时序数据；wal目录存储的是预写入日志。离线备份模式下会获取meta和data目录下对应的文件，wal目录下的文件因为没有同步到数据文件不做处理。</p>
+<p>离线备份的语法如下，</p>
+<img src="command2.png" />
+
+<p>离线备份恢复流程如下：</p>
+<img src="flow3.png" />
+
+<ol>
+<li>定时任务运行增量备份，备份当前时间对应的shard ID</li>
+<li>传输备份数据到指定位置，usb或者网络位置</li>
+<li>进行备份恢复之前需要关闭目标服务</li>
+<li>运行客户端命令进行离线恢复</li>
+<li>启动目标服务检查数据正确性</li>
+</ol>
+<p>从以上流程可以看出主要的难点有两点:</p>
+<ul>
+<li><p>如何确定备份的频率</p>
+<p>我们通过show retention policies可以确定shard定义的范围。如果一个shard范围是一周，我们可以定义备份的频率为一周，当然小于一周也是可以的，只不过操作的是同一个数据文件在备份的时候进行滚动替换。</p>
+</li>
+<li><p>如何确定最新的shard ID</p>
+<p>通过show shards命令可以确定shard的分布。然后进入到data 目录下找到当前retention policy目录下最大的shard目录即为最新的shard ID。出于完备性考虑，如果某一次备份没有进行则需要从最近一次备份的shard Id进行，所以可以新建文件来保存最近备份的shard ID，这样下次备份只需要找到大于最近备份的shard的所有shard进行备份即可。</p>
+<p>获取shard id的逻辑如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1，	获取最近一次备份的shard ID，如无则返回0</span><br><span class="line">2，	遍历data目录，获取大于shard ID的所有文件夹名称</span><br><span class="line">3，	循环进行增量备份</span><br><span class="line">4，	备份完成后更新最近的shard ID</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>InfluxDB 提供了四种备份策略，可以通过下表进行一个简单比较。</p>
+<table>
+<thead>
+<tr>
+<th>备份策略</th>
+<th>优点</th>
+<th>缺点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据库主备</td>
+<td>实时备份<br />数据安全性较高</td>
+<td>架构复杂，系统资源消耗大</td>
+<td>需要实现时序数据库高可用的情况</td>
+</tr>
+<tr>
+<td>全量备份</td>
+<td>兼容性好<br />恢复操作简单</td>
+<td>海量数据的场景备份恢复占<br />用大量的系统资源，<br />影响实时业务</td>
+<td>数据量不多（&lt;10G）或者硬件性能<br />较好的情况</td>
+</tr>
+<tr>
+<td>增量备份</td>
+<td>备份窗口<br />时间缩短</td>
+<td>恢复过程需要引入其他客户端工具，<br />提供的start和end参数存在bug</td>
+<td>已有InfluxDB迁移工具的情况</td>
+</tr>
+<tr>
+<td>离线备份</td>
+<td>物理备份速度快<br />资源占用少</td>
+<td>备份的时候需要管理Shard ID，<br />只能离线恢复并重启服务</td>
+<td>数据恢复主要应用于离线分析和影子<br />环境的场景</td>
+</tr>
+</tbody></table>
+<p>从上表可以看出数据库主备的方式架构复杂而且系统资源消耗极大，一般情况下直接忽略。</p>
+<p>在项目初期数据量较小的时候可以选择全量备份，减少操作的复杂度。随着数据量的逐渐增加，可以选择增量备份或者离线备份。如果选择增量备份需要自己准备InfluxDB迁移工具用于从临时库到主库的数据迁移，而选择离线备份则需要在备份脚本中增加shard ID的管理，当然因此换来的备份资源大幅缩减还是能值回票价的。</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>InfluxDB</tag>
+        <tag>数据技术</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>InfluxDB数据接入MQTT</title>
     <url>/2021/12/22/InfluxDB%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5MQTT/</url>
     <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>在边缘计算场景中数据存储在边缘的时序数据库如 InfluxDB 中，如果不能将数据进行归集以统筹管理则可能形成数据孤岛，无法充分有效的发挥大数据的威力。</p>
@@ -426,118 +538,6 @@
       <tags>
         <tag>问题解决</tag>
         <tag>性能优化</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>InfluxDB备份策略</title>
-    <url>/2021/08/19/InfluxDB%E5%A4%87%E4%BB%BD%E7%AD%96%E7%95%A5/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>设备数据采集的时序数据使用InfluxDB进行存储，InfluxDB提供了两大类备份策略来保障数据安全：</p>
-<ul>
-<li><p>数据库实时主备</p>
-<p>实时主备是指通过内置的subscription机制，将主库收到的请求通过go-routine的方式到从库进行重放来实现数据的主备存储。这种方式可以认为是热备。</p>
-</li>
-<li><p>数据定期备份</p>
-<p>定期备份是指通过客户端工具提供的backup命令将数据备份到其他地方进行保存，需要恢复的时候通过restore命令加载数据备份。这种方式根据数据备份的频率存在丢失数据的风险。</p>
-</li>
-</ul>
-<span id="more"></span>
-
-<h2 id="备份策略"><a href="#备份策略" class="headerlink" title="备份策略"></a>备份策略</h2><h3 id="实时备份"><a href="#实时备份" class="headerlink" title="实时备份"></a>实时备份</h3><p>通过subscription的方式实现主备的架构如下图：</p>
-<img src="arch.png" />
-
-<p>首先在InfluxDB的主服务器上通过命令建立订阅，包含如下信息：</p>
-<ol>
-<li>订阅名称 mysub</li>
-<li>订阅的数据库和保留策略 mydb.autogen</li>
-<li>数据目的策略，可选ALL（全部发送）和ANY（Round Robin发送任一）</li>
-<li>数据目的地，以逗号分隔的目标主机信息</li>
-</ol>
-<p>创建完成后在主服务器上会生成一个类似路由表的数据结构，数采客户端发送数据（1）到主服务器后，主服务器根据路由策略生成一个或者多个writer（2）将数据同步发送到备库。</p>
-<h3 id="全量备份"><a href="#全量备份" class="headerlink" title="全量备份"></a>全量备份</h3><p>全量备份通过influxd命令行工具，主要语法如下：</p>
-<img src="command.png" />
-
-<p>基于全量备份的备份恢复策略可以用如下的流程图来表示：</p>
-<img src="flow.png" />
-
-<p>每天通过系统定时任务的方式触发 bk_influx.sh 的shell脚本进行数据备份，备份完成后传输到归档位置，可以是挂载的usb设备也可以是用户定义的网络位置。最后备份进行滚动替换，删除过期的备份数据。当数据库损坏或者需要搭建影子环境的时候只需要直接使用restore命令进行恢复即可。</p>
-<h3 id="增量备份"><a href="#增量备份" class="headerlink" title="增量备份"></a>增量备份</h3><p>增量备份的是在上述全量备份的时候通过指定start和end进行区间过滤，但是start和end的实现上存在缺陷使得我们即使进行了过滤，一样会占用很多的系统资源进行大量的无用数据文件读操作。恢复的时候需要额外写工具进行数据导入。备份恢复的流程如下：</p>
-<img src="flow2.png" />
-
-<p>从流程图上看增量备份的备份过程和全量备份基本一致，主要差异有：</p>
-<ol>
-<li>bk_influx.sh的逻辑差异，备份时需要指定开始结束时间</li>
-<li>由于是增量备份，每一个备份都是相对独立的不需要备份替换过程</li>
-<li>数据恢复过程需要一个临时库存储增量数据，然后使用工具通过java 客户端从临时库读取数据并写入到主库</li>
-</ol>
-<h3 id="离线备份"><a href="#离线备份" class="headerlink" title="离线备份"></a>离线备份</h3><p>离线备份是InfluxDB早期版本提供的功能，准确的说应该是在线备份离线恢复，对应于MySQL的物理备份。</p>
-<p>在InfluxDB的数据目录结构可以看出数据是分成meta、data和wal三个维度存储的。Meta存储的是元数据例如数据库结构，用户信息等；data目录中以tsm的文件格式存储时序数据；wal目录存储的是预写入日志。离线备份模式下会获取meta和data目录下对应的文件，wal目录下的文件因为没有同步到数据文件不做处理。</p>
-<p>离线备份的语法如下，</p>
-<img src="command2.png" />
-
-<p>离线备份恢复流程如下：</p>
-<img src="flow3.png" />
-
-<ol>
-<li>定时任务运行增量备份，备份当前时间对应的shard ID</li>
-<li>传输备份数据到指定位置，usb或者网络位置</li>
-<li>进行备份恢复之前需要关闭目标服务</li>
-<li>运行客户端命令进行离线恢复</li>
-<li>启动目标服务检查数据正确性</li>
-</ol>
-<p>从以上流程可以看出主要的难点有两点:</p>
-<ul>
-<li><p>如何确定备份的频率</p>
-<p>我们通过show retention policies可以确定shard定义的范围。如果一个shard范围是一周，我们可以定义备份的频率为一周，当然小于一周也是可以的，只不过操作的是同一个数据文件在备份的时候进行滚动替换。</p>
-</li>
-<li><p>如何确定最新的shard ID</p>
-<p>通过show shards命令可以确定shard的分布。然后进入到data 目录下找到当前retention policy目录下最大的shard目录即为最新的shard ID。出于完备性考虑，如果某一次备份没有进行则需要从最近一次备份的shard Id进行，所以可以新建文件来保存最近备份的shard ID，这样下次备份只需要找到大于最近备份的shard的所有shard进行备份即可。</p>
-<p>获取shard id的逻辑如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1，	获取最近一次备份的shard ID，如无则返回0</span><br><span class="line">2，	遍历data目录，获取大于shard ID的所有文件夹名称</span><br><span class="line">3，	循环进行增量备份</span><br><span class="line">4，	备份完成后更新最近的shard ID</span><br></pre></td></tr></table></figure></li>
-</ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>InfluxDB 提供了四种备份策略，可以通过下表进行一个简单比较。</p>
-<table>
-<thead>
-<tr>
-<th>备份策略</th>
-<th>优点</th>
-<th>缺点</th>
-<th>适用场景</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>数据库主备</td>
-<td>实时备份<br />数据安全性较高</td>
-<td>架构复杂，系统资源消耗大</td>
-<td>需要实现时序数据库高可用的情况</td>
-</tr>
-<tr>
-<td>全量备份</td>
-<td>兼容性好<br />恢复操作简单</td>
-<td>海量数据的场景备份恢复占<br />用大量的系统资源，<br />影响实时业务</td>
-<td>数据量不多（&lt;10G）或者硬件性能<br />较好的情况</td>
-</tr>
-<tr>
-<td>增量备份</td>
-<td>备份窗口<br />时间缩短</td>
-<td>恢复过程需要引入其他客户端工具，<br />提供的start和end参数存在bug</td>
-<td>已有InfluxDB迁移工具的情况</td>
-</tr>
-<tr>
-<td>离线备份</td>
-<td>物理备份速度快<br />资源占用少</td>
-<td>备份的时候需要管理Shard ID，<br />只能离线恢复并重启服务</td>
-<td>数据恢复主要应用于离线分析和影子<br />环境的场景</td>
-</tr>
-</tbody></table>
-<p>从上表可以看出数据库主备的方式架构复杂而且系统资源消耗极大，一般情况下直接忽略。</p>
-<p>在项目初期数据量较小的时候可以选择全量备份，减少操作的复杂度。随着数据量的逐渐增加，可以选择增量备份或者离线备份。如果选择增量备份需要自己准备InfluxDB迁移工具用于从临时库到主库的数据迁移，而选择离线备份则需要在备份脚本中增加shard ID的管理，当然因此换来的备份资源大幅缩减还是能值回票价的。</p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>InfluxDB</tag>
-        <tag>数据技术</tag>
       </tags>
   </entry>
   <entry>
@@ -1271,6 +1271,47 @@
       <tags>
         <tag>可视化</tag>
         <tag>算法</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>统计二进制1的代码解读</title>
+    <url>/2019/07/17/%E7%BB%9F%E8%AE%A1%E4%BA%8C%E8%BF%9B%E5%88%B61%E7%9A%84%E4%BB%A3%E7%A0%81%E8%A7%A3%E8%AF%BB/</url>
+    <content><![CDATA[<p>为了适应边缘计算的需求决定投入学习Go语言的浪潮，用了10年的java突然要去接受一个风格完全不一样的语言感觉真是太刺激了。 在看《Go语言圣经》的时候看到里面的一个计算二进制中1的个数的程序popcount，觉得挺有意思就拿出来分享一下吧。</p>
+<p>程序代码总计也没几行，可以说很一目了然了：</p>
+ <span id="more"></span>
+
+<img src="code.png"/>
+
+<p>程序分为两个部分，</p>
+<ol>
+<li>初始化构造一个长度为256的数组</li>
+<li>主程序PopCount通过8次右移操作分别求低8位的1数量然后相加</li>
+</ol>
+<p>那这么明显的结构，这么清晰的代码有啥好解读呢？主要原因是在第一遍看的时候产生了两个疑问，我觉得有必要记录一下解决疑惑的过程。</p>
+<h2 id="初始化数组为什么是256"><a href="#初始化数组为什么是256" class="headerlink" title="初始化数组为什么是256"></a>初始化数组为什么是256</h2><p>这个问题需要和PopCount主程序结合看。</p>
+<p>因为在主程序中使用的算法是将64位的无符号整数切割成8个8位，而8位的无符号整数取值范围是0-255，为了完整表示这256个数值的1的位数，所以使用了长度为256的数组。</p>
+<h2 id="初始化算法的依据是什么"><a href="#初始化算法的依据是什么" class="headerlink" title="初始化算法的依据是什么"></a>初始化算法的依据是什么</h2><p>其实初始化的算法就一句话 pc[i] &#x3D; pc[i&#x2F;2] + byte(i&amp;1)，一句话就得出了整数中二进制1的个数字典表也太神奇了吧。怎么来理解这个算法呢？经验？定理？当然可以选择记住就行。</p>
+<p>但是我们还是可以尝试着大声的念出这段代码的含义，</p>
+<blockquote>
+<p>整数 i 中1的个数等于整数 i&#x2F;2 中1的个数加上i在低1位的1的个数</p>
+</blockquote>
+<p>是不是有点灵感了？直接上图吧</p>
+<img src="algorithm.png"/>
+
+<p>从图中可以看出每个整数i的1的个数由两部分组成</p>
+<ol>
+<li>i&#x2F;2的1的个数，这部分就对应算法中的pc[i&#x2F;2]</li>
+<li>i&#x2F;2的余数，这部分对应算法中的byte[i&amp;1]</li>
+</ol>
+<hr>
+<p>到这里这段代码的疑惑就全部解开了，嗯就是这么Go！</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>Golang</tag>
       </tags>
   </entry>
   <entry>
