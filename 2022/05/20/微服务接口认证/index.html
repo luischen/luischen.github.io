@@ -24,32 +24,32 @@
 
     <meta name="description" content="在前后端分离的实践中接口定义问题是无法回避的。关于接口的认证和访问权限设置，这里记录一些个人想法。 接口分级首先我们将接口分为几个不同的访问等级：  level-1 开放接口，对所有人开放无需认证 level-2 认证接口，仅对认证用户开放，每次访问需要通过用户token进行认证 level-3 内部接口，仅对内部开放，通过内部约定的token进行认证  根据接口等级的定义，我们可以得到接口的几种">
 <meta property="og:type" content="article">
-<meta property="og:title" content="基于JWT的微服务接口认证">
-<meta property="og:url" content="https://luischen.gitee.io/2022/05/20/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/index.html">
+<meta property="og:title" content="微服务接口认证">
+<meta property="og:url" content="https://luischen.gitee.io/2022/05/20/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/index.html">
 <meta property="og:site_name" content="路易斯小屋">
 <meta property="og:description" content="在前后端分离的实践中接口定义问题是无法回避的。关于接口的认证和访问权限设置，这里记录一些个人想法。 接口分级首先我们将接口分为几个不同的访问等级：  level-1 开放接口，对所有人开放无需认证 level-2 认证接口，仅对认证用户开放，每次访问需要通过用户token进行认证 level-3 内部接口，仅对内部开放，通过内部约定的token进行认证  根据接口等级的定义，我们可以得到接口的几种">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://luischen.gitee.io/2022/05/20/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/encode-decode.png">
-<meta property="og:image" content="https://luischen.gitee.io/2022/05/20/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/user-get-token.png">
-<meta property="og:image" content="https://luischen.gitee.io/2022/05/20/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/user-use-token.png">
-<meta property="og:image" content="https://luischen.gitee.io/2022/05/20/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/user-expire-token.png">
+<meta property="og:image" content="https://luischen.gitee.io/2022/05/20/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/encode-decode.png">
+<meta property="og:image" content="https://luischen.gitee.io/2022/05/20/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/user-get-token.png">
+<meta property="og:image" content="https://luischen.gitee.io/2022/05/20/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/user-use-token.png">
+<meta property="og:image" content="https://luischen.gitee.io/2022/05/20/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/user-expire-token.png">
 <meta property="article:published_time" content="2022-05-20T03:10:11.000Z">
-<meta property="article:modified_time" content="2022-08-24T05:49:28.258Z">
+<meta property="article:modified_time" content="2022-09-14T08:44:20.040Z">
 <meta property="article:author" content="Luis Chen">
 <meta property="article:tag" content="架构设计">
 <meta property="article:tag" content="微服务">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://luischen.gitee.io/2022/05/20/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/encode-decode.png">
+<meta name="twitter:image" content="https://luischen.gitee.io/2022/05/20/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/encode-decode.png">
 
 
-<link rel="canonical" href="https://luischen.gitee.io/2022/05/20/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/">
+<link rel="canonical" href="https://luischen.gitee.io/2022/05/20/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://luischen.gitee.io/2022/05/20/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/","path":"2022/05/20/基于JWT的微服务接口认证/","title":"基于JWT的微服务接口认证"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://luischen.gitee.io/2022/05/20/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/","path":"2022/05/20/微服务接口认证/","title":"微服务接口认证"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>基于JWT的微服务接口认证 | 路易斯小屋</title>
+<title>微服务接口认证 | 路易斯小屋</title>
   
 
 
@@ -232,7 +232,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2022/05/20/%E5%9F%BA%E4%BA%8EJWT%E7%9A%84%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/">
+    <link itemprop="mainEntityOfPage" href="https://luischen.gitee.io/2022/05/20/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/%E8%AF%81%E4%BB%B6%E7%85%A72.jpg">
@@ -245,12 +245,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="基于JWT的微服务接口认证 | 路易斯小屋">
+      <meta itemprop="name" content="微服务接口认证 | 路易斯小屋">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          基于JWT的微服务接口认证
+          微服务接口认证
         </h1>
 
         <div class="post-meta-container">
