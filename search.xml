@@ -574,46 +574,6 @@
       </tags>
   </entry>
   <entry>
-    <title>决策准绳之我的价值观</title>
-    <url>/2020/01/01/%E5%86%B3%E7%AD%96%E5%87%86%E7%BB%B3%E4%B9%8B%E6%88%91%E7%9A%84%E4%BB%B7%E5%80%BC%E8%A7%82/</url>
-    <content><![CDATA[<h2 id="价值-MUST"><a href="#价值-MUST" class="headerlink" title="价值 - MUST"></a><span style="color:red">价值 - MUST</span></h2><p>价值涵盖三个层面：客户价值、组织价值和个人价值。</p>
-<ul>
-<li><p>客户价值</p>
-<p>宏观层面是降本增效，微观层面可以体现为缩短流程、减少人工参与、避免用户误操作。具体分析客户价值的时候需要结合微观和宏观综合考虑</p>
-</li>
-<li><p>组织价值</p>
-<p>具体体现为带给企业和团队的增益。可以是增加销售额，降低实施成本，也可以是提升团队技能或者增强团队凝聚力</p>
-</li>
-<li><p>个人价值</p>
-<p>从自身出发考虑行动的收益。可以是收入的增加，可以是技能的提升，也可以是提升幸福感</p>
-</li>
-</ul>
-<span id="more"></span>
-
-<h2 id="创新-BETTER-TO-HAVE"><a href="#创新-BETTER-TO-HAVE" class="headerlink" title="创新 - BETTER TO HAVE"></a><span style="color:green">创新 - BETTER TO HAVE</span></h2><p>创新可以从理论、技术和解决方案的角度来衡量。</p>
-<ul>
-<li><p>理论创新</p>
-<p>理论的创新会引发技术和解决方案的创新，从而引领行业的新思潮。例如云计算大行其道的时候，提出边缘计算的思路就是一种理论的创新</p>
-</li>
-<li><p>技术创新</p>
-<p>通过新技术践行理论创新，可以认为是技术创新。例如KubeEdge和OpenYurt这些开源技术就是紧跟边缘计算思潮的技术创新</p>
-</li>
-<li><p>解决方案创新</p>
-<p>解决方案创新体现的是一种整合的智慧，通过已有的技术组合创造性的解决生产中的难题或者创造价值。例如利用InfluxDB的订阅机制实现边缘数据库的备份和转发，Canal模拟MySQL的slave进行日志同步都可以认为是解决方案层面的创新</p>
-</li>
-</ul>
-<h2 id="先进-BETTER-TO-HAVE"><a href="#先进-BETTER-TO-HAVE" class="headerlink" title="先进 - BETTER TO HAVE"></a><span style="color:lightblue">先进 - BETTER TO HAVE</span></h2><p>先进性主要体现在技术和思想两个方面。应该努力避免技术定格和思想僵化。</p>
-<p>例如Java已经出到16了还抱着8就是一种技术的定格，技术定格的后果是难以引导或者追随创新，最终因为无法创造价值而被淘汰。</p>
-<p>思想的僵化也是同样的道理，边缘计算、工业互联网的浪潮中还抱着传统的产品化思想，自我设限的后果就是无路可走。</p>
-]]></content>
-      <categories>
-        <category>人生感悟</category>
-      </categories>
-      <tags>
-        <tag>行为准则</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>你的SpringBoot可以启动的再快点</title>
     <url>/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/</url>
     <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>公司最近推出了一款一体机产品，于是老板就天天提个小箱子跑客户做POC，倍儿有范儿。跑了一阵子客户反响（问题）不错（不少），其中最大的问题就是开机进系统太慢，按照老板的说法：</p>
@@ -711,6 +671,46 @@
       <tags>
         <tag>性能优化</tag>
         <tag>应用技术</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>决策准绳之我的价值观</title>
+    <url>/2020/01/01/%E5%86%B3%E7%AD%96%E5%87%86%E7%BB%B3%E4%B9%8B%E6%88%91%E7%9A%84%E4%BB%B7%E5%80%BC%E8%A7%82/</url>
+    <content><![CDATA[<h2 id="价值-MUST"><a href="#价值-MUST" class="headerlink" title="价值 - MUST"></a><span style="color:red">价值 - MUST</span></h2><p>价值涵盖三个层面：客户价值、组织价值和个人价值。</p>
+<ul>
+<li><p>客户价值</p>
+<p>宏观层面是降本增效，微观层面可以体现为缩短流程、减少人工参与、避免用户误操作。具体分析客户价值的时候需要结合微观和宏观综合考虑</p>
+</li>
+<li><p>组织价值</p>
+<p>具体体现为带给企业和团队的增益。可以是增加销售额，降低实施成本，也可以是提升团队技能或者增强团队凝聚力</p>
+</li>
+<li><p>个人价值</p>
+<p>从自身出发考虑行动的收益。可以是收入的增加，可以是技能的提升，也可以是提升幸福感</p>
+</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="创新-BETTER-TO-HAVE"><a href="#创新-BETTER-TO-HAVE" class="headerlink" title="创新 - BETTER TO HAVE"></a><span style="color:green">创新 - BETTER TO HAVE</span></h2><p>创新可以从理论、技术和解决方案的角度来衡量。</p>
+<ul>
+<li><p>理论创新</p>
+<p>理论的创新会引发技术和解决方案的创新，从而引领行业的新思潮。例如云计算大行其道的时候，提出边缘计算的思路就是一种理论的创新</p>
+</li>
+<li><p>技术创新</p>
+<p>通过新技术践行理论创新，可以认为是技术创新。例如KubeEdge和OpenYurt这些开源技术就是紧跟边缘计算思潮的技术创新</p>
+</li>
+<li><p>解决方案创新</p>
+<p>解决方案创新体现的是一种整合的智慧，通过已有的技术组合创造性的解决生产中的难题或者创造价值。例如利用InfluxDB的订阅机制实现边缘数据库的备份和转发，Canal模拟MySQL的slave进行日志同步都可以认为是解决方案层面的创新</p>
+</li>
+</ul>
+<h2 id="先进-BETTER-TO-HAVE"><a href="#先进-BETTER-TO-HAVE" class="headerlink" title="先进 - BETTER TO HAVE"></a><span style="color:lightblue">先进 - BETTER TO HAVE</span></h2><p>先进性主要体现在技术和思想两个方面。应该努力避免技术定格和思想僵化。</p>
+<p>例如Java已经出到16了还抱着8就是一种技术的定格，技术定格的后果是难以引导或者追随创新，最终因为无法创造价值而被淘汰。</p>
+<p>思想的僵化也是同样的道理，边缘计算、工业互联网的浪潮中还抱着传统的产品化思想，自我设限的后果就是无路可走。</p>
+]]></content>
+      <categories>
+        <category>人生感悟</category>
+      </categories>
+      <tags>
+        <tag>行为准则</tag>
       </tags>
   </entry>
   <entry>
@@ -1275,7 +1275,7 @@
   </entry>
   <entry>
     <title>根云平台初体验</title>
-    <url>/2022/09/14/%E6%A0%B9%E4%BA%91%E5%B9%B3%E5%8F%B0%E5%88%9D%E4%BD%93%E9%AA%8C/</url>
+    <url>/2020/08/19/%E6%A0%B9%E4%BA%91%E5%B9%B3%E5%8F%B0%E5%88%9D%E4%BD%93%E9%AA%8C/</url>
     <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>公司目前的产品偏重于边缘数采和边缘计算，对于规模较大的客户大多需求接入现有的工业互联网平台实现数据统筹管理。本文从根云互联网平台（以下简称平台）切入，研究边缘一体机接入平台的可行性。</p>
 <h2 id="建模机制"><a href="#建模机制" class="headerlink" title="建模机制"></a>建模机制</h2><p>在正式开始之前需要先了解平台关于建模的高层设计。通过控制台进入后可以看到在左侧的物菜单下有物模型、物实例和模型模板库三个子菜单。</p>
 <span id="more"></span>
