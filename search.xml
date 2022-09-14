@@ -1274,6 +1274,72 @@
       </tags>
   </entry>
   <entry>
+    <title>根云平台初体验</title>
+    <url>/2022/09/14/%E6%A0%B9%E4%BA%91%E5%B9%B3%E5%8F%B0%E5%88%9D%E4%BD%93%E9%AA%8C/</url>
+    <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>公司目前的产品偏重于边缘数采和边缘计算，对于规模较大的客户大多需求接入现有的工业互联网平台实现数据统筹管理。本文从根云互联网平台（以下简称平台）切入，研究边缘一体机接入平台的可行性。</p>
+<h2 id="建模机制"><a href="#建模机制" class="headerlink" title="建模机制"></a>建模机制</h2><p>在正式开始之前需要先了解平台关于建模的高层设计。通过控制台进入后可以看到在左侧的物菜单下有物模型、物实例和模型模板库三个子菜单。</p>
+<img src="menu.png"/>
+
+<p>结合介绍文档和页面功能，我们可以总结出平台关于物建模的高层设计。</p>
+<img src="high-level.png"/>
+
+<ol>
+<li>物模型是物理设备的高层次抽象，定义物理设备通用的属性和行为</li>
+<li>物实例是物模型的具体实现，对应现实设备或者网关</li>
+<li>模型模板库是物模型的行业知识库，用于快速创建物模型</li>
+</ol>
+<h2 id="设备建模"><a href="#设备建模" class="headerlink" title="设备建模"></a>设备建模</h2><h3 id="物模型"><a href="#物模型" class="headerlink" title="物模型"></a>物模型</h3><p>基于平台关于建模的设定，我们首先建立我们的物模型。选择物模型类型为网关，填入基本信息即可创建成功。</p>
+<img src="model1.png"/>
+
+<p>为物模型添加一个变量标识为AA001对应电流接入。</p>
+<img src="model2.png"/>
+
+<h3 id="物实例"><a href="#物实例" class="headerlink" title="物实例"></a>物实例</h3><p>物模型建立完成后就可以基于物模型创建物实例了。</p>
+<img src="instance1.png"/>
+
+<h2 id="连接验证"><a href="#连接验证" class="headerlink" title="连接验证"></a>连接验证</h2><p>在设备建模完成后，我们可以通过MQTT网页测试工具向平台发送实时数据。</p>
+<p>测试地址：<a href="https://developer-pre.rootcloudapp.com/docs/resource/mqtt-api-test/">https://developer-pre.rootcloudapp.com/docs/resource/mqtt-api-test/</a></p>
+<h3 id="建立连接"><a href="#建立连接" class="headerlink" title="建立连接"></a>建立连接</h3><img src="connect.png"/>
+
+<p>相关页面输入如下所示，</p>
+<p>服务器地址：mqtt-broker-pre.rootcloudapp.com</p>
+<p>Username和clientId : xxxxxxx（通过物实例页面获取到的认证标识）</p>
+<p>端口：8084</p>
+<p>Password：xxxx（通过物实例页面获取到的认证密钥）</p>
+<h3 id="发布数据"><a href="#发布数据" class="headerlink" title="发布数据"></a>发布数据</h3><p>连接建立成功后可以通过发布功能发布数据到平台。</p>
+<img src="publish-data.png"/>
+
+<p>其中发布的主题是：<code>v4/p/post/thing/live/json/1.1</code>。发布的内容根据需求定义，具体字段可以查看文档：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line"><span class="attr">&quot;body&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line"><span class="attr">&quot;things&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">	<span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">	<span class="attr">&quot;thingType&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Gateway&quot;</span><span class="punctuation">,</span></span><br><span class="line">	<span class="attr">&quot;items&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">	  <span class="attr">&quot;qBad&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">	  <span class="attr">&quot;ts&quot;</span><span class="punctuation">:</span> <span class="number">1620720246796</span><span class="punctuation">,</span></span><br><span class="line">	  <span class="attr">&quot;properties&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">	    <span class="attr">&quot;AA001&quot;</span><span class="punctuation">:</span> <span class="number">13</span></span><br><span class="line">	  <span class="punctuation">&#125;</span></span><br><span class="line">	<span class="punctuation">&#125;</span><span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>例如以上报文中我们需要关注几个部分，其中thingType可以选择Device和Gateway，选择Gateway时，id为空字符串即可。ts对应上报的时间戳，properties中的AA001就是我们在物模型中定义的属性名。</p>
+<p>发送完之后我们在物实例中可以看到AA001对应的电流的实时值为13。</p>
+<img src="result.png"/>
+
+<h3 id="代码测试"><a href="#代码测试" class="headerlink" title="代码测试"></a>代码测试</h3><p>我们还可以模拟MQTT的客户端进行连接后向平台发送数据。在客户端程序中需要建立连接，模拟数据格式和发送数据。在客户端选型上我们选择了eclipse paho，使用spring-integration-mqtt进行客户端封装。</p>
+<img src="code.png"/>
+
+<p>如代码所示，通过暴露的MyGateway接口发送消息到管道，管道接收了消息之后通过创建客户端将消息发送到目标主题。</p>
+<p>发送一段时间后在平台端可以看到AA001的变化趋势。</p>
+<img src="code-result.png"/>
+
+<h2 id="业务验证"><a href="#业务验证" class="headerlink" title="业务验证"></a>业务验证</h2><p>基于边缘端拓扑结构，我们在平台进行建模如下：</p>
+<img src="solution.png"/>
+
+<p>首先一个节点对应一体机，在一体机上安装一个MQTT客户端发送数据到平台的MQTT队列。平台侧通过部署一个多节点网关对多个节点进行管理。呈现效果如下：</p>
+<img src="result1.png"/>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>通过<strong>连接验证</strong>，我们确认了可以通过边缘程序发送数据到MQTT队列并在平台进行展示的可行性。通过<strong>业务验证</strong>，我们将边缘端的设备结构和物模型进行匹配，实现了一个网关对应一台边缘智能机并通过复合物进行统一管理的实现路径。</p>
+<img src="path.png"/>]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>应用技术</tag>
+        <tag>数据采集</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>统计二进制1的代码解读</title>
     <url>/2019/07/17/%E7%BB%9F%E8%AE%A1%E4%BA%8C%E8%BF%9B%E5%88%B61%E7%9A%84%E4%BB%A3%E7%A0%81%E8%A7%A3%E8%AF%BB/</url>
     <content><![CDATA[<p>为了适应边缘计算的需求决定投入学习Go语言的浪潮，用了10年的java突然要去接受一个风格完全不一样的语言感觉真是太刺激了。 在看《Go语言圣经》的时候看到里面的一个计算二进制中1的个数的程序popcount，觉得挺有意思就拿出来分享一下吧。</p>
