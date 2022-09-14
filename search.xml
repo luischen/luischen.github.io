@@ -1161,6 +1161,108 @@
       </tags>
   </entry>
   <entry>
+    <title>微信登录集成</title>
+    <url>/2017/09/01/%E5%BE%AE%E4%BF%A1%E7%99%BB%E5%BD%95%E9%9B%86%E6%88%90/</url>
+    <content><![CDATA[<p>平台上线快一年了，注册人数却始终不见起色，看着下面这注册走势可把大伙儿急的。一着急一上火就刷朋友圈，朋友圈，朋友圈？灵感来了有没有？ </p>
+<p>如果我们可以支持微信登录，那么微信日活5.7亿岂不都是我们的潜在客户了？不用多久升职加薪，当上总经理，出任CEO，迎娶白富美，走上人生巅峰。想想还有点小激动呢。</p>
+<span id="more"></span>
+
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>说干就干，程序员一般套路：<code>代码未动，文档先行</code>。先找到微信开放平台（<a href="https://open.weixin.qq.com)-&gt;/">https://open.weixin.qq.com）-&gt;</a> 资源中心-&gt; 网站应用，把开发文档刷一遍。不管看没看懂咱都是看过源代码，噢不原文档的人了。</p>
+<p>象征性的总结一下，主要分三步走：</p>
+<ol>
+<li>授权换code（开门）</li>
+<li>code换token（找钥匙）</li>
+<li>token获取用户消息（该干啥干啥）</li>
+</ol>
+<p>当然，如果你觉得找到了钥匙你就拥有了全世界那你就simple simple了。用着人家的文档，坐拥5.7亿的日活，不交点保护费合适吗？</p>
+<p>首先你要在开放平台注册一个账号，并通过开发者资质认证（300大洋一年）。然后到管理中心，创建一个网站应用并通过审核，这个不要钱。</p>
+<blockquote>
+<p>注:这里面有一个很重要的字段，叫授权回调域，最好和实际开发的回调域名保持一致。</p>
+<p>网上很多文章说可以配置成顶级域名，开发使用二级域名，反正我试过这样不通，</p>
+<p>错误信息：redirect_uri 参数错误。</p>
+</blockquote>
+<p>OK，到此为止，你才真正拥有了全世界。</p>
+<h2 id="集成设计"><a href="#集成设计" class="headerlink" title="集成设计"></a>集成设计</h2><p>既然是登录集成首先我们需要审视用户模型，我们原来的用户模型是简单的用户密码认证方式，简单来说就是一张主用户表，加一堆外延表。这无疑给我们用户的扩展提供了便利，本着KISS的原则，我们的用户模型最终修改如下：</p>
+<img src="user-diagram.png"/>
+
+<p>主要的改动点就是增加了一个t_wx_bind_info表，围绕这个数据模型，我们的逻辑可以如下展开：</p>
+<ol>
+<li>首次微信登录，获取用户信息后保存至t_wx_bind_info, 此时的微信注册信息处于<strong>游离态</strong>，用户通过后续选择a) 绑定到现有用户 b) 创建新用户 将微信注册用户转化为<strong>激活态</strong></li>
+<li>未绑定微信用户登录，用户授权后获取access token，通过token里面的unionId获取加载t_wx_bind_info中游离态的用户信息，用户同样需要通过选择来将<strong>游离态</strong>转化为<strong>激活态</strong></li>
+<li>已绑定微信用户登录，用户授权后获取access token，通过token里面的unionId获取t_wx_bind_info中激活态的用户并做正常登陆，之后用户可以通过用户管理模块进行微信解绑</li>
+<li>系统账号登录，普通账号可以通过账号管理模块进行账号绑定和解绑</li>
+</ol>
+<p>也许一张图来的更直观点，</p>
+<img src="flow.png"/>
+
+<blockquote>
+<p>关于用户解绑后t_wx_bind_info的思考<br>正常来说我们有两个选择，<br>	删除这条信息，每次绑定从头来过<br>	恢复至游离态，下次绑定的时候直接使用<br>至于取舍见仁见智，每个选择都是优劣并存的，其实只要明白各自的优劣使用哪种方案并不重要。</p>
+</blockquote>
+<h2 id="开发实现"><a href="#开发实现" class="headerlink" title="开发实现"></a>开发实现</h2><p>俗话说的好，talk is cheap, show me the code.</p>
+<p>那接下来就是coding show了，主要是记录一下开发的过程，方便以后用到的时候复制粘贴。</p>
+<h3 id="登录页面"><a href="#登录页面" class="headerlink" title="登录页面"></a>登录页面</h3><p>登录页面增加微信登录的按钮，至于背景图片可以到开放平台的资源中心下载相应尺寸的背景图片。</p>
+<p>给登录按钮添加事件，</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> dName = <span class="variable language_">document</span>.<span class="property">domain</span>;</span><br><span class="line"><span class="keyword">var</span> redirectUri = </span><br><span class="line">	<span class="built_in">encodeURIComponent</span>(<span class="string">&quot;http://&quot;</span> +dName+<span class="string">&quot;&lt;%=request.getContextPath()%&gt;/wechat_callback.do?rout=fromLogin&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> wechatLoginUrl = </span><br><span class="line">	<span class="string">&quot;https://open.weixin.qq.com/connect/qrconnect?appid=wx62c35d8f6a203158&quot;</span></span><br><span class="line">	+<span class="string">&quot;&amp;redirect_uri=&quot;</span>+redirectUri</span><br><span class="line">	+<span class="string">&quot;&amp;response_type=code&amp;scope=snsapi_login&amp;state=123#wechat_redirect&quot;</span>;</span><br><span class="line">location.<span class="property">href</span> = wechatLoginUrl;</span><br></pre></td></tr></table></figure>
+
+<p>实现的效果，是点击按钮后会跳到微信自己的二维码页面。</p>
+<img src="qr-code.png"/>
+
+<p>注意点：</p>
+<ul>
+<li>RedirectUrl需要经过urlEncode</li>
+<li>AppId需要通过微信开发者资质认证后获得</li>
+<li>其他参数按照文档填写即可</li>
+</ul>
+<h3 id="后台实现"><a href="#后台实现" class="headerlink" title="后台实现"></a>后台实现</h3><p>程序入口是redirectUrl指向的地址，一般是一个restful的资源。类图如下：</p>
+<img src="class-diagram.png"/>
+
+<p>在wechatCallback类中有两个分支分别处理扫码登录后的回调和账号登录后绑定微信的回调。主要的区别是重定向的页面和错误页面不同。</p>
+<ul>
+<li><p>扫码登录</p>
+<p>成功后跳转到信息补全页面，失败后跳转到登录页面并提示错误信息。</p>
+</li>
+<li><p>登录绑定</p>
+<p>成功后跳转到当前页面，失败后跳转到当前页面并提示错误信息。</p>
+</li>
+</ul>
+<p>BindService主要处理t_wx_bind_info表的CRUD操作，sync方法用于同步微信信息和账户信息。 </p>
+<p>WechatUtil类是连接微信API的工具类，主要逻辑是通过httpClient组装请求信息与微信服务器进行信息交换。</p>
+<h2 id="效果展示"><a href="#效果展示" class="headerlink" title="效果展示"></a>效果展示</h2><ol>
+<li><p>登录页面</p>
+<img src="step1.png"/>
+</li>
+<li><p>扫码成功</p>
+<img src="step2.png"/>
+</li>
+<li><p>跳转到信息补全，可以选择新创建账号还是绑定已有账号</p>
+<img src="step3.png"/>
+</li>
+<li><p>选择绑定到已有账户，输入用户密码后就直接完成登录并可以看到微信绑定状态是已绑定</p>
+<img src="step4.png"/></li>
+</ol>
+<h2 id="问题汇总"><a href="#问题汇总" class="headerlink" title="问题汇总"></a>问题汇总</h2><ul>
+<li><p>AppId参数不对</p>
+<p>这个问题主要是在开发者资质认证阶段，我随便编个参数遇到的问题，填写正确的appId就可以了</p>
+</li>
+<li><p>RedirectUrl参数不对</p>
+<p>这个问题前面也说过了，在网站申请的时候回调域名一定要和开发的redirectUrl一致。比如申请的回调域名是manulism.com, redirectUrl使用test.manulism.com则会出现这个问题。</p>
+</li>
+<li><p>本地测试的问题</p>
+<p>由于微信平台配置的时候只接受回调域名，所以在本地要测试需要修改hosts文件里的域名mapping，文件目录在C:\Windows\System32\drivers\etc</p>
+<p>新增一行：</p>
+<p>192.168.8.254  test.manulism.com</p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>应用技术</tag>
+        <tag>系统集成</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>慧工云融资思考</title>
     <url>/2021/03/10/%E6%85%A7%E5%B7%A5%E4%BA%91%E8%9E%8D%E8%B5%84%E6%80%9D%E8%80%83/</url>
     <content><![CDATA[<h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>有感于慧工云最新发布的融资新闻《慧工云完成亿元B轮融资，持续驱动中国高效制造》，同样诞生于智能制造元年（2016），同样立足离散制造行业，是什么样的选择导致了慧工云比大制科技走的更快更稳呢？下面从公司使命、产品、行业细分和地域四个方面进行深度剖析。</p>
