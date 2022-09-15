@@ -1,66 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>InfluxDB数据接入MQTT</title>
-    <url>/2021/12/22/InfluxDB%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5MQTT/</url>
-    <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>在边缘计算场景中数据存储在边缘的时序数据库如 InfluxDB 中，如果不能将数据进行归集以统筹管理则可能形成数据孤岛，无法充分有效的发挥大数据的威力。</p>
-<p>边缘端的数据流是数采网关直连InfluxDB，通过restful的方式将采集到的数据发送到时序数据库。这种方式的优点是架构简单，没有中间环节数据传输效率高、实时性有保障。缺点则是可扩展性低，无法满足数据处理、数据转发等需求。</p>
-<p>在某大型客户的案例中我们面临的挑战是边缘时序数据需要接入对方的工业互联网平台，鉴于平台支持MQTT方式接入，我们的问题就转化为：<em>边缘时序数据发送到MQTT队列</em></p>
-<span id="more"></span>
-
-<h2 id="方案设计"><a href="#方案设计" class="headerlink" title="方案设计"></a>方案设计</h2><p>在分析了我们现在连接方式后我们总结出三种方案来应对挑战。</p>
-<img src="solution.png"/>
-
-<ol>
-<li>方案一，网关直接连接MQTT</li>
-<li>方案二，定时任务去InfluxDB拉取后发送到MQTT</li>
-<li>方案三，模拟一个InfluxDB的订阅者，作为中间层</li>
-</ol>
-<p>综合来看方案一实现方式比较简单，直接由网关发起双写。缺点是对网关性能要求比较高，同样也面临后期扩展性的问题。</p>
-<p>方案二和方案三都是通过增加一个中间层来解决问题，通过中间层可以实现数据预处理、数据分发等功能保留了扩展性。不同点在于方案二采用主动拉取的方式，方案三采用了订阅者模式由InfluxDB推送数据更新到订阅者。相比较而言方案三的实时性更好，性能损耗也相对更小。</p>
-<p>最终我们选择方案三作为InfluxDB到MQTT的连接方案。</p>
-<img src="solution2.png"/>
-
-<h2 id="方案实现"><a href="#方案实现" class="headerlink" title="方案实现"></a>方案实现</h2><p>我们从三个方面来依次阐述方案实现：</p>
-<h3 id="InfluxDB-设置"><a href="#InfluxDB-设置" class="headerlink" title="InfluxDB 设置"></a>InfluxDB 设置</h3><p>在InfluxDB设置中，订阅是默认开启的。如果已经关闭注意打开即可，配置项段落如下：</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line">[<span class="string">subscriber</span>]</span><br><span class="line">	<span class="comment"># determine whether the subscriber service is enabled</span></span><br><span class="line">	<span class="string">enable</span> <span class="string">=</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
-
-<p>在完成了配置后需要重启服务生效。然后通过执行语句创建subscription，完成订阅。</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> SUBSCRIPTION &quot;mysub&quot; <span class="keyword">ON</span> &quot;test&quot;.&quot;autogen&quot; DESTINATIONS <span class="keyword">ALL</span> <span class="string">&#x27;http://192.168.8.181:9090&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>其中 mysub 是订阅的名称，test 和 autogen 分别是数据库和保留策略的名称，<a href="http://192.168.8.181:9090/">http://192.168.8.181:9090</a> 是订阅者地址，InfluxDB会将fork的请求发送到这个地址。</p>
-<h3 id="订阅者实现"><a href="#订阅者实现" class="headerlink" title="订阅者实现"></a>订阅者实现</h3><p>订阅者实现是整个方案的核心，我们通过类图来说明。</p>
-<img src="class-diagram.png" />
-
-<p>Router是订阅者对外暴露的端点，通过receive方法接收请求后将请求流转到Transformer。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PostMapping(&quot;/write&quot;)</span></span><br><span class="line"><span class="keyword">public</span> Mono&lt;String&gt; <span class="title function_">receive</span><span class="params">(<span class="meta">@RequestBody</span> String data)</span>&#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">mqttdata</span> <span class="operator">=</span> transformer.transform(data);</span><br><span class="line">    gateway.sendToMqtt(mqttdata);</span><br><span class="line">    <span class="keyword">return</span> Mono.empty();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>Transformer将数据从InfluxDB的line protocol转换为平台接收的MQTT数据格式，通过MQTT客户端发送。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> String <span class="title function_">transform</span><span class="params">(String lineData)</span> &#123;</span><br><span class="line">		<span class="type">RootCloudThing</span> <span class="variable">thing</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RootCloudThing</span>();</span><br><span class="line">		</span><br><span class="line">		String[] lines = lineData.split(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">		List&lt;RootCloudItem&gt; items = Arrays.stream(lines)</span><br><span class="line">				.filter(line-&gt; itemConfigure.isValidLine(line))</span><br><span class="line">				.map(RootCloudItem::buildFromLine).collect(Collectors.toList());</span><br><span class="line">		thing.setItems(items);</span><br><span class="line">		</span><br><span class="line">		Map&lt;String,List&lt;RootCloudThing&gt;&gt; innerMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">		innerMap.put(<span class="string">&quot;things&quot;</span>, Arrays.asList(thing));</span><br><span class="line">		Map&lt;String,Object&gt; outerMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">		outerMap.put(<span class="string">&quot;body&quot;</span>, innerMap);</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Gson</span>().toJson(outerMap);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>transform方法主要实现了line数据的过滤和向RootCloudThing对象的转换，最后以Json格式返回给Router用以发送到MQTT broker。</p>
-<h3 id="发送MQTT"><a href="#发送MQTT" class="headerlink" title="发送MQTT"></a>发送MQTT</h3><p>我们基于eclipse paho作为MQTT的客户端实现，pom文件引入如下依赖。</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.integration<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-integration-mqtt<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>通过配置文件注入配置</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># mqtt configure</span></span><br><span class="line"><span class="string">mqtt.broker.uri=tcp://mqtt-broker-pre.rootcloudapp.com:1883</span></span><br><span class="line"><span class="string">mqtt.broker.username=xxxxxxxx</span></span><br><span class="line"><span class="string">mqtt.broker.passcode=xxxxxxxx</span></span><br><span class="line"><span class="string">mqtt.broker.topic=v4/p/post/thing/live/json/1.1</span></span><br></pre></td></tr></table></figure>
-
-<p>通过ProducerConfigure类实现配置读取并初始化客户端bean</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@ConfigurationProperties(prefix = &quot;mqtt.broker&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ProducerConfigure</span> &#123;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">private</span> String uri;</span><br><span class="line">	<span class="keyword">private</span> String username;</span><br><span class="line">	<span class="keyword">private</span> String passcode;</span><br><span class="line">	<span class="keyword">private</span> String topic;</span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="keyword">public</span> MqttPahoClientFactory <span class="title function_">mqttClientFactory</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="type">DefaultMqttPahoClientFactory</span> <span class="variable">factory</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DefaultMqttPahoClientFactory</span>();</span><br><span class="line">		<span class="type">MqttConnectOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MqttConnectOptions</span>();</span><br><span class="line">		options.setServerURIs(<span class="keyword">new</span> <span class="title class_">String</span>[] &#123; uri &#125;);</span><br><span class="line">		options.setUserName(username);		</span><br><span class="line">		options.setPassword(passcode.toCharArray());</span><br><span class="line">		options.setCleanSession(<span class="literal">true</span>);</span><br><span class="line">		factory.setConnectionOptions(options);</span><br><span class="line">		<span class="keyword">return</span> factory;</span><br><span class="line">	&#125;	</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="keyword">public</span> MessageChannel <span class="title function_">mqttOutboundChannel</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">DirectChannel</span>();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="meta">@ServiceActivator(inputChannel = &quot;mqttOutboundChannel&quot;)</span></span><br><span class="line">	<span class="keyword">public</span> MessageHandler <span class="title function_">mqttOutbound</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="type">MqttPahoMessageHandler</span> <span class="variable">messageHandler</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MqttPahoMessageHandler</span>(username, mqttClientFactory());</span><br><span class="line">		messageHandler.setAsync(<span class="literal">true</span>);</span><br><span class="line">		messageHandler.setDefaultTopic(topic);</span><br><span class="line">		<span class="keyword">return</span> messageHandler;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@MessagingGateway(defaultRequestChannel = &quot;mqttOutboundChannel&quot;)</span></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">MyGateway</span> &#123;</span><br><span class="line">		<span class="keyword">void</span> <span class="title function_">sendToMqtt</span><span class="params">(String data)</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//getter setter ....</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>通过方案实现章节的三个步骤我们已经基本实现了一个用于订阅InfluxDB的中间层，反观实现原理和Canal（ <a href="https://github.com/alibaba/canal/">https://github.com/alibaba/canal/</a> ） 有点类似。</p>
-<p>通过中间层的引入，在网关直连到InfluxDB的已有方式不需要任何改动的前提下，我们实现了数据的预处理和分发。基于中间层我们可以将时序数据发送到任意目的地，满足数据归集、数据备份、数据展示和数据分析等多种需求。</p>
-<p>附源代码地址（版本更新后可能和原文实现有差异）：<a href="https://gitee.com/luischen/databridge">https://gitee.com/luischen/databridge</a></p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>InfluxDB</tag>
-        <tag>数据技术</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>InfluxDB备份策略</title>
     <url>/2021/08/19/InfluxDB%E5%A4%87%E4%BB%BD%E7%AD%96%E7%95%A5/</url>
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>设备数据采集的时序数据使用InfluxDB进行存储，InfluxDB提供了两大类备份策略来保障数据安全：</p>
@@ -163,6 +103,66 @@
 </tbody></table>
 <p>从上表可以看出数据库主备的方式架构复杂而且系统资源消耗极大，一般情况下直接忽略。</p>
 <p>在项目初期数据量较小的时候可以选择全量备份，减少操作的复杂度。随着数据量的逐渐增加，可以选择增量备份或者离线备份。如果选择增量备份需要自己准备InfluxDB迁移工具用于从临时库到主库的数据迁移，而选择离线备份则需要在备份脚本中增加shard ID的管理，当然因此换来的备份资源大幅缩减还是能值回票价的。</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>InfluxDB</tag>
+        <tag>数据技术</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>InfluxDB数据接入MQTT</title>
+    <url>/2021/12/22/InfluxDB%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5MQTT/</url>
+    <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>在边缘计算场景中数据存储在边缘的时序数据库如 InfluxDB 中，如果不能将数据进行归集以统筹管理则可能形成数据孤岛，无法充分有效的发挥大数据的威力。</p>
+<p>边缘端的数据流是数采网关直连InfluxDB，通过restful的方式将采集到的数据发送到时序数据库。这种方式的优点是架构简单，没有中间环节数据传输效率高、实时性有保障。缺点则是可扩展性低，无法满足数据处理、数据转发等需求。</p>
+<p>在某大型客户的案例中我们面临的挑战是边缘时序数据需要接入对方的工业互联网平台，鉴于平台支持MQTT方式接入，我们的问题就转化为：<em>边缘时序数据发送到MQTT队列</em></p>
+<span id="more"></span>
+
+<h2 id="方案设计"><a href="#方案设计" class="headerlink" title="方案设计"></a>方案设计</h2><p>在分析了我们现在连接方式后我们总结出三种方案来应对挑战。</p>
+<img src="solution.png"/>
+
+<ol>
+<li>方案一，网关直接连接MQTT</li>
+<li>方案二，定时任务去InfluxDB拉取后发送到MQTT</li>
+<li>方案三，模拟一个InfluxDB的订阅者，作为中间层</li>
+</ol>
+<p>综合来看方案一实现方式比较简单，直接由网关发起双写。缺点是对网关性能要求比较高，同样也面临后期扩展性的问题。</p>
+<p>方案二和方案三都是通过增加一个中间层来解决问题，通过中间层可以实现数据预处理、数据分发等功能保留了扩展性。不同点在于方案二采用主动拉取的方式，方案三采用了订阅者模式由InfluxDB推送数据更新到订阅者。相比较而言方案三的实时性更好，性能损耗也相对更小。</p>
+<p>最终我们选择方案三作为InfluxDB到MQTT的连接方案。</p>
+<img src="solution2.png"/>
+
+<h2 id="方案实现"><a href="#方案实现" class="headerlink" title="方案实现"></a>方案实现</h2><p>我们从三个方面来依次阐述方案实现：</p>
+<h3 id="InfluxDB-设置"><a href="#InfluxDB-设置" class="headerlink" title="InfluxDB 设置"></a>InfluxDB 设置</h3><p>在InfluxDB设置中，订阅是默认开启的。如果已经关闭注意打开即可，配置项段落如下：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line">[<span class="string">subscriber</span>]</span><br><span class="line">	<span class="comment"># determine whether the subscriber service is enabled</span></span><br><span class="line">	<span class="string">enable</span> <span class="string">=</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>在完成了配置后需要重启服务生效。然后通过执行语句创建subscription，完成订阅。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> SUBSCRIPTION &quot;mysub&quot; <span class="keyword">ON</span> &quot;test&quot;.&quot;autogen&quot; DESTINATIONS <span class="keyword">ALL</span> <span class="string">&#x27;http://192.168.8.181:9090&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>其中 mysub 是订阅的名称，test 和 autogen 分别是数据库和保留策略的名称，<a href="http://192.168.8.181:9090/">http://192.168.8.181:9090</a> 是订阅者地址，InfluxDB会将fork的请求发送到这个地址。</p>
+<h3 id="订阅者实现"><a href="#订阅者实现" class="headerlink" title="订阅者实现"></a>订阅者实现</h3><p>订阅者实现是整个方案的核心，我们通过类图来说明。</p>
+<img src="class-diagram.png" />
+
+<p>Router是订阅者对外暴露的端点，通过receive方法接收请求后将请求流转到Transformer。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PostMapping(&quot;/write&quot;)</span></span><br><span class="line"><span class="keyword">public</span> Mono&lt;String&gt; <span class="title function_">receive</span><span class="params">(<span class="meta">@RequestBody</span> String data)</span>&#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">mqttdata</span> <span class="operator">=</span> transformer.transform(data);</span><br><span class="line">    gateway.sendToMqtt(mqttdata);</span><br><span class="line">    <span class="keyword">return</span> Mono.empty();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>Transformer将数据从InfluxDB的line protocol转换为平台接收的MQTT数据格式，通过MQTT客户端发送。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> String <span class="title function_">transform</span><span class="params">(String lineData)</span> &#123;</span><br><span class="line">		<span class="type">RootCloudThing</span> <span class="variable">thing</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RootCloudThing</span>();</span><br><span class="line">		</span><br><span class="line">		String[] lines = lineData.split(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">		List&lt;RootCloudItem&gt; items = Arrays.stream(lines)</span><br><span class="line">				.filter(line-&gt; itemConfigure.isValidLine(line))</span><br><span class="line">				.map(RootCloudItem::buildFromLine).collect(Collectors.toList());</span><br><span class="line">		thing.setItems(items);</span><br><span class="line">		</span><br><span class="line">		Map&lt;String,List&lt;RootCloudThing&gt;&gt; innerMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">		innerMap.put(<span class="string">&quot;things&quot;</span>, Arrays.asList(thing));</span><br><span class="line">		Map&lt;String,Object&gt; outerMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">		outerMap.put(<span class="string">&quot;body&quot;</span>, innerMap);</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Gson</span>().toJson(outerMap);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>transform方法主要实现了line数据的过滤和向RootCloudThing对象的转换，最后以Json格式返回给Router用以发送到MQTT broker。</p>
+<h3 id="发送MQTT"><a href="#发送MQTT" class="headerlink" title="发送MQTT"></a>发送MQTT</h3><p>我们基于eclipse paho作为MQTT的客户端实现，pom文件引入如下依赖。</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.integration<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-integration-mqtt<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>通过配置文件注入配置</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># mqtt configure</span></span><br><span class="line"><span class="string">mqtt.broker.uri=tcp://mqtt-broker-pre.rootcloudapp.com:1883</span></span><br><span class="line"><span class="string">mqtt.broker.username=xxxxxxxx</span></span><br><span class="line"><span class="string">mqtt.broker.passcode=xxxxxxxx</span></span><br><span class="line"><span class="string">mqtt.broker.topic=v4/p/post/thing/live/json/1.1</span></span><br></pre></td></tr></table></figure>
+
+<p>通过ProducerConfigure类实现配置读取并初始化客户端bean</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@ConfigurationProperties(prefix = &quot;mqtt.broker&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ProducerConfigure</span> &#123;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">private</span> String uri;</span><br><span class="line">	<span class="keyword">private</span> String username;</span><br><span class="line">	<span class="keyword">private</span> String passcode;</span><br><span class="line">	<span class="keyword">private</span> String topic;</span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="keyword">public</span> MqttPahoClientFactory <span class="title function_">mqttClientFactory</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="type">DefaultMqttPahoClientFactory</span> <span class="variable">factory</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DefaultMqttPahoClientFactory</span>();</span><br><span class="line">		<span class="type">MqttConnectOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MqttConnectOptions</span>();</span><br><span class="line">		options.setServerURIs(<span class="keyword">new</span> <span class="title class_">String</span>[] &#123; uri &#125;);</span><br><span class="line">		options.setUserName(username);		</span><br><span class="line">		options.setPassword(passcode.toCharArray());</span><br><span class="line">		options.setCleanSession(<span class="literal">true</span>);</span><br><span class="line">		factory.setConnectionOptions(options);</span><br><span class="line">		<span class="keyword">return</span> factory;</span><br><span class="line">	&#125;	</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="keyword">public</span> MessageChannel <span class="title function_">mqttOutboundChannel</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">DirectChannel</span>();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="meta">@ServiceActivator(inputChannel = &quot;mqttOutboundChannel&quot;)</span></span><br><span class="line">	<span class="keyword">public</span> MessageHandler <span class="title function_">mqttOutbound</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="type">MqttPahoMessageHandler</span> <span class="variable">messageHandler</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MqttPahoMessageHandler</span>(username, mqttClientFactory());</span><br><span class="line">		messageHandler.setAsync(<span class="literal">true</span>);</span><br><span class="line">		messageHandler.setDefaultTopic(topic);</span><br><span class="line">		<span class="keyword">return</span> messageHandler;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@MessagingGateway(defaultRequestChannel = &quot;mqttOutboundChannel&quot;)</span></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">MyGateway</span> &#123;</span><br><span class="line">		<span class="keyword">void</span> <span class="title function_">sendToMqtt</span><span class="params">(String data)</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//getter setter ....</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>通过方案实现章节的三个步骤我们已经基本实现了一个用于订阅InfluxDB的中间层，反观实现原理和Canal（ <a href="https://github.com/alibaba/canal/">https://github.com/alibaba/canal/</a> ） 有点类似。</p>
+<p>通过中间层的引入，在网关直连到InfluxDB的已有方式不需要任何改动的前提下，我们实现了数据的预处理和分发。基于中间层我们可以将时序数据发送到任意目的地，满足数据归集、数据备份、数据展示和数据分析等多种需求。</p>
+<p>附源代码地址（版本更新后可能和原文实现有差异）：<a href="https://gitee.com/luischen/databridge">https://gitee.com/luischen/databridge</a></p>
 ]]></content>
       <categories>
         <category>技术总结</category>
