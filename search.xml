@@ -113,26 +113,64 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2016/05/26/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+    <title>InfluxDB数据接入MQTT</title>
+    <url>/2021/12/22/InfluxDB%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5MQTT/</url>
+    <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>在边缘计算场景中数据存储在边缘的时序数据库如 InfluxDB 中，如果不能将数据进行归集以统筹管理则可能形成数据孤岛，无法充分有效的发挥大数据的威力。</p>
+<p>边缘端的数据流是数采网关直连InfluxDB，通过restful的方式将采集到的数据发送到时序数据库。这种方式的优点是架构简单，没有中间环节数据传输效率高、实时性有保障。缺点则是可扩展性低，无法满足数据处理、数据转发等需求。</p>
+<p>在某大型客户的案例中我们面临的挑战是边缘时序数据需要接入对方的工业互联网平台，鉴于平台支持MQTT方式接入，我们的问题就转化为：<em>边缘时序数据发送到MQTT队列</em></p>
+<span id="more"></span>
 
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<h2 id="方案设计"><a href="#方案设计" class="headerlink" title="方案设计"></a>方案设计</h2><p>在分析了我们现在连接方式后我们总结出三种方案来应对挑战。</p>
+<img src="solution.png"/>
 
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<ol>
+<li>方案一，网关直接连接MQTT</li>
+<li>方案二，定时任务去InfluxDB拉取后发送到MQTT</li>
+<li>方案三，模拟一个InfluxDB的订阅者，作为中间层</li>
+</ol>
+<p>综合来看方案一实现方式比较简单，直接由网关发起双写。缺点是对网关性能要求比较高，同样也面临后期扩展性的问题。</p>
+<p>方案二和方案三都是通过增加一个中间层来解决问题，通过中间层可以实现数据预处理、数据分发等功能保留了扩展性。不同点在于方案二采用主动拉取的方式，方案三采用了订阅者模式由InfluxDB推送数据更新到订阅者。相比较而言方案三的实时性更好，性能损耗也相对更小。</p>
+<p>最终我们选择方案三作为InfluxDB到MQTT的连接方案。</p>
+<img src="solution2.png"/>
 
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<h2 id="方案实现"><a href="#方案实现" class="headerlink" title="方案实现"></a>方案实现</h2><p>我们从三个方面来依次阐述方案实现：</p>
+<h3 id="InfluxDB-设置"><a href="#InfluxDB-设置" class="headerlink" title="InfluxDB 设置"></a>InfluxDB 设置</h3><p>在InfluxDB设置中，订阅是默认开启的。如果已经关闭注意打开即可，配置项段落如下：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line">[<span class="string">subscriber</span>]</span><br><span class="line">	<span class="comment"># determine whether the subscriber service is enabled</span></span><br><span class="line">	<span class="string">enable</span> <span class="string">=</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
 
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-<h2 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h2><h3 id="生成的文件目录错乱"><a href="#生成的文件目录错乱" class="headerlink" title="生成的文件目录错乱"></a>生成的文件目录错乱</h3><p>原因是Next主题解析机制是二级目录、三级目录的按级解析，如果文章中出现了跳级的情况就会出现文件目录错乱。修复办法就是使用层层递进的目录定义。</p>
-<h3 id="修改每页文章数量"><a href="#修改每页文章数量" class="headerlink" title="修改每页文章数量"></a>修改每页文章数量</h3><p>在hexo的_config.yml中修改per_page配置项：</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">index_generator:</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">  <span class="attr">per_page:</span> <span class="number">5</span></span><br><span class="line">  <span class="attr">order_by:</span> <span class="string">-date</span></span><br></pre></td></tr></table></figure>
+<p>在完成了配置后需要重启服务生效。然后通过执行语句创建subscription，完成订阅。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> SUBSCRIPTION &quot;mysub&quot; <span class="keyword">ON</span> &quot;test&quot;.&quot;autogen&quot; DESTINATIONS <span class="keyword">ALL</span> <span class="string">&#x27;http://192.168.8.181:9090&#x27;</span></span><br></pre></td></tr></table></figure>
 
+<p>其中 mysub 是订阅的名称，test 和 autogen 分别是数据库和保留策略的名称，<a href="http://192.168.8.181:9090/">http://192.168.8.181:9090</a> 是订阅者地址，InfluxDB会将fork的请求发送到这个地址。</p>
+<h3 id="订阅者实现"><a href="#订阅者实现" class="headerlink" title="订阅者实现"></a>订阅者实现</h3><p>订阅者实现是整个方案的核心，我们通过类图来说明。</p>
+<img src="class-diagram.png" />
+
+<p>Router是订阅者对外暴露的端点，通过receive方法接收请求后将请求流转到Transformer。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PostMapping(&quot;/write&quot;)</span></span><br><span class="line"><span class="keyword">public</span> Mono&lt;String&gt; <span class="title function_">receive</span><span class="params">(<span class="meta">@RequestBody</span> String data)</span>&#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">mqttdata</span> <span class="operator">=</span> transformer.transform(data);</span><br><span class="line">    gateway.sendToMqtt(mqttdata);</span><br><span class="line">    <span class="keyword">return</span> Mono.empty();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>Transformer将数据从InfluxDB的line protocol转换为平台接收的MQTT数据格式，通过MQTT客户端发送。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> String <span class="title function_">transform</span><span class="params">(String lineData)</span> &#123;</span><br><span class="line">		<span class="type">RootCloudThing</span> <span class="variable">thing</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RootCloudThing</span>();</span><br><span class="line">		</span><br><span class="line">		String[] lines = lineData.split(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">		List&lt;RootCloudItem&gt; items = Arrays.stream(lines)</span><br><span class="line">				.filter(line-&gt; itemConfigure.isValidLine(line))</span><br><span class="line">				.map(RootCloudItem::buildFromLine).collect(Collectors.toList());</span><br><span class="line">		thing.setItems(items);</span><br><span class="line">		</span><br><span class="line">		Map&lt;String,List&lt;RootCloudThing&gt;&gt; innerMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">		innerMap.put(<span class="string">&quot;things&quot;</span>, Arrays.asList(thing));</span><br><span class="line">		Map&lt;String,Object&gt; outerMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">		outerMap.put(<span class="string">&quot;body&quot;</span>, innerMap);</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Gson</span>().toJson(outerMap);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>transform方法主要实现了line数据的过滤和向RootCloudThing对象的转换，最后以Json格式返回给Router用以发送到MQTT broker。</p>
+<h3 id="发送MQTT"><a href="#发送MQTT" class="headerlink" title="发送MQTT"></a>发送MQTT</h3><p>我们基于eclipse paho作为MQTT的客户端实现，pom文件引入如下依赖。</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.integration<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-integration-mqtt<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>通过配置文件注入配置</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># mqtt configure</span></span><br><span class="line"><span class="string">mqtt.broker.uri=tcp://mqtt-broker-pre.rootcloudapp.com:1883</span></span><br><span class="line"><span class="string">mqtt.broker.username=xxxxxxxx</span></span><br><span class="line"><span class="string">mqtt.broker.passcode=xxxxxxxx</span></span><br><span class="line"><span class="string">mqtt.broker.topic=v4/p/post/thing/live/json/1.1</span></span><br></pre></td></tr></table></figure>
+
+<p>通过ProducerConfigure类实现配置读取并初始化客户端bean</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@ConfigurationProperties(prefix = &quot;mqtt.broker&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ProducerConfigure</span> &#123;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">private</span> String uri;</span><br><span class="line">	<span class="keyword">private</span> String username;</span><br><span class="line">	<span class="keyword">private</span> String passcode;</span><br><span class="line">	<span class="keyword">private</span> String topic;</span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="keyword">public</span> MqttPahoClientFactory <span class="title function_">mqttClientFactory</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="type">DefaultMqttPahoClientFactory</span> <span class="variable">factory</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DefaultMqttPahoClientFactory</span>();</span><br><span class="line">		<span class="type">MqttConnectOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MqttConnectOptions</span>();</span><br><span class="line">		options.setServerURIs(<span class="keyword">new</span> <span class="title class_">String</span>[] &#123; uri &#125;);</span><br><span class="line">		options.setUserName(username);		</span><br><span class="line">		options.setPassword(passcode.toCharArray());</span><br><span class="line">		options.setCleanSession(<span class="literal">true</span>);</span><br><span class="line">		factory.setConnectionOptions(options);</span><br><span class="line">		<span class="keyword">return</span> factory;</span><br><span class="line">	&#125;	</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="keyword">public</span> MessageChannel <span class="title function_">mqttOutboundChannel</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">DirectChannel</span>();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="meta">@ServiceActivator(inputChannel = &quot;mqttOutboundChannel&quot;)</span></span><br><span class="line">	<span class="keyword">public</span> MessageHandler <span class="title function_">mqttOutbound</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="type">MqttPahoMessageHandler</span> <span class="variable">messageHandler</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MqttPahoMessageHandler</span>(username, mqttClientFactory());</span><br><span class="line">		messageHandler.setAsync(<span class="literal">true</span>);</span><br><span class="line">		messageHandler.setDefaultTopic(topic);</span><br><span class="line">		<span class="keyword">return</span> messageHandler;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@MessagingGateway(defaultRequestChannel = &quot;mqttOutboundChannel&quot;)</span></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">MyGateway</span> &#123;</span><br><span class="line">		<span class="keyword">void</span> <span class="title function_">sendToMqtt</span><span class="params">(String data)</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//getter setter ....</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>通过方案实现章节的三个步骤我们已经基本实现了一个用于订阅InfluxDB的中间层，反观实现原理和Canal（ <a href="https://github.com/alibaba/canal/">https://github.com/alibaba/canal/</a> ） 有点类似。</p>
+<p>通过中间层的引入，在网关直连到InfluxDB的已有方式不需要任何改动的前提下，我们实现了数据的预处理和分发。基于中间层我们可以将时序数据发送到任意目的地，满足数据归集、数据备份、数据展示和数据分析等多种需求。</p>
+<p>附源代码地址（版本更新后可能和原文实现有差异）：<a href="https://gitee.com/luischen/databridge">https://gitee.com/luischen/databridge</a></p>
 ]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>InfluxDB</tag>
+        <tag>数据技术</tag>
+      </tags>
   </entry>
   <entry>
     <title>Java中的锁机制</title>
@@ -220,64 +258,26 @@
       </tags>
   </entry>
   <entry>
-    <title>InfluxDB数据接入MQTT</title>
-    <url>/2021/12/22/InfluxDB%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5MQTT/</url>
-    <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>在边缘计算场景中数据存储在边缘的时序数据库如 InfluxDB 中，如果不能将数据进行归集以统筹管理则可能形成数据孤岛，无法充分有效的发挥大数据的威力。</p>
-<p>边缘端的数据流是数采网关直连InfluxDB，通过restful的方式将采集到的数据发送到时序数据库。这种方式的优点是架构简单，没有中间环节数据传输效率高、实时性有保障。缺点则是可扩展性低，无法满足数据处理、数据转发等需求。</p>
-<p>在某大型客户的案例中我们面临的挑战是边缘时序数据需要接入对方的工业互联网平台，鉴于平台支持MQTT方式接入，我们的问题就转化为：<em>边缘时序数据发送到MQTT队列</em></p>
-<span id="more"></span>
+    <title>Hello World</title>
+    <url>/2016/05/26/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="方案设计"><a href="#方案设计" class="headerlink" title="方案设计"></a>方案设计</h2><p>在分析了我们现在连接方式后我们总结出三种方案来应对挑战。</p>
-<img src="solution.png"/>
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
 
-<ol>
-<li>方案一，网关直接连接MQTT</li>
-<li>方案二，定时任务去InfluxDB拉取后发送到MQTT</li>
-<li>方案三，模拟一个InfluxDB的订阅者，作为中间层</li>
-</ol>
-<p>综合来看方案一实现方式比较简单，直接由网关发起双写。缺点是对网关性能要求比较高，同样也面临后期扩展性的问题。</p>
-<p>方案二和方案三都是通过增加一个中间层来解决问题，通过中间层可以实现数据预处理、数据分发等功能保留了扩展性。不同点在于方案二采用主动拉取的方式，方案三采用了订阅者模式由InfluxDB推送数据更新到订阅者。相比较而言方案三的实时性更好，性能损耗也相对更小。</p>
-<p>最终我们选择方案三作为InfluxDB到MQTT的连接方案。</p>
-<img src="solution2.png"/>
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
 
-<h2 id="方案实现"><a href="#方案实现" class="headerlink" title="方案实现"></a>方案实现</h2><p>我们从三个方面来依次阐述方案实现：</p>
-<h3 id="InfluxDB-设置"><a href="#InfluxDB-设置" class="headerlink" title="InfluxDB 设置"></a>InfluxDB 设置</h3><p>在InfluxDB设置中，订阅是默认开启的。如果已经关闭注意打开即可，配置项段落如下：</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line">[<span class="string">subscriber</span>]</span><br><span class="line">	<span class="comment"># determine whether the subscriber service is enabled</span></span><br><span class="line">	<span class="string">enable</span> <span class="string">=</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
 
-<p>在完成了配置后需要重启服务生效。然后通过执行语句创建subscription，完成订阅。</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> SUBSCRIPTION &quot;mysub&quot; <span class="keyword">ON</span> &quot;test&quot;.&quot;autogen&quot; DESTINATIONS <span class="keyword">ALL</span> <span class="string">&#x27;http://192.168.8.181:9090&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<h2 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h2><h3 id="生成的文件目录错乱"><a href="#生成的文件目录错乱" class="headerlink" title="生成的文件目录错乱"></a>生成的文件目录错乱</h3><p>原因是Next主题解析机制是二级目录、三级目录的按级解析，如果文章中出现了跳级的情况就会出现文件目录错乱。修复办法就是使用层层递进的目录定义。</p>
+<h3 id="修改每页文章数量"><a href="#修改每页文章数量" class="headerlink" title="修改每页文章数量"></a>修改每页文章数量</h3><p>在hexo的_config.yml中修改per_page配置项：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">index_generator:</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">  <span class="attr">per_page:</span> <span class="number">5</span></span><br><span class="line">  <span class="attr">order_by:</span> <span class="string">-date</span></span><br></pre></td></tr></table></figure>
 
-<p>其中 mysub 是订阅的名称，test 和 autogen 分别是数据库和保留策略的名称，<a href="http://192.168.8.181:9090/">http://192.168.8.181:9090</a> 是订阅者地址，InfluxDB会将fork的请求发送到这个地址。</p>
-<h3 id="订阅者实现"><a href="#订阅者实现" class="headerlink" title="订阅者实现"></a>订阅者实现</h3><p>订阅者实现是整个方案的核心，我们通过类图来说明。</p>
-<img src="class-diagram.png" />
-
-<p>Router是订阅者对外暴露的端点，通过receive方法接收请求后将请求流转到Transformer。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PostMapping(&quot;/write&quot;)</span></span><br><span class="line"><span class="keyword">public</span> Mono&lt;String&gt; <span class="title function_">receive</span><span class="params">(<span class="meta">@RequestBody</span> String data)</span>&#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">mqttdata</span> <span class="operator">=</span> transformer.transform(data);</span><br><span class="line">    gateway.sendToMqtt(mqttdata);</span><br><span class="line">    <span class="keyword">return</span> Mono.empty();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>Transformer将数据从InfluxDB的line protocol转换为平台接收的MQTT数据格式，通过MQTT客户端发送。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> String <span class="title function_">transform</span><span class="params">(String lineData)</span> &#123;</span><br><span class="line">		<span class="type">RootCloudThing</span> <span class="variable">thing</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RootCloudThing</span>();</span><br><span class="line">		</span><br><span class="line">		String[] lines = lineData.split(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">		List&lt;RootCloudItem&gt; items = Arrays.stream(lines)</span><br><span class="line">				.filter(line-&gt; itemConfigure.isValidLine(line))</span><br><span class="line">				.map(RootCloudItem::buildFromLine).collect(Collectors.toList());</span><br><span class="line">		thing.setItems(items);</span><br><span class="line">		</span><br><span class="line">		Map&lt;String,List&lt;RootCloudThing&gt;&gt; innerMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">		innerMap.put(<span class="string">&quot;things&quot;</span>, Arrays.asList(thing));</span><br><span class="line">		Map&lt;String,Object&gt; outerMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">		outerMap.put(<span class="string">&quot;body&quot;</span>, innerMap);</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Gson</span>().toJson(outerMap);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>transform方法主要实现了line数据的过滤和向RootCloudThing对象的转换，最后以Json格式返回给Router用以发送到MQTT broker。</p>
-<h3 id="发送MQTT"><a href="#发送MQTT" class="headerlink" title="发送MQTT"></a>发送MQTT</h3><p>我们基于eclipse paho作为MQTT的客户端实现，pom文件引入如下依赖。</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.integration<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-integration-mqtt<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>通过配置文件注入配置</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># mqtt configure</span></span><br><span class="line"><span class="string">mqtt.broker.uri=tcp://mqtt-broker-pre.rootcloudapp.com:1883</span></span><br><span class="line"><span class="string">mqtt.broker.username=xxxxxxxx</span></span><br><span class="line"><span class="string">mqtt.broker.passcode=xxxxxxxx</span></span><br><span class="line"><span class="string">mqtt.broker.topic=v4/p/post/thing/live/json/1.1</span></span><br></pre></td></tr></table></figure>
-
-<p>通过ProducerConfigure类实现配置读取并初始化客户端bean</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@ConfigurationProperties(prefix = &quot;mqtt.broker&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ProducerConfigure</span> &#123;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">private</span> String uri;</span><br><span class="line">	<span class="keyword">private</span> String username;</span><br><span class="line">	<span class="keyword">private</span> String passcode;</span><br><span class="line">	<span class="keyword">private</span> String topic;</span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="keyword">public</span> MqttPahoClientFactory <span class="title function_">mqttClientFactory</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="type">DefaultMqttPahoClientFactory</span> <span class="variable">factory</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DefaultMqttPahoClientFactory</span>();</span><br><span class="line">		<span class="type">MqttConnectOptions</span> <span class="variable">options</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MqttConnectOptions</span>();</span><br><span class="line">		options.setServerURIs(<span class="keyword">new</span> <span class="title class_">String</span>[] &#123; uri &#125;);</span><br><span class="line">		options.setUserName(username);		</span><br><span class="line">		options.setPassword(passcode.toCharArray());</span><br><span class="line">		options.setCleanSession(<span class="literal">true</span>);</span><br><span class="line">		factory.setConnectionOptions(options);</span><br><span class="line">		<span class="keyword">return</span> factory;</span><br><span class="line">	&#125;	</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="keyword">public</span> MessageChannel <span class="title function_">mqttOutboundChannel</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">DirectChannel</span>();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="meta">@ServiceActivator(inputChannel = &quot;mqttOutboundChannel&quot;)</span></span><br><span class="line">	<span class="keyword">public</span> MessageHandler <span class="title function_">mqttOutbound</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="type">MqttPahoMessageHandler</span> <span class="variable">messageHandler</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MqttPahoMessageHandler</span>(username, mqttClientFactory());</span><br><span class="line">		messageHandler.setAsync(<span class="literal">true</span>);</span><br><span class="line">		messageHandler.setDefaultTopic(topic);</span><br><span class="line">		<span class="keyword">return</span> messageHandler;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@MessagingGateway(defaultRequestChannel = &quot;mqttOutboundChannel&quot;)</span></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">MyGateway</span> &#123;</span><br><span class="line">		<span class="keyword">void</span> <span class="title function_">sendToMqtt</span><span class="params">(String data)</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//getter setter ....</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>通过方案实现章节的三个步骤我们已经基本实现了一个用于订阅InfluxDB的中间层，反观实现原理和Canal（ <a href="https://github.com/alibaba/canal/">https://github.com/alibaba/canal/</a> ） 有点类似。</p>
-<p>通过中间层的引入，在网关直连到InfluxDB的已有方式不需要任何改动的前提下，我们实现了数据的预处理和分发。基于中间层我们可以将时序数据发送到任意目的地，满足数据归集、数据备份、数据展示和数据分析等多种需求。</p>
-<p>附源代码地址（版本更新后可能和原文实现有差异）：<a href="https://gitee.com/luischen/databridge">https://gitee.com/luischen/databridge</a></p>
 ]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>InfluxDB</tag>
-        <tag>数据技术</tag>
-      </tags>
   </entry>
   <entry>
     <title>一个Slash引发的ClassNotFound血案</title>
@@ -574,46 +574,6 @@
       </tags>
   </entry>
   <entry>
-    <title>决策准绳之我的价值观</title>
-    <url>/2020/01/01/%E5%86%B3%E7%AD%96%E5%87%86%E7%BB%B3%E4%B9%8B%E6%88%91%E7%9A%84%E4%BB%B7%E5%80%BC%E8%A7%82/</url>
-    <content><![CDATA[<h2 id="价值-MUST"><a href="#价值-MUST" class="headerlink" title="价值 - MUST"></a><span style="color:red">价值 - MUST</span></h2><p>价值涵盖三个层面：客户价值、组织价值和个人价值。</p>
-<ul>
-<li><p>客户价值</p>
-<p>宏观层面是降本增效，微观层面可以体现为缩短流程、减少人工参与、避免用户误操作。具体分析客户价值的时候需要结合微观和宏观综合考虑</p>
-</li>
-<li><p>组织价值</p>
-<p>具体体现为带给企业和团队的增益。可以是增加销售额，降低实施成本，也可以是提升团队技能或者增强团队凝聚力</p>
-</li>
-<li><p>个人价值</p>
-<p>从自身出发考虑行动的收益。可以是收入的增加，可以是技能的提升，也可以是提升幸福感</p>
-</li>
-</ul>
-<span id="more"></span>
-
-<h2 id="创新-BETTER-TO-HAVE"><a href="#创新-BETTER-TO-HAVE" class="headerlink" title="创新 - BETTER TO HAVE"></a><span style="color:green">创新 - BETTER TO HAVE</span></h2><p>创新可以从理论、技术和解决方案的角度来衡量。</p>
-<ul>
-<li><p>理论创新</p>
-<p>理论的创新会引发技术和解决方案的创新，从而引领行业的新思潮。例如云计算大行其道的时候，提出边缘计算的思路就是一种理论的创新</p>
-</li>
-<li><p>技术创新</p>
-<p>通过新技术践行理论创新，可以认为是技术创新。例如KubeEdge和OpenYurt这些开源技术就是紧跟边缘计算思潮的技术创新</p>
-</li>
-<li><p>解决方案创新</p>
-<p>解决方案创新体现的是一种整合的智慧，通过已有的技术组合创造性的解决生产中的难题或者创造价值。例如利用InfluxDB的订阅机制实现边缘数据库的备份和转发，Canal模拟MySQL的slave进行日志同步都可以认为是解决方案层面的创新</p>
-</li>
-</ul>
-<h2 id="先进-BETTER-TO-HAVE"><a href="#先进-BETTER-TO-HAVE" class="headerlink" title="先进 - BETTER TO HAVE"></a><span style="color:lightblue">先进 - BETTER TO HAVE</span></h2><p>先进性主要体现在技术和思想两个方面。应该努力避免技术定格和思想僵化。</p>
-<p>例如Java已经出到16了还抱着8就是一种技术的定格，技术定格的后果是难以引导或者追随创新，最终因为无法创造价值而被淘汰。</p>
-<p>思想的僵化也是同样的道理，边缘计算、工业互联网的浪潮中还抱着传统的产品化思想，自我设限的后果就是无路可走。</p>
-]]></content>
-      <categories>
-        <category>人生感悟</category>
-      </categories>
-      <tags>
-        <tag>行为准则</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>你的SpringBoot可以启动的再快点</title>
     <url>/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/</url>
     <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>公司最近推出了一款一体机产品，于是老板就天天提个小箱子跑客户做POC，倍儿有范儿。跑了一阵子客户反响（问题）不错（不少），其中最大的问题就是开机进系统太慢，按照老板的说法：</p>
@@ -711,6 +671,129 @@
       <tags>
         <tag>性能优化</tag>
         <tag>应用技术</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>决策准绳之我的价值观</title>
+    <url>/2020/01/01/%E5%86%B3%E7%AD%96%E5%87%86%E7%BB%B3%E4%B9%8B%E6%88%91%E7%9A%84%E4%BB%B7%E5%80%BC%E8%A7%82/</url>
+    <content><![CDATA[<h2 id="价值-MUST"><a href="#价值-MUST" class="headerlink" title="价值 - MUST"></a><span style="color:red">价值 - MUST</span></h2><p>价值涵盖三个层面：客户价值、组织价值和个人价值。</p>
+<ul>
+<li><p>客户价值</p>
+<p>宏观层面是降本增效，微观层面可以体现为缩短流程、减少人工参与、避免用户误操作。具体分析客户价值的时候需要结合微观和宏观综合考虑</p>
+</li>
+<li><p>组织价值</p>
+<p>具体体现为带给企业和团队的增益。可以是增加销售额，降低实施成本，也可以是提升团队技能或者增强团队凝聚力</p>
+</li>
+<li><p>个人价值</p>
+<p>从自身出发考虑行动的收益。可以是收入的增加，可以是技能的提升，也可以是提升幸福感</p>
+</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="创新-BETTER-TO-HAVE"><a href="#创新-BETTER-TO-HAVE" class="headerlink" title="创新 - BETTER TO HAVE"></a><span style="color:green">创新 - BETTER TO HAVE</span></h2><p>创新可以从理论、技术和解决方案的角度来衡量。</p>
+<ul>
+<li><p>理论创新</p>
+<p>理论的创新会引发技术和解决方案的创新，从而引领行业的新思潮。例如云计算大行其道的时候，提出边缘计算的思路就是一种理论的创新</p>
+</li>
+<li><p>技术创新</p>
+<p>通过新技术践行理论创新，可以认为是技术创新。例如KubeEdge和OpenYurt这些开源技术就是紧跟边缘计算思潮的技术创新</p>
+</li>
+<li><p>解决方案创新</p>
+<p>解决方案创新体现的是一种整合的智慧，通过已有的技术组合创造性的解决生产中的难题或者创造价值。例如利用InfluxDB的订阅机制实现边缘数据库的备份和转发，Canal模拟MySQL的slave进行日志同步都可以认为是解决方案层面的创新</p>
+</li>
+</ul>
+<h2 id="先进-BETTER-TO-HAVE"><a href="#先进-BETTER-TO-HAVE" class="headerlink" title="先进 - BETTER TO HAVE"></a><span style="color:lightblue">先进 - BETTER TO HAVE</span></h2><p>先进性主要体现在技术和思想两个方面。应该努力避免技术定格和思想僵化。</p>
+<p>例如Java已经出到16了还抱着8就是一种技术的定格，技术定格的后果是难以引导或者追随创新，最终因为无法创造价值而被淘汰。</p>
+<p>思想的僵化也是同样的道理，边缘计算、工业互联网的浪潮中还抱着传统的产品化思想，自我设限的后果就是无路可走。</p>
+]]></content>
+      <categories>
+        <category>人生感悟</category>
+      </categories>
+      <tags>
+        <tag>行为准则</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>基于Netty的边缘数采</title>
+    <url>/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/</url>
+    <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>在设备数据采集方面，我们已经探索出一套成熟的做法即在设备侧部署一个边缘程序，通过定时拉取的机制到工控机如PLC的指定位置获取数据。但是对于机器人来说，不同型号的机器人控制设备都有自己不同程度的封装，我们需要严格按照机器人设备的数据开放方式进行定制化实现才有可能正确的获取到数据。</p>
+<p>就我们这次研究的FANUC机器人来说，它的数据是通过内置的Socket服务端发送出来的。因此我们的数采方案是在边缘端部署一个相应的Socket客户端与之进行通信，获取数据并进行后续处理。</p>
+<span id="more"></span>
+
+<h2 id="技术方案"><a href="#技术方案" class="headerlink" title="技术方案"></a>技术方案</h2><p>由于团队的主技术栈是Java， 所以我们决定选用Netty作为构建网络通信客户端的框架。至于为什么使用Netty而不是原生的Java NIO不是本文讨论的重点，可以简单粗暴的认为Netty就是比原生的Java NIO更贴近实际应用场景。</p>
+<p>通过分析需求，我们得出如下技术细节分解：</p>
+<img src="solution.png"/>
+
+<p>其中多客户端体现了边缘端管理维度的需求，断线重连机制是通讯维度的要求，数据解析和粘包处理是数据处理维度。接下来我们就针对技术细节进行详细的可行性验证。</p>
+<h2 id="技术细节"><a href="#技术细节" class="headerlink" title="技术细节"></a>技术细节</h2><h3 id="多客户端"><a href="#多客户端" class="headerlink" title="多客户端"></a>多客户端</h3><p>在Netty中启动一个客户端简单到只需要三句话，虽然链式调用的一句话确实有点长。原始的Netty客户端建立过程如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Bootstrap</span> <span class="variable">bootstrap</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Bootstrap</span>();</span><br><span class="line">   <span class="type">EventLoopGroup</span> <span class="variable">workerGroup</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">NioEventLoopGroup</span>();</span><br><span class="line">   bootstrap.group(workerGroup)</span><br><span class="line">	.channel(NioSocketChannel.class)	</span><br><span class="line">	.handler(<span class="keyword">new</span> <span class="title class_">ClientIniterHandler</span>())</span><br><span class="line">	.connect(ip, port).addListener();</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>考虑到多客户端的需求，我们对Netty客户端进行了封装，封装后的客户端更加易于管理。</p>
+<img src="class-diagram.png" alt=""/>
+
+<p>Starter是启动类，负责读取配置文件并初始化客户端，通过Map&lt;String, NettyClient&gt;的数据结构来管理所有的客户端。示例代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">File[] files = FileUtil.getPropertiesFileArr();</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; files.length; i++) &#123;</span><br><span class="line">	<span class="type">Properties</span> <span class="variable">properties</span> <span class="operator">=</span> PropertiesUtil.initProperties(files[i]);</span><br><span class="line">	<span class="type">NettyClient</span> <span class="variable">client</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">NettyClient</span>(properties);</span><br><span class="line">	clientMap.put(properties.getProperty(<span class="string">&quot;server.ip&quot;</span>)+<span class="string">&quot;:&quot;</span>+properties.getProperty(<span class="string">&quot;server.port&quot;</span>),client);</span><br><span class="line">	client.run();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>NettyClient是封装后的客户端，通过配置文件构造，将配置注入到属性中。DataHandler是数据处理类，主要负责报文解析和数据发送后台数据的工作。每个NettyClient聚合一个DataHandler用于数据处理，避免了并发问题符合Netty串行处理的设计思想。</p>
+<h3 id="断线重连"><a href="#断线重连" class="headerlink" title="断线重连"></a>断线重连</h3><p>针对断线重连功能我们聚焦两个关注点，</p>
+<ol>
+<li><p>首次连接失败的重试</p>
+<p>首次连接我们通过对Connect事件加入Future Listener实现，在Future Listener中监听isSuccess标识位可以获取到连接状态，从而确定下一步动作。加入retryTime字段的控制，当重试次数达到一定次数后降低重试的频率，一定程度上节省资源。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">bootstrap.connect(ip, port).addListener((ChannelFuture futureListener)-&gt;&#123;</span><br><span class="line"><span class="keyword">final</span> <span class="type">EventLoop</span> <span class="variable">eventLoop</span> <span class="operator">=</span> futureListener.channel().eventLoop();</span><br><span class="line">	<span class="keyword">if</span> (!futureListener.isSuccess()) &#123;					</span><br><span class="line">		<span class="comment">// 10s秒之后重连</span></span><br><span class="line">		retryTimes ++;</span><br><span class="line">		<span class="keyword">if</span>(retryTimes &lt;= <span class="number">10</span>) &#123;</span><br><span class="line">			eventLoop.schedule(() -&gt; </span><br><span class="line">doConnect(<span class="keyword">new</span> <span class="title class_">Bootstrap</span>(), eventLoop), <span class="number">10</span>, TimeUnit.SECONDS);</span><br><span class="line">		&#125;<span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="comment">//超过10次后改成1分钟重试</span></span><br><span class="line">			eventLoop.schedule(() -&gt; </span><br><span class="line">doConnect(<span class="keyword">new</span> <span class="title class_">Bootstrap</span>(), eventLoop), <span class="number">1</span>, TimeUnit.MINUTES);						</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		retryTimes = <span class="number">0</span>;</span><br><span class="line">		LOG.info(<span class="string">&quot;客户端[&#123;&#125;]与服务器连接成功&quot;</span>,id);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+
+</li>
+<li><p>非首次连接的断线重连</p>
+<p>当连接过程中发生断线会触发Inactive事件，在Client Handler的channelInactive监听中进行处理即可。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="type">EventLoop</span> <span class="variable">eventLoop</span> <span class="operator">=</span> ctx.channel().eventLoop();</span><br><span class="line"><span class="comment">//获取配置信息		</span></span><br><span class="line"><span class="type">NettyClient</span> <span class="variable">client</span> <span class="operator">=</span> getNettyClientByCtx(ctx);</span><br><span class="line"><span class="keyword">if</span>(client != <span class="literal">null</span>) &#123;</span><br><span class="line">	client.doConnect(<span class="keyword">new</span> <span class="title class_">Bootstrap</span>(), eventLoop);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="16进制解析"><a href="#16进制解析" class="headerlink" title="16进制解析"></a>16进制解析</h3><p>在服务端和客户端通信的过程中通常采用字节流，Netty在接收端通过Pipeline加入编解码器的方式完成字节流和对象之间的转换。具体代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">ChannelPipeline</span> <span class="variable">pipeline</span> <span class="operator">=</span> socketChannel.pipeline();</span><br><span class="line">pipeline.addLast(<span class="string">&quot;decoder&quot;</span>, <span class="keyword">new</span> <span class="title class_">StringDecoder</span>());</span><br></pre></td></tr></table></figure>
+
+<p>这里的StringDecoder是字符串解码器，字节流通过解码器的解析就可以转换成String类型，从而方便后续的处理。我们遇到的问题是服务端发送的是16进制数据，因此我们需要的是一个16进制解码器，下面是我们对于两种处理过程的比较。</p>
+<img src="compare.png"/>
+
+<p>由此可以看出和一般的处理差异在于服务端多了16进制编码过程，导致客户端也要相应的增加16进制的解码器，考虑实现方便我们将16进制解码器和字符串解码器合并成一个HexDecoder。在ClientInitHander中使用HexDecoder替换原来的StringDecoder。</p>
+<p>而HexDecoder的Decode方法主要就是做了两件事情a) 字节到HexString b) HexString到String，具体实现如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">decode</span><span class="params">(ChannelHandlerContext ctx, ByteBuf msg, List&lt;Object&gt; out)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">HEXES</span> <span class="operator">=</span> <span class="string">&quot;0123456789ABCDEF&quot;</span>;</span><br><span class="line">    <span class="type">byte</span>[] req = <span class="keyword">new</span> <span class="title class_">byte</span>[msg.readableBytes()];</span><br><span class="line">    msg.readBytes(req);</span><br><span class="line">    <span class="keyword">final</span> <span class="type">StringBuilder</span> <span class="variable">hex</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>(<span class="number">2</span> * req.length);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; req.length; i++) &#123;</span><br><span class="line">	<span class="type">byte</span> <span class="variable">b</span> <span class="operator">=</span> req[i];</span><br><span class="line">	hex.append(HEXES.charAt((b &amp; <span class="number">0xF0</span>) &gt;&gt; <span class="number">4</span>))</span><br><span class="line">		.append(HEXES.charAt((b &amp; <span class="number">0x0F</span>)));</span><br><span class="line">    &#125;</span><br><span class="line">    out.add(ClientUtil.hexStr2Str(hex.toString()));</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title function_">hexStr2Str</span><span class="params">(String hexStr)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">str</span> <span class="operator">=</span> <span class="string">&quot;0123456789ABCDEF&quot;</span>;</span><br><span class="line">    <span class="type">char</span>[] hexs = hexStr.toCharArray();</span><br><span class="line">    <span class="type">byte</span>[] bytes = <span class="keyword">new</span> <span class="title class_">byte</span>[hexStr.length() / <span class="number">2</span>];</span><br><span class="line">    <span class="type">int</span> n;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; bytes.length; i++) &#123;</span><br><span class="line">	n = str.indexOf(hexs[<span class="number">2</span> * i]) * <span class="number">16</span>;</span><br><span class="line">	n += str.indexOf(hexs[<span class="number">2</span> * i + <span class="number">1</span>]);</span><br><span class="line">	bytes[i] = (<span class="type">byte</span>) (n &amp; <span class="number">0xff</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">String</span>(bytes);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过以上的实现16进制数据的解析问题是解决了，我们不禁要好奇一下服务器为啥要弄成16进制传输呢？</p>
+<p>结合网上的讨论，下面两点是我比较认可的</p>
+<ol>
+<li>机器人内部的数据都是二进制01形式的，二进制和十六进制之间转换比较容易</li>
+<li>相对十进制来说，十六进制的数据可读性更强，如Ox1064，很容易的看出高四位是0001而这个位置一般会放一些标志位。</li>
+</ol>
+<h3 id="粘包处理"><a href="#粘包处理" class="headerlink" title="粘包处理"></a>粘包处理</h3><p>粘包是指客户端读取的报文不是一个完整的报文，大多数情况会和拆包结对出现。举个例子，我们的报文结构是<Robot><Item1></Item1></Robot>，当出现粘包的情况时某一次收到的报文就可能是：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Robot</span>&gt;</span><span class="tag">&lt;<span class="name">Item1</span>&gt;</span><span class="tag">&lt;/<span class="name">Item1</span>&gt;</span><span class="tag">&lt;/<span class="name">Robot</span>&gt;</span><span class="tag">&lt;<span class="name">Robot</span>&gt;</span><span class="tag">&lt;<span class="name">Item1</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>而下一次收到的报文就可能是：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;/<span class="name">Item1</span>&gt;</span><span class="tag">&lt;/<span class="name">Robot</span>&gt;</span><span class="tag">&lt;<span class="name">Robot</span>&gt;</span><span class="tag">&lt;<span class="name">Item1</span>&gt;</span><span class="tag">&lt;/<span class="name">Item1</span>&gt;</span><span class="tag">&lt;/<span class="name">Robot</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>粘包的出现由两方面因素构成：</p>
+<img src="cause.png"/>
+
+<p>针对粘包现象，Netty提供了三种解决思路，</p>
+<img src="solution2.png"/>
+
+<p>了解了三种解决思路之后，我们发现固定长度和长度位两种方案对于服务端都需要改造，而分隔符的解决思路很好的契合了我们这种结构性很强的报文。最终我们选用了DelimiterBasedFrameDecoder，在ChannelInitHander中将Decoder加入Pipeline即可：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">ChannelPipeline</span> <span class="variable">pipeline</span> <span class="operator">=</span> socketChannel.pipeline();</span><br><span class="line"><span class="type">ByteBuf</span> <span class="variable">delimiter</span> <span class="operator">=</span> Unpooled.wrappedBuffer(<span class="string">&quot;&lt;/Robot&gt;&quot;</span>.getBytes());</span><br><span class="line">pipeline.addLast(<span class="string">&quot;delimiter&quot;</span>, <span class="keyword">new</span> <span class="title class_">DelimiterBasedFrameDecoder</span>(<span class="number">1024</span>, <span class="literal">false</span>, delimiter));</span><br></pre></td></tr></table></figure>
+
+<p>DelimiterBasedFrameDecoder需要传入三个参数。</p>
+<ol>
+<li>第一个参数1024是定义的最大字节长度，当报文长度超出1024，则丢弃该段报文，这个参数根据实际情况调整；</li>
+<li>第二个参数false表示分隔符不被忽略也就是说分隔符也是作为报文的一部分需要读取。</li>
+<li>第三个参数是传入的分隔符，我们选择结束符</Robot>作为分隔符。</li>
+</ol>
+<p>通过DelimiterBasedFrameDecoder的引入，我们的报文粘包拆包问题得到了解决。通过分隔符确保在客户端读缓冲区的数据是按照一个完整报文的分段被客户端读取，这种方式规避了服务端改动的复杂性，也避免了服务端和客户端同时修改的不一致性，在数据结构性很强的时候优先选择使用。</p>
+<h2 id="总结展望"><a href="#总结展望" class="headerlink" title="总结展望"></a>总结展望</h2><p>在边缘数采的实现中，我们通过基于配置的客户端初始化方案，可以在一个边缘端管理多个客户端程序。通过断线重连机制确保了连接的高可用。16进制数据解析和粘包处理确保可以接收到正确的报文进行后续处理。</p>
+<p>通过以上技术细节的实现，最终我们基于Netty搭建了一套符合FANUC机器人数采要求的边缘数采客户端。</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>应用技术</tag>
+        <tag>数据采集</tag>
       </tags>
   </entry>
   <entry>
@@ -848,86 +931,89 @@
       </tags>
   </entry>
   <entry>
-    <title>基于Netty的边缘数采</title>
-    <url>/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/</url>
-    <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>在设备数据采集方面，我们已经探索出一套成熟的做法即在设备侧部署一个边缘程序，通过定时拉取的机制到工控机如PLC的指定位置获取数据。但是对于机器人来说，不同型号的机器人控制设备都有自己不同程度的封装，我们需要严格按照机器人设备的数据开放方式进行定制化实现才有可能正确的获取到数据。</p>
-<p>就我们这次研究的FANUC机器人来说，它的数据是通过内置的Socket服务端发送出来的。因此我们的数采方案是在边缘端部署一个相应的Socket客户端与之进行通信，获取数据并进行后续处理。</p>
+    <title>基于jsplumb的流程图实现</title>
+    <url>/2018/01/02/%E5%9F%BA%E4%BA%8Ejsplumb%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE%E5%AE%9E%E7%8E%B0/</url>
+    <content><![CDATA[<h2 id="背景需求"><a href="#背景需求" class="headerlink" title="背景需求"></a>背景需求</h2><p>在系统开发中经常需要展示一些流程，这时候需要用到流程图组件，但是在Echarts这些开源的可视化软件中居然没有流程图的支持。这时候我们的解决方案只能是用div和箭头图片自己实现一些简单的连接，如果流程稍微复杂一点，考虑兼顾功能和美观就需要投入大量的人力和精力进行一些造轮子的动作。</p>
+<p>jsplumb的出现一定程度上解决了我们的烦恼。</p>
 <span id="more"></span>
 
-<h2 id="技术方案"><a href="#技术方案" class="headerlink" title="技术方案"></a>技术方案</h2><p>由于团队的主技术栈是Java， 所以我们决定选用Netty作为构建网络通信客户端的框架。至于为什么使用Netty而不是原生的Java NIO不是本文讨论的重点，可以简单粗暴的认为Netty就是比原生的Java NIO更贴近实际应用场景。</p>
-<p>通过分析需求，我们得出如下技术细节分解：</p>
-<img src="solution.png"/>
-
-<p>其中多客户端体现了边缘端管理维度的需求，断线重连机制是通讯维度的要求，数据解析和粘包处理是数据处理维度。接下来我们就针对技术细节进行详细的可行性验证。</p>
-<h2 id="技术细节"><a href="#技术细节" class="headerlink" title="技术细节"></a>技术细节</h2><h3 id="多客户端"><a href="#多客户端" class="headerlink" title="多客户端"></a>多客户端</h3><p>在Netty中启动一个客户端简单到只需要三句话，虽然链式调用的一句话确实有点长。原始的Netty客户端建立过程如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Bootstrap</span> <span class="variable">bootstrap</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Bootstrap</span>();</span><br><span class="line">   <span class="type">EventLoopGroup</span> <span class="variable">workerGroup</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">NioEventLoopGroup</span>();</span><br><span class="line">   bootstrap.group(workerGroup)</span><br><span class="line">	.channel(NioSocketChannel.class)	</span><br><span class="line">	.handler(<span class="keyword">new</span> <span class="title class_">ClientIniterHandler</span>())</span><br><span class="line">	.connect(ip, port).addListener();</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>考虑到多客户端的需求，我们对Netty客户端进行了封装，封装后的客户端更加易于管理。</p>
-<img src="class-diagram.png" alt=""/>
-
-<p>Starter是启动类，负责读取配置文件并初始化客户端，通过Map&lt;String, NettyClient&gt;的数据结构来管理所有的客户端。示例代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">File[] files = FileUtil.getPropertiesFileArr();</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; files.length; i++) &#123;</span><br><span class="line">	<span class="type">Properties</span> <span class="variable">properties</span> <span class="operator">=</span> PropertiesUtil.initProperties(files[i]);</span><br><span class="line">	<span class="type">NettyClient</span> <span class="variable">client</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">NettyClient</span>(properties);</span><br><span class="line">	clientMap.put(properties.getProperty(<span class="string">&quot;server.ip&quot;</span>)+<span class="string">&quot;:&quot;</span>+properties.getProperty(<span class="string">&quot;server.port&quot;</span>),client);</span><br><span class="line">	client.run();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>NettyClient是封装后的客户端，通过配置文件构造，将配置注入到属性中。DataHandler是数据处理类，主要负责报文解析和数据发送后台数据的工作。每个NettyClient聚合一个DataHandler用于数据处理，避免了并发问题符合Netty串行处理的设计思想。</p>
-<h3 id="断线重连"><a href="#断线重连" class="headerlink" title="断线重连"></a>断线重连</h3><p>针对断线重连功能我们聚焦两个关注点，</p>
-<ol>
-<li><p>首次连接失败的重试</p>
-<p>首次连接我们通过对Connect事件加入Future Listener实现，在Future Listener中监听isSuccess标识位可以获取到连接状态，从而确定下一步动作。加入retryTime字段的控制，当重试次数达到一定次数后降低重试的频率，一定程度上节省资源。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">bootstrap.connect(ip, port).addListener((ChannelFuture futureListener)-&gt;&#123;</span><br><span class="line"><span class="keyword">final</span> <span class="type">EventLoop</span> <span class="variable">eventLoop</span> <span class="operator">=</span> futureListener.channel().eventLoop();</span><br><span class="line">	<span class="keyword">if</span> (!futureListener.isSuccess()) &#123;					</span><br><span class="line">		<span class="comment">// 10s秒之后重连</span></span><br><span class="line">		retryTimes ++;</span><br><span class="line">		<span class="keyword">if</span>(retryTimes &lt;= <span class="number">10</span>) &#123;</span><br><span class="line">			eventLoop.schedule(() -&gt; </span><br><span class="line">doConnect(<span class="keyword">new</span> <span class="title class_">Bootstrap</span>(), eventLoop), <span class="number">10</span>, TimeUnit.SECONDS);</span><br><span class="line">		&#125;<span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="comment">//超过10次后改成1分钟重试</span></span><br><span class="line">			eventLoop.schedule(() -&gt; </span><br><span class="line">doConnect(<span class="keyword">new</span> <span class="title class_">Bootstrap</span>(), eventLoop), <span class="number">1</span>, TimeUnit.MINUTES);						</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		retryTimes = <span class="number">0</span>;</span><br><span class="line">		LOG.info(<span class="string">&quot;客户端[&#123;&#125;]与服务器连接成功&quot;</span>,id);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-
+<h2 id="技术介绍"><a href="#技术介绍" class="headerlink" title="技术介绍"></a>技术介绍</h2><p>jsplumb是一款开源的javascript类库，基于SVG提供页面元素的连接。jsplumb提供了两个分支：</p>
+<ul>
+<li>Toolkit Edition商用版，基于社区版本进行封装提供更丰富的API支持</li>
+<li>Community Edition社区版，基于MIT和GPL2协议进行开源，提供基础的API功能</li>
+</ul>
+<p>jsplumb的核心思想是对于页面元素的连接，在这个思想上对于连接进行了抽象，从而形成了jsplumb的几个基本要素：</p>
+<ul>
+<li><p>Anchor – 锚</p>
+<p>锚点主要用来定位一个端点的位置，锚点是一个逻辑上而非实体的概念，用户不可以直接创建，而是通过内部的机制生成</p>
 </li>
-<li><p>非首次连接的断线重连</p>
-<p>当连接过程中发生断线会触发Inactive事件，在Client Handler的channelInactive监听中进行处理即可。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="type">EventLoop</span> <span class="variable">eventLoop</span> <span class="operator">=</span> ctx.channel().eventLoop();</span><br><span class="line"><span class="comment">//获取配置信息		</span></span><br><span class="line"><span class="type">NettyClient</span> <span class="variable">client</span> <span class="operator">=</span> getNettyClientByCtx(ctx);</span><br><span class="line"><span class="keyword">if</span>(client != <span class="literal">null</span>) &#123;</span><br><span class="line">	client.doConnect(<span class="keyword">new</span> <span class="title class_">Bootstrap</span>(), eventLoop);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-</ol>
-<h3 id="16进制解析"><a href="#16进制解析" class="headerlink" title="16进制解析"></a>16进制解析</h3><p>在服务端和客户端通信的过程中通常采用字节流，Netty在接收端通过Pipeline加入编解码器的方式完成字节流和对象之间的转换。具体代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">ChannelPipeline</span> <span class="variable">pipeline</span> <span class="operator">=</span> socketChannel.pipeline();</span><br><span class="line">pipeline.addLast(<span class="string">&quot;decoder&quot;</span>, <span class="keyword">new</span> <span class="title class_">StringDecoder</span>());</span><br></pre></td></tr></table></figure>
+<li><p>Endpoint – 端点</p>
+<p>作为每一个连接的终点而存在，可以通过编程来显式的创建</p>
+</li>
+<li><p>Connector – 连接器</p>
+<p>连接器作为连接的抽象，提供了两个元素之间进行连接的方式</p>
+</li>
+<li><p>Overlay – 镀层</p>
+<p>jsplumb通过镀层的方式给为连接器进行用户友好的展示，如通过label的方式</p>
+</li>
+<li><p>Group – 分组</p>
+<p>通过分组可以将一组元素作为一个整体，从而进行整体的拖拽和收缩等</p>
+</li>
+</ul>
+<blockquote>
+<p>一般来说两个端点，一个连接器，0到多个镀层一起工作共同组成了一次连接。每一个端点都有一个关联的锚点。</p>
+</blockquote>
+<h2 id="技术攻关"><a href="#技术攻关" class="headerlink" title="技术攻关"></a>技术攻关</h2><p>在熟悉了jsplumb主要的概念后，可以通过官方API了解一些主要功能。同时可以通过<a href="https://github.com/jsplumb/jsplumb/tree/master/demo">github</a> 下载官方demo进行学习。通过观察，我们发现官方demo中的flowchart比较符合我们的需求，于是我们下载flowchart的demo源码进行研究改造。原始的demo效果图如下：</p>
+<img src="original.png"/>
 
-<p>这里的StringDecoder是字符串解码器，字节流通过解码器的解析就可以转换成String类型，从而方便后续的处理。我们遇到的问题是服务端发送的是16进制数据，因此我们需要的是一个16进制解码器，下面是我们对于两种处理过程的比较。</p>
-<img src="compare.png"/>
-
-<p>由此可以看出和一般的处理差异在于服务端多了16进制编码过程，导致客户端也要相应的增加16进制的解码器，考虑实现方便我们将16进制解码器和字符串解码器合并成一个HexDecoder。在ClientInitHander中使用HexDecoder替换原来的StringDecoder。</p>
-<p>而HexDecoder的Decode方法主要就是做了两件事情a) 字节到HexString b) HexString到String，具体实现如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">decode</span><span class="params">(ChannelHandlerContext ctx, ByteBuf msg, List&lt;Object&gt; out)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">HEXES</span> <span class="operator">=</span> <span class="string">&quot;0123456789ABCDEF&quot;</span>;</span><br><span class="line">    <span class="type">byte</span>[] req = <span class="keyword">new</span> <span class="title class_">byte</span>[msg.readableBytes()];</span><br><span class="line">    msg.readBytes(req);</span><br><span class="line">    <span class="keyword">final</span> <span class="type">StringBuilder</span> <span class="variable">hex</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>(<span class="number">2</span> * req.length);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; req.length; i++) &#123;</span><br><span class="line">	<span class="type">byte</span> <span class="variable">b</span> <span class="operator">=</span> req[i];</span><br><span class="line">	hex.append(HEXES.charAt((b &amp; <span class="number">0xF0</span>) &gt;&gt; <span class="number">4</span>))</span><br><span class="line">		.append(HEXES.charAt((b &amp; <span class="number">0x0F</span>)));</span><br><span class="line">    &#125;</span><br><span class="line">    out.add(ClientUtil.hexStr2Str(hex.toString()));</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title function_">hexStr2Str</span><span class="params">(String hexStr)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">str</span> <span class="operator">=</span> <span class="string">&quot;0123456789ABCDEF&quot;</span>;</span><br><span class="line">    <span class="type">char</span>[] hexs = hexStr.toCharArray();</span><br><span class="line">    <span class="type">byte</span>[] bytes = <span class="keyword">new</span> <span class="title class_">byte</span>[hexStr.length() / <span class="number">2</span>];</span><br><span class="line">    <span class="type">int</span> n;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; bytes.length; i++) &#123;</span><br><span class="line">	n = str.indexOf(hexs[<span class="number">2</span> * i]) * <span class="number">16</span>;</span><br><span class="line">	n += str.indexOf(hexs[<span class="number">2</span> * i + <span class="number">1</span>]);</span><br><span class="line">	bytes[i] = (<span class="type">byte</span>) (n &amp; <span class="number">0xff</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">String</span>(bytes);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>通过以上的实现16进制数据的解析问题是解决了，我们不禁要好奇一下服务器为啥要弄成16进制传输呢？</p>
-<p>结合网上的讨论，下面两点是我比较认可的</p>
+<p>下面列出几个主要攻关点：</p>
+<h3 id="代码合并压缩"><a href="#代码合并压缩" class="headerlink" title="代码合并压缩"></a>代码合并压缩</h3><p>我们发现在demo中引入了一堆js和css，我们通过合并压缩最后形成了下面三个文件，</p>
 <ol>
-<li>机器人内部的数据都是二进制01形式的，二进制和十六进制之间转换比较容易</li>
-<li>相对十进制来说，十六进制的数据可读性更强，如Ox1064，很容易的看出高四位是0001而这个位置一般会放一些标志位。</li>
+<li><p>jsplumb-link.min.js</p>
+<p>包含jsbezier.js，mottle.js，biltong.js和katavorio.js</p>
+</li>
+<li><p>jsplumb-lib.min.js</p>
+<p>包含jsplumb核心类库相关的16个js文件，注意合并的顺序</p>
+</li>
+<li><p>jsPlumb_process.js</p>
+<p>process组件相关的js，基于jsplumb的封装和客户化</p>
+</li>
 </ol>
-<h3 id="粘包处理"><a href="#粘包处理" class="headerlink" title="粘包处理"></a>粘包处理</h3><p>粘包是指客户端读取的报文不是一个完整的报文，大多数情况会和拆包结对出现。举个例子，我们的报文结构是<Robot><Item1></Item1></Robot>，当出现粘包的情况时某一次收到的报文就可能是：</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Robot</span>&gt;</span><span class="tag">&lt;<span class="name">Item1</span>&gt;</span><span class="tag">&lt;/<span class="name">Item1</span>&gt;</span><span class="tag">&lt;/<span class="name">Robot</span>&gt;</span><span class="tag">&lt;<span class="name">Robot</span>&gt;</span><span class="tag">&lt;<span class="name">Item1</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="去除镀层的文字"><a href="#去除镀层的文字" class="headerlink" title="去除镀层的文字"></a>去除镀层的文字</h3><p>在connectionOverlay定义中发现同时对于箭头和文字都做了定义，直接将对于label的定义去除即可：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">ConnectionOverlays<span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="punctuation">[</span> <span class="string">&quot;Arrow&quot;</span><span class="punctuation">,</span> <span class="punctuation">&#123;</span></span><br><span class="line">                location<span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">                visible<span class="punctuation">:</span><span class="keyword">true</span><span class="punctuation">,</span></span><br><span class="line">                width<span class="punctuation">:</span><span class="number">11</span><span class="punctuation">,</span></span><br><span class="line">                length<span class="punctuation">:</span><span class="number">11</span><span class="punctuation">,</span></span><br><span class="line">                id<span class="punctuation">:</span><span class="string">&quot;ARROW&quot;</span><span class="punctuation">,</span></span><br><span class="line">                events<span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">                    click<span class="punctuation">:</span>function() <span class="punctuation">&#123;</span> alert(<span class="string">&quot;you clicked on the arrow overlay&quot;</span>)<span class="punctuation">&#125;</span></span><br><span class="line">                <span class="punctuation">&#125;</span></span><br><span class="line">            <span class="punctuation">&#125;</span> <span class="punctuation">]</span></span><br><span class="line">    		<span class="comment">/*,</span></span><br><span class="line"><span class="comment">            [ &quot;Label&quot;, &#123;</span></span><br><span class="line"><span class="comment">                location: 0.1,</span></span><br><span class="line"><span class="comment">                id: &quot;label&quot;,</span></span><br><span class="line"><span class="comment">                cssClass: &quot;aLabel&quot;,</span></span><br><span class="line"><span class="comment">                events:&#123;</span></span><br><span class="line"><span class="comment">                    tap:function() &#123; alert(&quot;hey&quot;); &#125;</span></span><br><span class="line"><span class="comment">                &#125;</span></span><br><span class="line"><span class="comment">            &#125;]*/</span></span><br><span class="line">        <span class="punctuation">]</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<p>而下一次收到的报文就可能是：</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;/<span class="name">Item1</span>&gt;</span><span class="tag">&lt;/<span class="name">Robot</span>&gt;</span><span class="tag">&lt;<span class="name">Robot</span>&gt;</span><span class="tag">&lt;<span class="name">Item1</span>&gt;</span><span class="tag">&lt;/<span class="name">Item1</span>&gt;</span><span class="tag">&lt;/<span class="name">Robot</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="禁止新增连接"><a href="#禁止新增连接" class="headerlink" title="禁止新增连接"></a>禁止新增连接</h3><p>在官方demo中可以通过鼠标拖动来新增一条连接，而API并没有对于连接的enable和disable的定义。Github有人回复说通过设置ConnectionsDetachable 属性来实现，实际效果并不能达到目的。</p>
+<p>最终在初始化方法中通过两个方法的组合实现了这个功能：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">instance.<span class="title function_">unmakeEveryTarget</span>().<span class="title function_">unmakeEverySource</span>();</span><br></pre></td></tr></table></figure>
 
-<p>粘包的出现由两方面因素构成：</p>
-<img src="cause.png"/>
+<h3 id="数据交互"><a href="#数据交互" class="headerlink" title="数据交互"></a>数据交互</h3><p>数据导出功能在社区版不提供方法支持，不过我们可以通过一些简单的变通来实现；而导出功能和加载功能是相对应的，实现了数据的导出就可以基于现有的数据结构来实现数据的初始化加载。以下是导出方法的实现：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">exportData</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="keyword">var</span> blocks=[];			 </span><br><span class="line">    $(<span class="string">&quot;.w&quot;</span>).<span class="title function_">each</span>(<span class="keyword">function</span>(<span class="params">idx, elem</span>)&#123;</span><br><span class="line">        <span class="keyword">var</span> elem=$(elem);				</span><br><span class="line">        blocks.<span class="title function_">push</span>(&#123;</span><br><span class="line">            <span class="title class_">BlockId</span>:elem.<span class="title function_">attr</span>(<span class="string">&#x27;id&#x27;</span>),</span><br><span class="line">            <span class="title class_">BlockContent</span>:elem.<span class="title function_">text</span>(),</span><br><span class="line">            <span class="title class_">BlockX</span>:<span class="built_in">parseInt</span>(elem.<span class="title function_">css</span>(<span class="string">&quot;left&quot;</span>), <span class="number">10</span>),</span><br><span class="line">            <span class="title class_">BlockY</span>:<span class="built_in">parseInt</span>(elem.<span class="title function_">css</span>(<span class="string">&quot;top&quot;</span>), <span class="number">10</span>)</span><br><span class="line">        &#125;);				</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">var</span> serliza=<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(blocks);</span><br><span class="line">    $(<span class="string">&quot;#outputText&quot;</span>).<span class="title function_">text</span>(serliza);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>针对粘包现象，Netty提供了三种解决思路，</p>
-<img src="solution2.png"/>
+<p>主要思路是获取页面元素的id和名称以及他们和容器的相对位置，最终通过json的格式进行存储。至于元素之间的关系通过业务系统保存和维护。</p>
+<p>相应的我们可以实现我们的导入方法：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> loadJson = <span class="keyword">function</span>(<span class="params">data</span>)&#123;</span><br><span class="line">		<span class="keyword">var</span> unpack=<span class="title class_">JSON</span>.<span class="title function_">parse</span>(data);</span><br><span class="line">		<span class="keyword">if</span>(!unpack)&#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">		&#125;        </span><br><span class="line">		unpack.<span class="title function_">map</span>(<span class="keyword">function</span>(<span class="params">value, index, array</span>) &#123;</span><br><span class="line">			<span class="keyword">var</span> _block = <span class="built_in">eval</span>(value);</span><br><span class="line">			<span class="title function_">newNodeWithName</span>(_block.<span class="property">BlockId</span>,_block.<span class="property">BlockContent</span>, _block.<span class="property">BlockX</span>, _				block.<span class="property">BlockY</span>);</span><br><span class="line">		&#125;);</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">var</span> newNodeWithName = <span class="keyword">function</span>(<span class="params">id, name, x, y</span>)&#123;</span><br><span class="line">	    <span class="keyword">var</span> d = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&quot;div&quot;</span>);</span><br><span class="line">        d.<span class="property">className</span> = <span class="string">&quot;w&quot;</span>;</span><br><span class="line">        d.<span class="property">id</span> = id;</span><br><span class="line">        d.<span class="property">innerHTML</span> = name.<span class="title function_">substring</span>(<span class="number">0</span>, <span class="number">7</span>) + <span class="string">&quot;&lt;div class=\&quot;ep\&quot;&gt;&lt;/div&gt;&quot;</span>;</span><br><span class="line">        d.<span class="property">style</span>.<span class="property">left</span> = x+ <span class="string">&quot;px&quot;</span>;</span><br><span class="line">        d.<span class="property">style</span>.<span class="property">top</span> = y+ <span class="string">&quot;px&quot;</span>;</span><br><span class="line">        instance.<span class="title function_">getContainer</span>().<span class="title function_">appendChild</span>(d);</span><br><span class="line">        <span class="title function_">initNode</span>(d);</span><br><span class="line">        <span class="keyword">return</span> d;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<p>了解了三种解决思路之后，我们发现固定长度和长度位两种方案对于服务端都需要改造，而分隔符的解决思路很好的契合了我们这种结构性很强的报文。最终我们选用了DelimiterBasedFrameDecoder，在ChannelInitHander中将Decoder加入Pipeline即可：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">ChannelPipeline</span> <span class="variable">pipeline</span> <span class="operator">=</span> socketChannel.pipeline();</span><br><span class="line"><span class="type">ByteBuf</span> <span class="variable">delimiter</span> <span class="operator">=</span> Unpooled.wrappedBuffer(<span class="string">&quot;&lt;/Robot&gt;&quot;</span>.getBytes());</span><br><span class="line">pipeline.addLast(<span class="string">&quot;delimiter&quot;</span>, <span class="keyword">new</span> <span class="title class_">DelimiterBasedFrameDecoder</span>(<span class="number">1024</span>, <span class="literal">false</span>, delimiter));</span><br></pre></td></tr></table></figure>
+<p>实现思路是通过解析json获取每一个元素的id和name并通过相对位置在容器中绘制出来。</p>
+<h3 id="自动对齐"><a href="#自动对齐" class="headerlink" title="自动对齐"></a>自动对齐</h3><p>通过页面拖动的元素不像传统的流程图工具提供自动对齐的功能，我们基于像素级别对元素对齐进行了基本的约束。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">def</span><br><span class="line"> X(e) = 元素e的起始横坐标</span><br><span class="line"> Y(e) = 元素e的起始纵坐标</span><br><span class="line"> W(e) = 元素e的宽度</span><br><span class="line"> H(e) = 元素e的高</span><br><span class="line">    </span><br><span class="line">if abs(Diff(X(a),X(b))) between (0, W(a)) set X(a) = X(b)</span><br><span class="line">if abs(Diff(Y(a),Y(b))) between (0, H(a)) set Y(a) = Y(b)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<p>DelimiterBasedFrameDecoder需要传入三个参数。</p>
-<ol>
-<li>第一个参数1024是定义的最大字节长度，当报文长度超出1024，则丢弃该段报文，这个参数根据实际情况调整；</li>
-<li>第二个参数false表示分隔符不被忽略也就是说分隔符也是作为报文的一部分需要读取。</li>
-<li>第三个参数是传入的分隔符，我们选择结束符</Robot>作为分隔符。</li>
-</ol>
-<p>通过DelimiterBasedFrameDecoder的引入，我们的报文粘包拆包问题得到了解决。通过分隔符确保在客户端读缓冲区的数据是按照一个完整报文的分段被客户端读取，这种方式规避了服务端改动的复杂性，也避免了服务端和客户端同时修改的不一致性，在数据结构性很强的时候优先选择使用。</p>
-<h2 id="总结展望"><a href="#总结展望" class="headerlink" title="总结展望"></a>总结展望</h2><p>在边缘数采的实现中，我们通过基于配置的客户端初始化方案，可以在一个边缘端管理多个客户端程序。通过断线重连机制确保了连接的高可用。16进制数据解析和粘包处理确保可以接收到正确的报文进行后续处理。</p>
-<p>通过以上技术细节的实现，最终我们基于Netty搭建了一套符合FANUC机器人数采要求的边缘数采客户端。</p>
+<p>实现代码：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">window</span>.<span class="property">autoAlignment</span> = <span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">	   <span class="keyword">var</span> baseX = <span class="title class_">Number</span>($(<span class="string">&quot;.w&quot;</span>).<span class="title function_">eq</span>(<span class="number">0</span>).<span class="title function_">css</span>(<span class="string">&quot;width&quot;</span>).<span class="title function_">replace</span>(<span class="string">&quot;px&quot;</span>,<span class="string">&quot;&quot;</span>));	   </span><br><span class="line">	   <span class="keyword">var</span> baseY = <span class="title class_">Number</span>($(<span class="string">&quot;.w&quot;</span>).<span class="title function_">eq</span>(<span class="number">0</span>).<span class="title function_">css</span>(<span class="string">&quot;height&quot;</span>).<span class="title function_">replace</span>(<span class="string">&quot;px&quot;</span>,<span class="string">&quot;&quot;</span>));</span><br><span class="line">	   <span class="keyword">var</span> thatX=<span class="number">0</span>, thatY=<span class="number">0</span>, thisX = <span class="number">0</span>, thisY=<span class="number">0</span>, deltaX = <span class="number">0</span>, deltaY = <span class="number">0</span>;</span><br><span class="line">	   <span class="keyword">var</span> index = <span class="number">0</span>;</span><br><span class="line">	   <span class="keyword">var</span> eleArray = $(<span class="string">&quot;.w&quot;</span>);</span><br><span class="line">	   <span class="keyword">for</span>(<span class="keyword">var</span> i =<span class="number">0</span> ; i &lt; eleArray.<span class="property">length</span>; i++)&#123;</span><br><span class="line">		 thatX = <span class="title class_">Number</span>($(eleArray[i]).<span class="title function_">css</span>(<span class="string">&quot;left&quot;</span>).<span class="title function_">replace</span>(<span class="string">&quot;px&quot;</span>,<span class="string">&quot;&quot;</span>));</span><br><span class="line">		 thatY = <span class="title class_">Number</span>($(eleArray[i]).<span class="title function_">css</span>(<span class="string">&quot;top&quot;</span>).<span class="title function_">replace</span>(<span class="string">&quot;px&quot;</span>,<span class="string">&quot;&quot;</span>));</span><br><span class="line">	     <span class="keyword">for</span>(<span class="keyword">var</span> j =i+<span class="number">1</span>; j &lt; eleArray.<span class="property">length</span>; j++)&#123;</span><br><span class="line">		   thisX = <span class="title class_">Number</span>($(eleArray[j]).<span class="title function_">css</span>(<span class="string">&quot;left&quot;</span>).<span class="title function_">replace</span>(<span class="string">&quot;px&quot;</span>,<span class="string">&quot;&quot;</span>));</span><br><span class="line">		   thisY = <span class="title class_">Number</span>($(eleArray[j]).<span class="title function_">css</span>(<span class="string">&quot;top&quot;</span>).<span class="title function_">replace</span>(<span class="string">&quot;px&quot;</span>,<span class="string">&quot;&quot;</span>));</span><br><span class="line">		   deltaX = <span class="title class_">Math</span>.<span class="title function_">abs</span>(thisX - thatX);</span><br><span class="line">		   deltaY = <span class="title class_">Math</span>.<span class="title function_">abs</span>(thisY - thatY);</span><br><span class="line">		   <span class="keyword">if</span>(deltaX &lt; baseX &amp;&amp; deltaX &gt;<span class="number">0</span> &amp;&amp; deltaY &gt;=baseY)&#123;</span><br><span class="line">		     <span class="comment">// 需要调整x</span></span><br><span class="line">             $(eleArray[j]).<span class="title function_">css</span>(<span class="string">&quot;left&quot;</span>,thatX+<span class="string">&quot;px&quot;</span>);</span><br><span class="line">		   &#125;</span><br><span class="line"></span><br><span class="line">		   <span class="keyword">if</span>(deltaY &lt; baseY &amp;&amp; deltaY &gt;<span class="number">0</span> &amp;&amp; deltaX &gt;=baseX)&#123;</span><br><span class="line">		     $(eleArray[j]).<span class="title function_">css</span>(<span class="string">&quot;top&quot;</span>,thatY+<span class="string">&quot;px&quot;</span>);</span><br><span class="line">		   &#125;</span><br><span class="line">		 &#125;</span><br><span class="line">	   &#125;</span><br><span class="line">	   <span class="comment">//通过repaintEverything完成位置调整后的重绘</span></span><br><span class="line">	   instance.<span class="title function_">repaintEverything</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Zoom缩放"><a href="#Zoom缩放" class="headerlink" title="Zoom缩放"></a>Zoom缩放</h3><p>同样由于在社区版不提供zoom的接口，我们只能通过自己来实现zoom功能。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">window</span>.<span class="property">setZoom</span> = <span class="keyword">function</span> (<span class="params">zoom, instance0, transformOrigin, el</span>) &#123;</span><br><span class="line">        transformOrigin = transformOrigin || [<span class="number">0.5</span>, <span class="number">0.5</span>];</span><br><span class="line">	    instance = instance || jsPlumb;</span><br><span class="line">	    el = el || instance.<span class="title function_">getContainer</span>();</span><br><span class="line">	    <span class="keyword">var</span> p = [<span class="string">&quot;webkit&quot;</span>, <span class="string">&quot;moz&quot;</span>, <span class="string">&quot;ms&quot;</span>, <span class="string">&quot;o&quot;</span>],</span><br><span class="line">            s = <span class="string">&quot;scale(&quot;</span> + zoom + <span class="string">&quot;)&quot;</span>,</span><br><span class="line">            oString = (transformOrigin[<span class="number">0</span>] * <span class="number">100</span>) + <span class="string">&quot;% &quot;</span> + (transformOrigin[<span class="number">1</span>] * <span class="number">100</span>) + <span class="string">&quot;%&quot;</span>;</span><br><span class="line">        </span><br><span class="line">	    <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; p.<span class="property">length</span>; i++) &#123;</span><br><span class="line">	        el.<span class="property">style</span>[p[i] + <span class="string">&quot;Transform&quot;</span>] = s;</span><br><span class="line">	        el.<span class="property">style</span>[p[i] + <span class="string">&quot;TransformOrigin&quot;</span>] = oString;</span><br><span class="line">	    &#125;</span><br><span class="line"></span><br><span class="line">	    el.<span class="property">style</span>[<span class="string">&quot;transform&quot;</span>] = s;</span><br><span class="line">	    el.<span class="property">style</span>[<span class="string">&quot;transformOrigin&quot;</span>] = oString;</span><br><span class="line"></span><br><span class="line">	    instance.<span class="title function_">setZoom</span>(zoom, <span class="literal">true</span>);</span><br><span class="line">	    instance.<span class="title function_">repaintEverything</span>();</span><br><span class="line">	    </span><br><span class="line">	&#125;;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>实现思路通过监听事件来设置style属性实现滚动，最终调用重绘方法进行整体调整。需要注意的是监听事件应该绑定到容器的上一层，如下图的外层div部分，否则缩放的是整个页面起不到zoom流程图的初衷</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;jtk-canvas canvas-wide process-canvas jtk-surface jtk-surface-nopan&quot;</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;jtk-surface-canvas&quot;</span> <span class="attr">style</span>=<span class="string">&quot;overflow:visible !important;&quot;</span> <span class="attr">id</span>=<span class="string">&quot;canvas&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="总结反思"><a href="#总结反思" class="headerlink" title="总结反思"></a>总结反思</h2><p>我们通过对于jsplumb的客户化开发，实现了部分商用版本独有的功能，从而使得基于社区版的应用可以满足复杂业务使用的需求。其中比较核心的是数据交互部分，我们在jsplumb已有概念的基础上将页面元素封装成带有位置信息的组件进行保存和加载，实现了前后端的连接。</p>
 ]]></content>
       <categories>
         <category>技术总结</category>
       </categories>
       <tags>
-        <tag>应用技术</tag>
-        <tag>数据采集</tag>
+        <tag>开发技术</tag>
+        <tag>可视化</tag>
       </tags>
   </entry>
   <entry>
@@ -1030,92 +1116,6 @@
       <tags>
         <tag>应用技术</tag>
         <tag>系统集成</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>基于jsplumb的流程图实现</title>
-    <url>/2018/01/02/%E5%9F%BA%E4%BA%8Ejsplumb%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE%E5%AE%9E%E7%8E%B0/</url>
-    <content><![CDATA[<h2 id="背景需求"><a href="#背景需求" class="headerlink" title="背景需求"></a>背景需求</h2><p>在系统开发中经常需要展示一些流程，这时候需要用到流程图组件，但是在Echarts这些开源的可视化软件中居然没有流程图的支持。这时候我们的解决方案只能是用div和箭头图片自己实现一些简单的连接，如果流程稍微复杂一点，考虑兼顾功能和美观就需要投入大量的人力和精力进行一些造轮子的动作。</p>
-<p>jsplumb的出现一定程度上解决了我们的烦恼。</p>
-<span id="more"></span>
-
-<h2 id="技术介绍"><a href="#技术介绍" class="headerlink" title="技术介绍"></a>技术介绍</h2><p>jsplumb是一款开源的javascript类库，基于SVG提供页面元素的连接。jsplumb提供了两个分支：</p>
-<ul>
-<li>Toolkit Edition商用版，基于社区版本进行封装提供更丰富的API支持</li>
-<li>Community Edition社区版，基于MIT和GPL2协议进行开源，提供基础的API功能</li>
-</ul>
-<p>jsplumb的核心思想是对于页面元素的连接，在这个思想上对于连接进行了抽象，从而形成了jsplumb的几个基本要素：</p>
-<ul>
-<li><p>Anchor – 锚</p>
-<p>锚点主要用来定位一个端点的位置，锚点是一个逻辑上而非实体的概念，用户不可以直接创建，而是通过内部的机制生成</p>
-</li>
-<li><p>Endpoint – 端点</p>
-<p>作为每一个连接的终点而存在，可以通过编程来显式的创建</p>
-</li>
-<li><p>Connector – 连接器</p>
-<p>连接器作为连接的抽象，提供了两个元素之间进行连接的方式</p>
-</li>
-<li><p>Overlay – 镀层</p>
-<p>jsplumb通过镀层的方式给为连接器进行用户友好的展示，如通过label的方式</p>
-</li>
-<li><p>Group – 分组</p>
-<p>通过分组可以将一组元素作为一个整体，从而进行整体的拖拽和收缩等</p>
-</li>
-</ul>
-<blockquote>
-<p>一般来说两个端点，一个连接器，0到多个镀层一起工作共同组成了一次连接。每一个端点都有一个关联的锚点。</p>
-</blockquote>
-<h2 id="技术攻关"><a href="#技术攻关" class="headerlink" title="技术攻关"></a>技术攻关</h2><p>在熟悉了jsplumb主要的概念后，可以通过官方API了解一些主要功能。同时可以通过<a href="https://github.com/jsplumb/jsplumb/tree/master/demo">github</a> 下载官方demo进行学习。通过观察，我们发现官方demo中的flowchart比较符合我们的需求，于是我们下载flowchart的demo源码进行研究改造。原始的demo效果图如下：</p>
-<img src="original.png"/>
-
-<p>下面列出几个主要攻关点：</p>
-<h3 id="代码合并压缩"><a href="#代码合并压缩" class="headerlink" title="代码合并压缩"></a>代码合并压缩</h3><p>我们发现在demo中引入了一堆js和css，我们通过合并压缩最后形成了下面三个文件，</p>
-<ol>
-<li><p>jsplumb-link.min.js</p>
-<p>包含jsbezier.js，mottle.js，biltong.js和katavorio.js</p>
-</li>
-<li><p>jsplumb-lib.min.js</p>
-<p>包含jsplumb核心类库相关的16个js文件，注意合并的顺序</p>
-</li>
-<li><p>jsPlumb_process.js</p>
-<p>process组件相关的js，基于jsplumb的封装和客户化</p>
-</li>
-</ol>
-<h3 id="去除镀层的文字"><a href="#去除镀层的文字" class="headerlink" title="去除镀层的文字"></a>去除镀层的文字</h3><p>在connectionOverlay定义中发现同时对于箭头和文字都做了定义，直接将对于label的定义去除即可：</p>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">ConnectionOverlays<span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="punctuation">[</span> <span class="string">&quot;Arrow&quot;</span><span class="punctuation">,</span> <span class="punctuation">&#123;</span></span><br><span class="line">                location<span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">                visible<span class="punctuation">:</span><span class="keyword">true</span><span class="punctuation">,</span></span><br><span class="line">                width<span class="punctuation">:</span><span class="number">11</span><span class="punctuation">,</span></span><br><span class="line">                length<span class="punctuation">:</span><span class="number">11</span><span class="punctuation">,</span></span><br><span class="line">                id<span class="punctuation">:</span><span class="string">&quot;ARROW&quot;</span><span class="punctuation">,</span></span><br><span class="line">                events<span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">                    click<span class="punctuation">:</span>function() <span class="punctuation">&#123;</span> alert(<span class="string">&quot;you clicked on the arrow overlay&quot;</span>)<span class="punctuation">&#125;</span></span><br><span class="line">                <span class="punctuation">&#125;</span></span><br><span class="line">            <span class="punctuation">&#125;</span> <span class="punctuation">]</span></span><br><span class="line">    		<span class="comment">/*,</span></span><br><span class="line"><span class="comment">            [ &quot;Label&quot;, &#123;</span></span><br><span class="line"><span class="comment">                location: 0.1,</span></span><br><span class="line"><span class="comment">                id: &quot;label&quot;,</span></span><br><span class="line"><span class="comment">                cssClass: &quot;aLabel&quot;,</span></span><br><span class="line"><span class="comment">                events:&#123;</span></span><br><span class="line"><span class="comment">                    tap:function() &#123; alert(&quot;hey&quot;); &#125;</span></span><br><span class="line"><span class="comment">                &#125;</span></span><br><span class="line"><span class="comment">            &#125;]*/</span></span><br><span class="line">        <span class="punctuation">]</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h3 id="禁止新增连接"><a href="#禁止新增连接" class="headerlink" title="禁止新增连接"></a>禁止新增连接</h3><p>在官方demo中可以通过鼠标拖动来新增一条连接，而API并没有对于连接的enable和disable的定义。Github有人回复说通过设置ConnectionsDetachable 属性来实现，实际效果并不能达到目的。</p>
-<p>最终在初始化方法中通过两个方法的组合实现了这个功能：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">instance.<span class="title function_">unmakeEveryTarget</span>().<span class="title function_">unmakeEverySource</span>();</span><br></pre></td></tr></table></figure>
-
-<h3 id="数据交互"><a href="#数据交互" class="headerlink" title="数据交互"></a>数据交互</h3><p>数据导出功能在社区版不提供方法支持，不过我们可以通过一些简单的变通来实现；而导出功能和加载功能是相对应的，实现了数据的导出就可以基于现有的数据结构来实现数据的初始化加载。以下是导出方法的实现：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">exportData</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="keyword">var</span> blocks=[];			 </span><br><span class="line">    $(<span class="string">&quot;.w&quot;</span>).<span class="title function_">each</span>(<span class="keyword">function</span>(<span class="params">idx, elem</span>)&#123;</span><br><span class="line">        <span class="keyword">var</span> elem=$(elem);				</span><br><span class="line">        blocks.<span class="title function_">push</span>(&#123;</span><br><span class="line">            <span class="title class_">BlockId</span>:elem.<span class="title function_">attr</span>(<span class="string">&#x27;id&#x27;</span>),</span><br><span class="line">            <span class="title class_">BlockContent</span>:elem.<span class="title function_">text</span>(),</span><br><span class="line">            <span class="title class_">BlockX</span>:<span class="built_in">parseInt</span>(elem.<span class="title function_">css</span>(<span class="string">&quot;left&quot;</span>), <span class="number">10</span>),</span><br><span class="line">            <span class="title class_">BlockY</span>:<span class="built_in">parseInt</span>(elem.<span class="title function_">css</span>(<span class="string">&quot;top&quot;</span>), <span class="number">10</span>)</span><br><span class="line">        &#125;);				</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">var</span> serliza=<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(blocks);</span><br><span class="line">    $(<span class="string">&quot;#outputText&quot;</span>).<span class="title function_">text</span>(serliza);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>主要思路是获取页面元素的id和名称以及他们和容器的相对位置，最终通过json的格式进行存储。至于元素之间的关系通过业务系统保存和维护。</p>
-<p>相应的我们可以实现我们的导入方法：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> loadJson = <span class="keyword">function</span>(<span class="params">data</span>)&#123;</span><br><span class="line">		<span class="keyword">var</span> unpack=<span class="title class_">JSON</span>.<span class="title function_">parse</span>(data);</span><br><span class="line">		<span class="keyword">if</span>(!unpack)&#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">		&#125;        </span><br><span class="line">		unpack.<span class="title function_">map</span>(<span class="keyword">function</span>(<span class="params">value, index, array</span>) &#123;</span><br><span class="line">			<span class="keyword">var</span> _block = <span class="built_in">eval</span>(value);</span><br><span class="line">			<span class="title function_">newNodeWithName</span>(_block.<span class="property">BlockId</span>,_block.<span class="property">BlockContent</span>, _block.<span class="property">BlockX</span>, _				block.<span class="property">BlockY</span>);</span><br><span class="line">		&#125;);</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">var</span> newNodeWithName = <span class="keyword">function</span>(<span class="params">id, name, x, y</span>)&#123;</span><br><span class="line">	    <span class="keyword">var</span> d = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&quot;div&quot;</span>);</span><br><span class="line">        d.<span class="property">className</span> = <span class="string">&quot;w&quot;</span>;</span><br><span class="line">        d.<span class="property">id</span> = id;</span><br><span class="line">        d.<span class="property">innerHTML</span> = name.<span class="title function_">substring</span>(<span class="number">0</span>, <span class="number">7</span>) + <span class="string">&quot;&lt;div class=\&quot;ep\&quot;&gt;&lt;/div&gt;&quot;</span>;</span><br><span class="line">        d.<span class="property">style</span>.<span class="property">left</span> = x+ <span class="string">&quot;px&quot;</span>;</span><br><span class="line">        d.<span class="property">style</span>.<span class="property">top</span> = y+ <span class="string">&quot;px&quot;</span>;</span><br><span class="line">        instance.<span class="title function_">getContainer</span>().<span class="title function_">appendChild</span>(d);</span><br><span class="line">        <span class="title function_">initNode</span>(d);</span><br><span class="line">        <span class="keyword">return</span> d;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>实现思路是通过解析json获取每一个元素的id和name并通过相对位置在容器中绘制出来。</p>
-<h3 id="自动对齐"><a href="#自动对齐" class="headerlink" title="自动对齐"></a>自动对齐</h3><p>通过页面拖动的元素不像传统的流程图工具提供自动对齐的功能，我们基于像素级别对元素对齐进行了基本的约束。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">def</span><br><span class="line"> X(e) = 元素e的起始横坐标</span><br><span class="line"> Y(e) = 元素e的起始纵坐标</span><br><span class="line"> W(e) = 元素e的宽度</span><br><span class="line"> H(e) = 元素e的高</span><br><span class="line">    </span><br><span class="line">if abs(Diff(X(a),X(b))) between (0, W(a)) set X(a) = X(b)</span><br><span class="line">if abs(Diff(Y(a),Y(b))) between (0, H(a)) set Y(a) = Y(b)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>实现代码：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">window</span>.<span class="property">autoAlignment</span> = <span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">	   <span class="keyword">var</span> baseX = <span class="title class_">Number</span>($(<span class="string">&quot;.w&quot;</span>).<span class="title function_">eq</span>(<span class="number">0</span>).<span class="title function_">css</span>(<span class="string">&quot;width&quot;</span>).<span class="title function_">replace</span>(<span class="string">&quot;px&quot;</span>,<span class="string">&quot;&quot;</span>));	   </span><br><span class="line">	   <span class="keyword">var</span> baseY = <span class="title class_">Number</span>($(<span class="string">&quot;.w&quot;</span>).<span class="title function_">eq</span>(<span class="number">0</span>).<span class="title function_">css</span>(<span class="string">&quot;height&quot;</span>).<span class="title function_">replace</span>(<span class="string">&quot;px&quot;</span>,<span class="string">&quot;&quot;</span>));</span><br><span class="line">	   <span class="keyword">var</span> thatX=<span class="number">0</span>, thatY=<span class="number">0</span>, thisX = <span class="number">0</span>, thisY=<span class="number">0</span>, deltaX = <span class="number">0</span>, deltaY = <span class="number">0</span>;</span><br><span class="line">	   <span class="keyword">var</span> index = <span class="number">0</span>;</span><br><span class="line">	   <span class="keyword">var</span> eleArray = $(<span class="string">&quot;.w&quot;</span>);</span><br><span class="line">	   <span class="keyword">for</span>(<span class="keyword">var</span> i =<span class="number">0</span> ; i &lt; eleArray.<span class="property">length</span>; i++)&#123;</span><br><span class="line">		 thatX = <span class="title class_">Number</span>($(eleArray[i]).<span class="title function_">css</span>(<span class="string">&quot;left&quot;</span>).<span class="title function_">replace</span>(<span class="string">&quot;px&quot;</span>,<span class="string">&quot;&quot;</span>));</span><br><span class="line">		 thatY = <span class="title class_">Number</span>($(eleArray[i]).<span class="title function_">css</span>(<span class="string">&quot;top&quot;</span>).<span class="title function_">replace</span>(<span class="string">&quot;px&quot;</span>,<span class="string">&quot;&quot;</span>));</span><br><span class="line">	     <span class="keyword">for</span>(<span class="keyword">var</span> j =i+<span class="number">1</span>; j &lt; eleArray.<span class="property">length</span>; j++)&#123;</span><br><span class="line">		   thisX = <span class="title class_">Number</span>($(eleArray[j]).<span class="title function_">css</span>(<span class="string">&quot;left&quot;</span>).<span class="title function_">replace</span>(<span class="string">&quot;px&quot;</span>,<span class="string">&quot;&quot;</span>));</span><br><span class="line">		   thisY = <span class="title class_">Number</span>($(eleArray[j]).<span class="title function_">css</span>(<span class="string">&quot;top&quot;</span>).<span class="title function_">replace</span>(<span class="string">&quot;px&quot;</span>,<span class="string">&quot;&quot;</span>));</span><br><span class="line">		   deltaX = <span class="title class_">Math</span>.<span class="title function_">abs</span>(thisX - thatX);</span><br><span class="line">		   deltaY = <span class="title class_">Math</span>.<span class="title function_">abs</span>(thisY - thatY);</span><br><span class="line">		   <span class="keyword">if</span>(deltaX &lt; baseX &amp;&amp; deltaX &gt;<span class="number">0</span> &amp;&amp; deltaY &gt;=baseY)&#123;</span><br><span class="line">		     <span class="comment">// 需要调整x</span></span><br><span class="line">             $(eleArray[j]).<span class="title function_">css</span>(<span class="string">&quot;left&quot;</span>,thatX+<span class="string">&quot;px&quot;</span>);</span><br><span class="line">		   &#125;</span><br><span class="line"></span><br><span class="line">		   <span class="keyword">if</span>(deltaY &lt; baseY &amp;&amp; deltaY &gt;<span class="number">0</span> &amp;&amp; deltaX &gt;=baseX)&#123;</span><br><span class="line">		     $(eleArray[j]).<span class="title function_">css</span>(<span class="string">&quot;top&quot;</span>,thatY+<span class="string">&quot;px&quot;</span>);</span><br><span class="line">		   &#125;</span><br><span class="line">		 &#125;</span><br><span class="line">	   &#125;</span><br><span class="line">	   <span class="comment">//通过repaintEverything完成位置调整后的重绘</span></span><br><span class="line">	   instance.<span class="title function_">repaintEverything</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Zoom缩放"><a href="#Zoom缩放" class="headerlink" title="Zoom缩放"></a>Zoom缩放</h3><p>同样由于在社区版不提供zoom的接口，我们只能通过自己来实现zoom功能。</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">window</span>.<span class="property">setZoom</span> = <span class="keyword">function</span> (<span class="params">zoom, instance0, transformOrigin, el</span>) &#123;</span><br><span class="line">        transformOrigin = transformOrigin || [<span class="number">0.5</span>, <span class="number">0.5</span>];</span><br><span class="line">	    instance = instance || jsPlumb;</span><br><span class="line">	    el = el || instance.<span class="title function_">getContainer</span>();</span><br><span class="line">	    <span class="keyword">var</span> p = [<span class="string">&quot;webkit&quot;</span>, <span class="string">&quot;moz&quot;</span>, <span class="string">&quot;ms&quot;</span>, <span class="string">&quot;o&quot;</span>],</span><br><span class="line">            s = <span class="string">&quot;scale(&quot;</span> + zoom + <span class="string">&quot;)&quot;</span>,</span><br><span class="line">            oString = (transformOrigin[<span class="number">0</span>] * <span class="number">100</span>) + <span class="string">&quot;% &quot;</span> + (transformOrigin[<span class="number">1</span>] * <span class="number">100</span>) + <span class="string">&quot;%&quot;</span>;</span><br><span class="line">        </span><br><span class="line">	    <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; p.<span class="property">length</span>; i++) &#123;</span><br><span class="line">	        el.<span class="property">style</span>[p[i] + <span class="string">&quot;Transform&quot;</span>] = s;</span><br><span class="line">	        el.<span class="property">style</span>[p[i] + <span class="string">&quot;TransformOrigin&quot;</span>] = oString;</span><br><span class="line">	    &#125;</span><br><span class="line"></span><br><span class="line">	    el.<span class="property">style</span>[<span class="string">&quot;transform&quot;</span>] = s;</span><br><span class="line">	    el.<span class="property">style</span>[<span class="string">&quot;transformOrigin&quot;</span>] = oString;</span><br><span class="line"></span><br><span class="line">	    instance.<span class="title function_">setZoom</span>(zoom, <span class="literal">true</span>);</span><br><span class="line">	    instance.<span class="title function_">repaintEverything</span>();</span><br><span class="line">	    </span><br><span class="line">	&#125;;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>实现思路通过监听事件来设置style属性实现滚动，最终调用重绘方法进行整体调整。需要注意的是监听事件应该绑定到容器的上一层，如下图的外层div部分，否则缩放的是整个页面起不到zoom流程图的初衷</p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;jtk-canvas canvas-wide process-canvas jtk-surface jtk-surface-nopan&quot;</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;jtk-surface-canvas&quot;</span> <span class="attr">style</span>=<span class="string">&quot;overflow:visible !important;&quot;</span> <span class="attr">id</span>=<span class="string">&quot;canvas&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h2 id="总结反思"><a href="#总结反思" class="headerlink" title="总结反思"></a>总结反思</h2><p>我们通过对于jsplumb的客户化开发，实现了部分商用版本独有的功能，从而使得基于社区版的应用可以满足复杂业务使用的需求。其中比较核心的是数据交互部分，我们在jsplumb已有概念的基础上将页面元素封装成带有位置信息的组件进行保存和加载，实现了前后端的连接。</p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>开发技术</tag>
-        <tag>可视化</tag>
       </tags>
   </entry>
   <entry>
