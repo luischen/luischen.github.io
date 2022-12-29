@@ -187,6 +187,104 @@
             
 
   
+    <article id="post-如何监测配置数据的变化" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+  
+  
+    <h1 itemprop="name">
+	
+	  <a class="article-title" href="/2022/12/29/%E5%A6%82%E4%BD%95%E7%9B%91%E6%B5%8B%E9%85%8D%E7%BD%AE%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%98%E5%8C%96/">如何监测配置数据的变化</a>
+	
+    </h1>
+  
+
+
+  
+  
+<a href="/2022/12/29/%E5%A6%82%E4%BD%95%E7%9B%91%E6%B5%8B%E9%85%8D%E7%BD%AE%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%98%E5%8C%96/" class="archive-article-date">
+        <time datetime="2022-12-29T02:38:13.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2022-12-29</time>
+</a>
+
+  
+  
+    
+
+  
+  </header>
+  
+  <div class="article-entry" itemprop="articleBody">
+    
+    <p>在工业互联网平台上存在多种业务应用，每个应用有自己的配置数据，当配置数据发生变更的时候需要及时的下发到边缘节点让配置生效。我们可以通过节点管理模块提供手动下发的功能，即操作人员修改完配置后通知系统管理员进行对应节点的配置下发。实际操作中发现由于引发配置变更的点过于分散，导致经常会忘记下发而无法使配置及时生效。再者业务操作人员自己并不清楚当前操作的配置是否需要下发，会引发很多无效的沟通，降低了生产效率。</p>
+<p>如何在配置发生变化的时候及时监测到变更，由系统自动来引导配置变更流程是我们需要解决的问题，我们通过埋点通知的机制来应对。整体解决方案如下图：</p>
+    
+    
+
+    
+
+    
+
+  </div>
+  <div class="article-info article-info-index">
+    
+    
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">开发技术</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+    
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/技术总结在//" class="article-tag-list-link color1">技术总结在</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+    
+    <p class="article-more-link">
+      <a class="article-more-a" href="/2022/12/29/%E5%A6%82%E4%BD%95%E7%9B%91%E6%B5%8B%E9%85%8D%E7%BD%AE%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%98%E5%8C%96/">展开全文 >></a>
+    </p>
+    
+
+    
+    <div class="clearfix"></div>
+  </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-微服务接口认证" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -613,115 +711,6 @@
 
 
   
-    <article id="post-设计模式实战之状态模式" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-  
-  
-    <h1 itemprop="name">
-	
-	  <a class="article-title" href="/2021/12/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/">设计模式实战之状态模式</a>
-	
-    </h1>
-  
-
-
-  
-  
-<a href="/2021/12/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/" class="archive-article-date">
-        <time datetime="2021-12-17T03:13:37.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-12-17</time>
-</a>
-
-  
-  
-    
-
-  
-  </header>
-  
-  <div class="article-entry" itemprop="articleBody">
-    
-    <h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>系统启动阶段需要完成一些准备工作，最初是通过Spring Application Runner来实现，实现思路用业务语言描述就是：</p>
-<ol>
-<li>首先进行启动参数准备</li>
-<li>判断是否需要注册主站，如果需要则注册</li>
-<li>判断是否需要进行数据同步，如果需要则同步数据</li>
-<li>等待数据同步完成，系统准备完成</li>
-</ol>
-<p>这种设计可以从某种程度上理解为责任链模式，四个Runner组成了一个责任链，流转到对应的节点判断是否属于该节点的责任并采取动作。</p>
-<h2 id="问题反思"><a href="#问题反思" class="headerlink" title="问题反思"></a>问题反思</h2><p>这样的启动流程设计和Spring容器耦合严重导致了可复用性不是很好，并且面向流程的设计不具备可扩展性。如果我们在RegisterRunner中由于网络原因没有注册成功，我们期望的结果是重新注册而不是重启Spring应用。</p>
-<p>我们发现在Runner对应的过程中体现的是状态的转移，例如RegisterRunner对应的是正在注册到注册成功或者注册失败状态的转移。而状态的转移又反映在类行为的变化。这正是状态模式适用的场景。</p>
-<blockquote>
-<p>当一个对象的内在状态改变时允许改变其行为，这个对象看起来像是改变了其类。</p>
-</blockquote>
-    
-    
-
-    
-
-    
-
-  </div>
-  <div class="article-info article-info-index">
-    
-    
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">设计模式</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-    
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/技术总结//" class="article-tag-list-link color5">技术总结</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-    
-    <p class="article-more-link">
-      <a class="article-more-a" href="/2021/12/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/">展开全文 >></a>
-    </p>
-    
-
-    
-    <div class="clearfix"></div>
-  </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/">Next</a>
@@ -838,19 +827,19 @@
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">开发技术</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">问题解决</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">编程语言</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Java</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">开发技术</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">问题解决</a>
               </li>
              
               <li class="article-tag-list-item">
