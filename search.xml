@@ -3,7 +3,7 @@
   <entry>
     <title>InfluxDB备份策略</title>
     <url>/2021/08/19/InfluxDB%E5%A4%87%E4%BB%BD%E7%AD%96%E7%95%A5/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>设备数据采集的时序数据使用InfluxDB进行存储，InfluxDB提供了两大类备份策略来保障数据安全：</p>
+    <content><![CDATA[<p>设备数据采集的时序数据使用InfluxDB进行存储，InfluxDB提供了两大类备份策略来保障数据安全：</p>
 <ul>
 <li><p>数据库实时主备</p>
 <p>实时主备是指通过内置的subscription机制，将主库收到的请求通过go-routine的方式到从库进行重放来实现数据的主备存储。这种方式可以认为是热备。</p>
@@ -115,7 +115,7 @@
   <entry>
     <title>InfluxDB数据接入MQTT</title>
     <url>/2021/12/22/InfluxDB%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5MQTT/</url>
-    <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>在边缘计算场景中数据存储在边缘的时序数据库如 InfluxDB 中，如果不能将数据进行归集以统筹管理则可能形成数据孤岛，无法充分有效的发挥大数据的威力。</p>
+    <content><![CDATA[<p>在边缘计算场景中数据存储在边缘的时序数据库如 InfluxDB 中，如果不能将数据进行归集以统筹管理则可能形成数据孤岛，无法充分有效的发挥大数据的威力。</p>
 <p>边缘端的数据流是数采网关直连InfluxDB，通过restful的方式将采集到的数据发送到时序数据库。这种方式的优点是架构简单，没有中间环节数据传输效率高、实时性有保障。缺点则是可扩展性低，无法满足数据处理、数据转发等需求。</p>
 <p>在某大型客户的案例中我们面临的挑战是边缘时序数据需要接入对方的工业互联网平台，鉴于平台支持MQTT方式接入，我们的问题就转化为：<em>边缘时序数据发送到MQTT队列</em></p>
 <span id="more"></span>
@@ -175,7 +175,7 @@
   <entry>
     <title>Java中的锁机制</title>
     <url>/2020/05/25/Java%E4%B8%AD%E7%9A%84%E9%94%81%E6%9C%BA%E5%88%B6/</url>
-    <content><![CDATA[<h2 id="引子"><a href="#引子" class="headerlink" title="引子"></a>引子</h2><p>说起Java中的并发，有一个永恒的话题就是锁机制。而提及Java中的锁，我们一般认为有两种形式，</p>
+    <content><![CDATA[<p>说起Java中的并发，有一个永恒的话题就是锁机制，而提及Java中的锁，我们一般认为有两种形式，</p>
 <ol>
 <li>通过synchronized关键字的实现</li>
 <li>通过Lock接口的实现</li>
@@ -284,7 +284,7 @@
   <entry>
     <title>一个Slash引发的ClassNotFound血案</title>
     <url>/2019/08/27/%E4%B8%80%E4%B8%AASlash%E5%BC%95%E5%8F%91%E7%9A%84ClassNotFound%E8%A1%80%E6%A1%88/</url>
-    <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>公司开发了一款Web应用，开发架构基于Spring Boot，通过jar包的方式发布到服务器并通过命令行运行在内置的Tomcat上。上线将近一年，一切都是那么的风平浪静，然而一切的平静被上周的一次现场算法回访打破。</p>
+    <content><![CDATA[<p>公司开发了一款Web应用，开发架构基于Spring Boot，通过jar包的方式发布到服务器并通过命令行运行在内置的Tomcat上。上线将近一年，一切都是那么的风平浪静，然而一切的平静被上周的一次现场算法回访打破。</p>
 <p>我们的数据分析人员本意只是想查看一下历史数据来确认算法的表现符合预期，结果发现历史数据查询页面怎么点都没有反应，而其他页面都是正常的，服务重启后一切恢复正常。</p>
 <h2 id="问题重现"><a href="#问题重现" class="headerlink" title="问题重现"></a>问题重现</h2><p>虽然问题通过服务重启后成功解决，但是出错的原因没有定位到也就意味着再次出错的可能性依然存在。</p>
 <span id="more"></span>
@@ -395,7 +395,7 @@
   <entry>
     <title>一次性能事故的处理和总结</title>
     <url>/2019/07/12/%E4%B8%80%E6%AC%A1%E6%80%A7%E8%83%BD%E4%BA%8B%E6%95%85%E7%9A%84%E5%A4%84%E7%90%86%E5%92%8C%E6%80%BB%E7%BB%93/</url>
-    <content><![CDATA[<h2 id="前情"><a href="#前情" class="headerlink" title="前情"></a>前情</h2><p>前几天做了一个工况统计的功能，查询最近7天的数据然后分析数据的分布。</p>
+    <content><![CDATA[<p>前几天做了一个工况统计的功能，查询最近7天的数据然后分析数据的分布。</p>
 <p>从一开始接到这个需求就感觉哪里有点不对劲，上线一周后终于迎来了一次爆发：页面响应慢，多次查询后服务不可用。</p>
 <span id="more"></span>
 
@@ -578,7 +578,7 @@
   <entry>
     <title>你的SpringBoot可以启动的再快点</title>
     <url>/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/</url>
-    <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>公司最近推出了一款一体机产品，于是老板就天天提个小箱子跑客户做POC，倍儿有范儿。跑了一阵子客户反响（问题）不错（不少），其中最大的问题就是开机进系统太慢，按照老板的说法：</p>
+    <content><![CDATA[<p>公司最近推出了一款一体机产品，于是老板就天天提个小箱子跑客户做POC，倍儿有范儿。跑了一阵子客户反响（问题）不错（不少），其中最大的问题就是开机进系统太慢，按照老板的说法：</p>
 <blockquote>
 <p>我按下开机键已经准备天花乱坠了，愣是给我一个系统维护界面5分钟才能进去。只好跟他们解释说我们是工业一体机比较严谨，开机前要做好充分的自检。</p>
 </blockquote>
@@ -676,49 +676,9 @@
       </tags>
   </entry>
   <entry>
-    <title>决策准绳之我的价值观</title>
-    <url>/2020/01/01/%E5%86%B3%E7%AD%96%E5%87%86%E7%BB%B3%E4%B9%8B%E6%88%91%E7%9A%84%E4%BB%B7%E5%80%BC%E8%A7%82/</url>
-    <content><![CDATA[<h2 id="价值-MUST"><a href="#价值-MUST" class="headerlink" title="价值 - MUST"></a><span style="color:red">价值 - MUST</span></h2><p>价值涵盖三个层面：客户价值、组织价值和个人价值。</p>
-<ul>
-<li><p>客户价值</p>
-<p>宏观层面是降本增效，微观层面可以体现为缩短流程、减少人工参与、避免用户误操作。具体分析客户价值的时候需要结合微观和宏观综合考虑</p>
-</li>
-<li><p>组织价值</p>
-<p>具体体现为带给企业和团队的增益。可以是增加销售额，降低实施成本，也可以是提升团队技能或者增强团队凝聚力</p>
-</li>
-<li><p>个人价值</p>
-<p>从自身出发考虑行动的收益。可以是收入的增加，可以是技能的提升，也可以是提升幸福感</p>
-</li>
-</ul>
-<span id="more"></span>
-
-<h2 id="创新-BETTER-TO-HAVE"><a href="#创新-BETTER-TO-HAVE" class="headerlink" title="创新 - BETTER TO HAVE"></a><span style="color:green">创新 - BETTER TO HAVE</span></h2><p>创新可以从理论、技术和解决方案的角度来衡量。</p>
-<ul>
-<li><p>理论创新</p>
-<p>理论的创新会引发技术和解决方案的创新，从而引领行业的新思潮。例如云计算大行其道的时候，提出边缘计算的思路就是一种理论的创新</p>
-</li>
-<li><p>技术创新</p>
-<p>通过新技术践行理论创新，可以认为是技术创新。例如KubeEdge和OpenYurt这些开源技术就是紧跟边缘计算思潮的技术创新</p>
-</li>
-<li><p>解决方案创新</p>
-<p>解决方案创新体现的是一种整合的智慧，通过已有的技术组合创造性的解决生产中的难题或者创造价值。例如利用InfluxDB的订阅机制实现边缘数据库的备份和转发，Canal模拟MySQL的slave进行日志同步都可以认为是解决方案层面的创新</p>
-</li>
-</ul>
-<h2 id="先进-BETTER-TO-HAVE"><a href="#先进-BETTER-TO-HAVE" class="headerlink" title="先进 - BETTER TO HAVE"></a><span style="color:lightblue">先进 - BETTER TO HAVE</span></h2><p>先进性主要体现在技术和思想两个方面。应该努力避免技术定格和思想僵化。</p>
-<p>例如Java已经出到16了还抱着8就是一种技术的定格，技术定格的后果是难以引导或者追随创新，最终因为无法创造价值而被淘汰。</p>
-<p>思想的僵化也是同样的道理，边缘计算、工业互联网的浪潮中还抱着传统的产品化思想，自我设限的后果就是无路可走。</p>
-]]></content>
-      <categories>
-        <category>人生感悟</category>
-      </categories>
-      <tags>
-        <tag>行为准则</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>基于Netty的边缘数采</title>
     <url>/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/</url>
-    <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>在设备数据采集方面，我们已经探索出一套成熟的做法即在设备侧部署一个边缘程序，通过定时拉取的机制到工控机如PLC的指定位置获取数据。但是对于机器人来说，不同型号的机器人控制设备都有自己不同程度的封装，我们需要严格按照机器人设备的数据开放方式进行定制化实现才有可能正确的获取到数据。</p>
+    <content><![CDATA[<p>在设备数据采集方面，我们已经探索出一套成熟的做法即在设备侧部署一个边缘程序，通过定时拉取的机制到工控机如PLC的指定位置获取数据。但是对于机器人来说，不同型号的机器人控制设备都有自己不同程度的封装，我们需要严格按照机器人设备的数据开放方式进行定制化实现才有可能正确的获取到数据。</p>
 <p>就我们这次研究的FANUC机器人来说，它的数据是通过内置的Socket服务端发送出来的。因此我们的数采方案是在边缘端部署一个相应的Socket客户端与之进行通信，获取数据并进行后续处理。</p>
 <span id="more"></span>
 
@@ -801,7 +761,7 @@
   <entry>
     <title>基于Spring Cloud Gateway的路由实践</title>
     <url>/2020/03/13/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/</url>
-    <content><![CDATA[<h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>在IT和OT融合的道路上，数据能力是很重要的一环。在设备端我们通过软PLC的解决方案覆盖了常见的数采方式和工业协议，那么采来的海量数据如何存储就成了我们当前的重中之重。</p>
+    <content><![CDATA[<p>在IT和OT融合的道路上，数据能力是很重要的一环。在设备端我们通过软PLC的解决方案覆盖了常见的数采方式和工业协议，那么采来的海量数据如何存储就成了我们当前的重中之重。</p>
 <p>在调研了流行的数据存储方案后，我们决定基于开源时序数据库打造一款工业适用、业务定制的数据存储引擎。而接下来要介绍的路由网关可以认为是整个数据存储引擎的代理人，通过路由网关的引入，极大的透明了数据存储引擎的使用。不管是工业应用还是数采网关抑或是数据分析人员都可以方便的对数据进行读写操作，没有一点负担，没有一点门槛。</p>
 <span id="more"></span>
 
@@ -935,7 +895,7 @@
   <entry>
     <title>基于jsplumb的流程图实现</title>
     <url>/2018/01/02/%E5%9F%BA%E4%BA%8Ejsplumb%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE%E5%AE%9E%E7%8E%B0/</url>
-    <content><![CDATA[<h2 id="背景需求"><a href="#背景需求" class="headerlink" title="背景需求"></a>背景需求</h2><p>在系统开发中经常需要展示一些流程，这时候需要用到流程图组件，但是在Echarts这些开源的可视化软件中居然没有流程图的支持。这时候我们的解决方案只能是用div和箭头图片自己实现一些简单的连接，如果流程稍微复杂一点，考虑兼顾功能和美观就需要投入大量的人力和精力进行一些造轮子的动作。</p>
+    <content><![CDATA[<p>在系统开发中经常需要展示一些流程，这时候需要用到流程图组件，但是在Echarts这些开源的可视化软件中居然没有流程图的支持。这时候我们的解决方案只能是用div和箭头图片自己实现一些简单的连接，如果流程稍微复杂一点，考虑兼顾功能和美观就需要投入大量的人力和精力进行一些造轮子的动作。</p>
 <p>jsplumb的出现一定程度上解决了我们的烦恼。</p>
 <span id="more"></span>
 
@@ -1218,7 +1178,7 @@
     <title>微服务接口认证</title>
     <url>/2022/05/20/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/</url>
     <content><![CDATA[<p>在前后端分离的实践中接口定义问题是无法回避的。关于接口的认证和访问权限设置，这里记录一些个人想法。</p>
-<h2 id="接口分级"><a href="#接口分级" class="headerlink" title="接口分级"></a>接口分级</h2><p>首先我们将接口分为几个不同的访问等级：</p>
+<p>首先我们将接口分为几个不同的访问等级：</p>
 <ol>
 <li>level-1 开放接口，对所有人开放无需认证</li>
 <li>level-2 认证接口，仅对认证用户开放，每次访问需要通过用户token进行认证</li>
@@ -1361,7 +1321,7 @@
   <entry>
     <title>慧工云融资思考</title>
     <url>/2021/03/10/%E6%85%A7%E5%B7%A5%E4%BA%91%E8%9E%8D%E8%B5%84%E6%80%9D%E8%80%83/</url>
-    <content><![CDATA[<h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>有感于慧工云最新发布的融资新闻《慧工云完成亿元B轮融资，持续驱动中国高效制造》，同样诞生于智能制造元年（2016），同样立足离散制造行业，是什么样的选择导致了慧工云比大制科技走的更快更稳呢？下面从公司使命、产品、行业细分和地域四个方面进行深度剖析。</p>
+    <content><![CDATA[<p>有感于慧工云最新发布的融资新闻《慧工云完成亿元B轮融资，持续驱动中国高效制造》，同样诞生于智能制造元年（2016），同样立足离散制造行业，是什么样的选择导致了慧工云比大制科技走的更快更稳呢？下面从公司使命、产品、行业细分和地域四个方面进行深度剖析。</p>
 <span id="more"></span>
 
 <h2 id="公司使命"><a href="#公司使命" class="headerlink" title="公司使命"></a>公司使命</h2><p>慧工云主页的四个banner给我们传递了如下信息：</p>
@@ -1399,7 +1359,7 @@
   <entry>
     <title>时序数据可视化的降采样算法</title>
     <url>/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><p>工业场景中，时序数据的可视化是一个无法回避的话题。时序数据的超大数据量给图形的展示性能带来了挑战，而通过降采样的方式减少图形的展示点数来迎合性能的同时，又会带来算法复杂度、算法可伸缩以及正确性等多方面的权衡。</p>
+    <content><![CDATA[<p>工业场景中，时序数据的可视化是一个无法回避的话题。时序数据的超大数据量给图形的展示性能带来了挑战，而通过降采样的方式减少图形的展示点数来迎合性能的同时，又会带来算法复杂度、算法可伸缩以及正确性等多方面的权衡。</p>
 <p>下面通过几种常用的可视化降采样算法的研究和实践对比，为时序数据的可视化降采样算法选择提供参考。我们使用实际生产中的一个案例作为算法描述的基础：需求将10w点降采样到4000，以适配页面的展示效果。</p>
 <span id="more"></span>
 
@@ -1474,8 +1434,9 @@
   <entry>
     <title>根云平台初体验</title>
     <url>/2020/08/19/%E6%A0%B9%E4%BA%91%E5%B9%B3%E5%8F%B0%E5%88%9D%E4%BD%93%E9%AA%8C/</url>
-    <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>公司目前的产品偏重于边缘数采和边缘计算，对于规模较大的客户大多需求接入现有的工业互联网平台实现数据统筹管理。本文从根云互联网平台（以下简称平台）切入，研究边缘一体机接入平台的可行性。</p>
-<h2 id="建模机制"><a href="#建模机制" class="headerlink" title="建模机制"></a>建模机制</h2><p>在正式开始之前需要先了解平台关于建模的高层设计。通过控制台进入后可以看到在左侧的物菜单下有物模型、物实例和模型模板库三个子菜单。</p>
+    <content><![CDATA[<p>公司目前的产品偏重于边缘数采和边缘计算，对于规模较大的客户大多需求接入现有的工业互联网平台实现数据统筹管理。</p>
+<p>本文从根云互联网平台（以下简称平台）切入，研究边缘一体机接入平台的可行性。</p>
+<p>在正式开始之前需要先了解平台关于建模的高层设计。通过控制台进入后可以看到在左侧的物菜单下有物模型、物实例和模型模板库三个子菜单。</p>
 <span id="more"></span>
 
 <img src="menu.png"/>
@@ -1583,7 +1544,7 @@
   <entry>
     <title>设计模式实战之状态模式</title>
     <url>/2021/12/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/</url>
-    <content><![CDATA[<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>系统启动阶段需要完成一些准备工作，最初是通过Spring Application Runner来实现，实现思路用业务语言描述就是：</p>
+    <content><![CDATA[<p>系统启动阶段需要完成一些准备工作，最初是通过Spring Application Runner来实现，实现思路用业务语言描述就是：</p>
 <ol>
 <li>首先进行启动参数准备</li>
 <li>判断是否需要注册主站，如果需要则注册</li>
@@ -1663,7 +1624,7 @@
   <entry>
     <title>设计模式实战之策略枚举</title>
     <url>/2021/11/27/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%AD%96%E7%95%A5%E6%9E%9A%E4%B8%BE/</url>
-    <content><![CDATA[<h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><p>在开发中经常会遇到一些语句拼接的问题，如用于数据库查询的where条件或者用于逻辑判断的表达式。我们在应对这类问题的时候，直觉是使用if-else或者switch条件判断，下面是一个常见的例子：</p>
+    <content><![CDATA[<p>在开发中经常会遇到一些语句拼接的问题，如用于数据库查询的where条件或者用于逻辑判断的表达式。我们在应对这类问题的时候，直觉是使用if-else或者switch条件判断，下面是一个常见的例子：</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title function_">buildStatement</span><span class="params">(<span class="type">int</span> type, String[] value)</span>&#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">statement</span> <span class="operator">=</span><span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">if</span>(type == <span class="number">1</span>) statement =<span class="string">&quot;value &gt;= %s and value &lt;= %s&quot;</span>;<span class="comment">//介于</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(type == <span class="number">2</span>) statement = <span class="string">&quot;value &lt; %s or value &gt; %s&quot;</span>;<span class="comment">//不介于</span></span><br><span class="line">    ……</span><br><span class="line">    <span class="keyword">return</span> String.format(statement, value[<span class="number">0</span>], value[<span class="number">1</span>]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <span id="more"></span>
@@ -1712,7 +1673,7 @@
   <entry>
     <title>设计模式实战之装饰模式</title>
     <url>/2022/01/07/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/</url>
-    <content><![CDATA[<h2 id="概念介绍"><a href="#概念介绍" class="headerlink" title="概念介绍"></a>概念介绍</h2><p>装饰模式是指在不改变原类文件并且不使用继承结构的情况下，动态的扩展一个对象的功能。具体实现上是通过创建一个包装对象即一个装饰来包装真实对象，所以装饰模式又称为包装模式。</p>
+    <content><![CDATA[<p>装饰模式是指在不改变原类文件并且不使用继承结构的情况下，动态的扩展一个对象的功能。具体实现上是通过创建一个包装对象即一个装饰来包装真实对象，所以装饰模式又称为包装模式。</p>
 <p>在装饰模式中主要有以下四个角色：</p>
 <ol>
 <li>Component，原始的抽象对象</li>
@@ -1770,7 +1731,7 @@
   <entry>
     <title>设计模式实战之访问者模式</title>
     <url>/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/</url>
-    <content><![CDATA[<h2 id="概念介绍"><a href="#概念介绍" class="headerlink" title="概念介绍"></a>概念介绍</h2><p>访问者模式主要解决了数据结构和数据行为的分离，通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展。所以访问者模式可以理解为重构模式。</p>
+    <content><![CDATA[<p>访问者模式主要解决了数据结构和数据行为的分离，通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展。所以访问者模式可以理解为重构模式。</p>
 <p>访问者模式主要有四个角色：</p>
 <ol>
 <li>Visitor接口，通过抽象的访问者接口定义了访问的行为</li>
