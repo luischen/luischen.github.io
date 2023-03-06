@@ -14,22 +14,22 @@
     <meta name="description" content="在设备数据采集方面，我们已经探索出一套成熟的做法即在设备侧部署一个边缘程序，通过定时拉取的机制到工控机如PLC的指定位置获取数据。但是对于机器人来说，不同型号的机器人控制设备都有自己不同程度的封装，我们需要严格按照机器人设备的数据开放方式进行定制化实现才有可能正确的获取到数据。 就我们这次研究的FANUC机器人来说，它的数据是通过内置的Socket服务端发送出来的。因此我们的数采方案是在边缘端部署">
 <meta property="og:type" content="article">
 <meta property="og:title" content="基于Netty的边缘数采">
-<meta property="og:url" content="https://luischen.gitee.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/index.html">
+<meta property="og:url" content="https://luischen.github.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/index.html">
 <meta property="og:site_name" content="Next Station">
 <meta property="og:description" content="在设备数据采集方面，我们已经探索出一套成熟的做法即在设备侧部署一个边缘程序，通过定时拉取的机制到工控机如PLC的指定位置获取数据。但是对于机器人来说，不同型号的机器人控制设备都有自己不同程度的封装，我们需要严格按照机器人设备的数据开放方式进行定制化实现才有可能正确的获取到数据。 就我们这次研究的FANUC机器人来说，它的数据是通过内置的Socket服务端发送出来的。因此我们的数采方案是在边缘端部署">
 <meta property="og:locale">
-<meta property="og:image" content="https://luischen.gitee.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/solution.png">
-<meta property="og:image" content="https://luischen.gitee.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/class-diagram.png">
-<meta property="og:image" content="https://luischen.gitee.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/compare.png">
-<meta property="og:image" content="https://luischen.gitee.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/cause.png">
-<meta property="og:image" content="https://luischen.gitee.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/solution2.png">
+<meta property="og:image" content="https://luischen.github.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/solution.png">
+<meta property="og:image" content="https://luischen.github.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/class-diagram.png">
+<meta property="og:image" content="https://luischen.github.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/compare.png">
+<meta property="og:image" content="https://luischen.github.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/cause.png">
+<meta property="og:image" content="https://luischen.github.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/solution2.png">
 <meta property="article:published_time" content="2020-03-13T03:14:22.000Z">
 <meta property="article:modified_time" content="2023-03-03T03:32:43.038Z">
 <meta property="article:author" content="Luis Chen">
 <meta property="article:tag" content="应用技术">
 <meta property="article:tag" content="数据采集">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://luischen.gitee.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/solution.png">
+<meta name="twitter:image" content="https://luischen.github.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/solution.png">
 
     
     <link rel="alternative" href="/atom.xml" title="Next Station" type="application/atom+xml">
@@ -72,7 +72,7 @@
 					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
 						<label>Search</label>
 						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
-						<input type="hidden" name="q" value="site:luischen.gitee.io">
+						<input type="hidden" name="q" value="site:luischen.github.io">
 					</form>
 					
 					</li>
@@ -200,7 +200,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://luischen.gitee.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/" data-title="基于Netty的边缘数采 | Next Station" data-tsina="" class="share clearfix">
+	  <div data-url="https://luischen.github.io/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/" data-title="基于Netty的边缘数采 | Next Station" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>

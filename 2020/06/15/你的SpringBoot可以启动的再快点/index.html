@@ -14,22 +14,22 @@
     <meta name="description" content="公司最近推出了一款一体机产品，于是老板就天天提个小箱子跑客户做POC，倍儿有范儿。跑了一阵子客户反响（问题）不错（不少），其中最大的问题就是开机进系统太慢，按照老板的说法：  我按下开机键已经准备天花乱坠了，愣是给我一个系统维护界面5分钟才能进去。只好跟他们解释说我们是工业一体机比较严谨，开机前要做好充分的自检。   其实开机慢我们是有预期的，我们的应用是云端微服务应用，为了快速响应公司号召稍加改">
 <meta property="og:type" content="article">
 <meta property="og:title" content="你的SpringBoot可以启动的再快点">
-<meta property="og:url" content="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/index.html">
+<meta property="og:url" content="https://luischen.github.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/index.html">
 <meta property="og:site_name" content="Next Station">
 <meta property="og:description" content="公司最近推出了一款一体机产品，于是老板就天天提个小箱子跑客户做POC，倍儿有范儿。跑了一阵子客户反响（问题）不错（不少），其中最大的问题就是开机进系统太慢，按照老板的说法：  我按下开机键已经准备天花乱坠了，愣是给我一个系统维护界面5分钟才能进去。只好跟他们解释说我们是工业一体机比较严谨，开机前要做好充分的自检。   其实开机慢我们是有预期的，我们的应用是云端微服务应用，为了快速响应公司号召稍加改">
 <meta property="og:locale">
-<meta property="og:image" content="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/time-distribute.png">
-<meta property="og:image" content="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/fast-startup.png">
-<meta property="og:image" content="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/fast-startup2.png">
-<meta property="og:image" content="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/shiro1.png">
-<meta property="og:image" content="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/path.png">
+<meta property="og:image" content="https://luischen.github.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/time-distribute.png">
+<meta property="og:image" content="https://luischen.github.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/fast-startup.png">
+<meta property="og:image" content="https://luischen.github.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/fast-startup2.png">
+<meta property="og:image" content="https://luischen.github.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/shiro1.png">
+<meta property="og:image" content="https://luischen.github.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/path.png">
 <meta property="article:published_time" content="2020-06-15T03:04:13.000Z">
 <meta property="article:modified_time" content="2023-03-03T03:33:39.038Z">
 <meta property="article:author" content="Luis Chen">
 <meta property="article:tag" content="性能优化">
 <meta property="article:tag" content="应用技术">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/time-distribute.png">
+<meta name="twitter:image" content="https://luischen.github.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/time-distribute.png">
 
     
     <link rel="alternative" href="/atom.xml" title="Next Station" type="application/atom+xml">
@@ -72,7 +72,7 @@
 					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
 						<label>Search</label>
 						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
-						<input type="hidden" name="q" value="site:luischen.gitee.io">
+						<input type="hidden" name="q" value="site:luischen.github.io">
 					</form>
 					
 					</li>
@@ -217,7 +217,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://luischen.gitee.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/" data-title="你的SpringBoot可以启动的再快点 | Next Station" data-tsina="" class="share clearfix">
+	  <div data-url="https://luischen.github.io/2020/06/15/%E4%BD%A0%E7%9A%84SpringBoot%E5%8F%AF%E4%BB%A5%E5%90%AF%E5%8A%A8%E7%9A%84%E5%86%8D%E5%BF%AB%E7%82%B9/" data-title="你的SpringBoot可以启动的再快点 | Next Station" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>

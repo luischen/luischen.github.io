@@ -14,23 +14,23 @@
     <meta name="description" content="工业场景中，时序数据的可视化是一个无法回避的话题。时序数据的超大数据量给图形的展示性能带来了挑战，而通过降采样的方式减少图形的展示点数来迎合性能的同时，又会带来算法复杂度、算法可伸缩以及正确性等多方面的权衡。 下面通过几种常用的可视化降采样算法的研究和实践对比，为时序数据的可视化降采样算法选择提供参考。我们使用实际生产中的一个案例作为算法描述的基础：需求将10w点降采样到4000，以适配页面的展示">
 <meta property="og:type" content="article">
 <meta property="og:title" content="时序数据可视化的降采样算法">
-<meta property="og:url" content="https://luischen.gitee.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:url" content="https://luischen.github.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/index.html">
 <meta property="og:site_name" content="Next Station">
 <meta property="og:description" content="工业场景中，时序数据的可视化是一个无法回避的话题。时序数据的超大数据量给图形的展示性能带来了挑战，而通过降采样的方式减少图形的展示点数来迎合性能的同时，又会带来算法复杂度、算法可伸缩以及正确性等多方面的权衡。 下面通过几种常用的可视化降采样算法的研究和实践对比，为时序数据的可视化降采样算法选择提供参考。我们使用实际生产中的一个案例作为算法描述的基础：需求将10w点降采样到4000，以适配页面的展示">
 <meta property="og:locale">
-<meta property="og:image" content="https://luischen.gitee.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/mseb1.png">
-<meta property="og:image" content="https://luischen.gitee.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/mseb2.png">
-<meta property="og:image" content="https://luischen.gitee.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/mseb3.png">
-<meta property="og:image" content="https://luischen.gitee.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/ltd1.png">
-<meta property="og:image" content="https://luischen.gitee.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/conclusion.png">
-<meta property="og:image" content="https://luischen.gitee.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/result.png">
+<meta property="og:image" content="https://luischen.github.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/mseb1.png">
+<meta property="og:image" content="https://luischen.github.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/mseb2.png">
+<meta property="og:image" content="https://luischen.github.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/mseb3.png">
+<meta property="og:image" content="https://luischen.github.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/ltd1.png">
+<meta property="og:image" content="https://luischen.github.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/conclusion.png">
+<meta property="og:image" content="https://luischen.github.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/result.png">
 <meta property="article:published_time" content="2021-09-18T06:21:12.000Z">
 <meta property="article:modified_time" content="2023-03-03T03:34:35.664Z">
 <meta property="article:author" content="Luis Chen">
 <meta property="article:tag" content="可视化">
 <meta property="article:tag" content="算法">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://luischen.gitee.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/mseb1.png">
+<meta name="twitter:image" content="https://luischen.github.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/mseb1.png">
 
     
     <link rel="alternative" href="/atom.xml" title="Next Station" type="application/atom+xml">
@@ -73,7 +73,7 @@
 					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
 						<label>Search</label>
 						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
-						<input type="hidden" name="q" value="site:luischen.gitee.io">
+						<input type="hidden" name="q" value="site:luischen.github.io">
 					</form>
 					
 					</li>
@@ -193,7 +193,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://luischen.gitee.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/" data-title="时序数据可视化的降采样算法 | Next Station" data-tsina="" class="share clearfix">
+	  <div data-url="https://luischen.github.io/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/" data-title="时序数据可视化的降采样算法 | Next Station" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
