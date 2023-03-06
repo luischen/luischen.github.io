@@ -173,28 +173,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2016/05/26/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-<h2 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h2><h3 id="生成的文件目录错乱"><a href="#生成的文件目录错乱" class="headerlink" title="生成的文件目录错乱"></a>生成的文件目录错乱</h3><p>原因是Next主题解析机制是二级目录、三级目录的按级解析，如果文章中出现了跳级的情况就会出现文件目录错乱。修复办法就是使用层层递进的目录定义。</p>
-<h3 id="修改每页文章数量"><a href="#修改每页文章数量" class="headerlink" title="修改每页文章数量"></a>修改每页文章数量</h3><p>在hexo的_config.yml中修改per_page配置项：</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">index_generator:</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">  <span class="attr">per_page:</span> <span class="number">5</span></span><br><span class="line">  <span class="attr">order_by:</span> <span class="string">-date</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-  </entry>
-  <entry>
     <title>Java中的锁机制</title>
     <url>/2020/05/25/Java%E4%B8%AD%E7%9A%84%E9%94%81%E6%9C%BA%E5%88%B6/</url>
     <content><![CDATA[<p>说起Java中的并发，有一个永恒的话题就是锁机制，而提及Java中的锁，我们一般认为有两种形式，</p>
@@ -280,6 +258,28 @@
         <tag>编程语言</tag>
         <tag>Java</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2016/05/26/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<h2 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h2><h3 id="生成的文件目录错乱"><a href="#生成的文件目录错乱" class="headerlink" title="生成的文件目录错乱"></a>生成的文件目录错乱</h3><p>原因是Next主题解析机制是二级目录、三级目录的按级解析，如果文章中出现了跳级的情况就会出现文件目录错乱。修复办法就是使用层层递进的目录定义。</p>
+<h3 id="修改每页文章数量"><a href="#修改每页文章数量" class="headerlink" title="修改每页文章数量"></a>修改每页文章数量</h3><p>在hexo的_config.yml中修改per_page配置项：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">index_generator:</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">  <span class="attr">per_page:</span> <span class="number">5</span></span><br><span class="line">  <span class="attr">order_by:</span> <span class="string">-date</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
   </entry>
   <entry>
     <title>一个Slash引发的ClassNotFound血案</title>
@@ -390,39 +390,6 @@
       <tags>
         <tag>开发技术</tag>
         <tag>问题解决</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>为什么Java中的String设计成不可变的</title>
-    <url>/2020/03/13/%E4%B8%BA%E4%BB%80%E4%B9%88Java%E4%B8%AD%E7%9A%84String%E8%AE%BE%E8%AE%A1%E6%88%90%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%9A%84/</url>
-    <content><![CDATA[<p>原文出处：<a href="https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/">https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/</a></p>
-<p>在Java中String类是不可变的(final)。简单来说，一个不可变的类就意味着他的实例是不可修改的，实例的所有信息都是在实例创建的时候被初始化并且不可被修改。不可变类的设计有很多优点。这篇博文主要从内存，同步和数据结构的角度来具体说明这种不可变的概念。</p>
-<span id="more"></span>
-
-<h2 id="String-Pool-的需要"><a href="#String-Pool-的需要" class="headerlink" title="String Pool 的需要"></a>String Pool 的需要</h2><p>String Pool（String intern pool）是在方法区的一块特殊存储区域。当一个String被创建时如果发现当前String已经存在于String Pool，则会返回一个已存在String的引用而不会新建一个对象。以下代码只会创建一个String对象在堆内存中：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">String</span> <span class="variable">string1</span> <span class="operator">=</span> <span class="string">&quot;abcd&quot;</span>;</span><br><span class="line"><span class="type">String</span> <span class="variable">string2</span> <span class="operator">=</span> <span class="string">&quot;abcd&quot;</span>;</span><br></pre></td></tr></table></figure>
-
-<p>下图是创建的过程：</p>
-<img src="string-create.png" />
-
-<p>假设一个String是可变的，改变了一个引用指向的String会导致其他引用得到错误的值。</p>
-<h2 id="缓存-Hash-Code"><a href="#缓存-Hash-Code" class="headerlink" title="缓存 Hash Code"></a>缓存 Hash Code</h2><p>在Java中，对于String的Hash Code使用是非常频繁的，例如在HashMap或HashSet中。将String设计成不可变可以保证他的Hash Code始终一致，这样Hash Code就可以被缓存并且不用担心变化。这就意味着，不需要在每次使用String的时候都去计算他的Hash Code，这也使得程序运行更加高效。</p>
-<h2 id="简化使用"><a href="#简化使用" class="headerlink" title="简化使用"></a>简化使用</h2><p>为了更加详细的阐述，我们考虑以下程序：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">HashSet&lt;String&gt; set = <span class="keyword">new</span> <span class="title class_">HashSet</span>&lt;String&gt;();</span><br><span class="line">set.add(<span class="keyword">new</span> <span class="title class_">String</span>(<span class="string">&quot;a&quot;</span>));</span><br><span class="line">set.add(<span class="keyword">new</span> <span class="title class_">String</span>(<span class="string">&quot;b&quot;</span>));</span><br><span class="line">set.add(<span class="keyword">new</span> <span class="title class_">String</span>(<span class="string">&quot;c&quot;</span>));</span><br><span class="line"> </span><br><span class="line"><span class="keyword">for</span>(String a: set)&#123;</span><br><span class="line">	a.value = <span class="string">&quot;a&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在这个例子中，如果String是可变的，那么就会违背set的设计初衷（set包含不重复的元素）。当然上面的例子只是为了论证，实际上String类中没有value这个字段。我们在使用set的时候同样要注意这个问题，如果set中的元素会发生变化，那么就有可能违背set的不重复设定。</p>
-<h2 id="安全"><a href="#安全" class="headerlink" title="安全"></a>安全</h2><p>String在很多Java类中被广泛用作参数，例如网络连接，文件打开等。假设String是可变的，一个连接或者一个文件就可能被改变，这会导致严重的安全隐患。某个方法以为正在连接到一个机器，实际并没有。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">boolean</span> <span class="title function_">connect</span><span class="params">(String s)</span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSecure(s)) &#123; </span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">SecurityException</span>(); </span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">//here will cause problem, if s is changed before this by using other references.    </span></span><br><span class="line">    causeProblem(s);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>因为不可变对象不能被改变，他们还可以在多线程中被自由的共享，这就消除了对象同步的需求。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总的来说，String被设计成不可变的出发点是效率和安全。这也是不可变类在很多情况下被优先使用的原因。</p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>编程语言</tag>
-        <tag>Java</tag>
       </tags>
   </entry>
   <entry>
@@ -573,6 +540,39 @@
       <tags>
         <tag>问题解决</tag>
         <tag>性能优化</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>为什么Java中的String设计成不可变的</title>
+    <url>/2020/03/13/%E4%B8%BA%E4%BB%80%E4%B9%88Java%E4%B8%AD%E7%9A%84String%E8%AE%BE%E8%AE%A1%E6%88%90%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%9A%84/</url>
+    <content><![CDATA[<p>原文出处：<a href="https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/">https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/</a></p>
+<p>在Java中String类是不可变的(final)。简单来说，一个不可变的类就意味着他的实例是不可修改的，实例的所有信息都是在实例创建的时候被初始化并且不可被修改。不可变类的设计有很多优点。这篇博文主要从内存，同步和数据结构的角度来具体说明这种不可变的概念。</p>
+<span id="more"></span>
+
+<h2 id="String-Pool-的需要"><a href="#String-Pool-的需要" class="headerlink" title="String Pool 的需要"></a>String Pool 的需要</h2><p>String Pool（String intern pool）是在方法区的一块特殊存储区域。当一个String被创建时如果发现当前String已经存在于String Pool，则会返回一个已存在String的引用而不会新建一个对象。以下代码只会创建一个String对象在堆内存中：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">String</span> <span class="variable">string1</span> <span class="operator">=</span> <span class="string">&quot;abcd&quot;</span>;</span><br><span class="line"><span class="type">String</span> <span class="variable">string2</span> <span class="operator">=</span> <span class="string">&quot;abcd&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>下图是创建的过程：</p>
+<img src="string-create.png" />
+
+<p>假设一个String是可变的，改变了一个引用指向的String会导致其他引用得到错误的值。</p>
+<h2 id="缓存-Hash-Code"><a href="#缓存-Hash-Code" class="headerlink" title="缓存 Hash Code"></a>缓存 Hash Code</h2><p>在Java中，对于String的Hash Code使用是非常频繁的，例如在HashMap或HashSet中。将String设计成不可变可以保证他的Hash Code始终一致，这样Hash Code就可以被缓存并且不用担心变化。这就意味着，不需要在每次使用String的时候都去计算他的Hash Code，这也使得程序运行更加高效。</p>
+<h2 id="简化使用"><a href="#简化使用" class="headerlink" title="简化使用"></a>简化使用</h2><p>为了更加详细的阐述，我们考虑以下程序：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">HashSet&lt;String&gt; set = <span class="keyword">new</span> <span class="title class_">HashSet</span>&lt;String&gt;();</span><br><span class="line">set.add(<span class="keyword">new</span> <span class="title class_">String</span>(<span class="string">&quot;a&quot;</span>));</span><br><span class="line">set.add(<span class="keyword">new</span> <span class="title class_">String</span>(<span class="string">&quot;b&quot;</span>));</span><br><span class="line">set.add(<span class="keyword">new</span> <span class="title class_">String</span>(<span class="string">&quot;c&quot;</span>));</span><br><span class="line"> </span><br><span class="line"><span class="keyword">for</span>(String a: set)&#123;</span><br><span class="line">	a.value = <span class="string">&quot;a&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这个例子中，如果String是可变的，那么就会违背set的设计初衷（set包含不重复的元素）。当然上面的例子只是为了论证，实际上String类中没有value这个字段。我们在使用set的时候同样要注意这个问题，如果set中的元素会发生变化，那么就有可能违背set的不重复设定。</p>
+<h2 id="安全"><a href="#安全" class="headerlink" title="安全"></a>安全</h2><p>String在很多Java类中被广泛用作参数，例如网络连接，文件打开等。假设String是可变的，一个连接或者一个文件就可能被改变，这会导致严重的安全隐患。某个方法以为正在连接到一个机器，实际并没有。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">boolean</span> <span class="title function_">connect</span><span class="params">(String s)</span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSecure(s)) &#123; </span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">SecurityException</span>(); </span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">//here will cause problem, if s is changed before this by using other references.    </span></span><br><span class="line">    causeProblem(s);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>因为不可变对象不能被改变，他们还可以在多线程中被自由的共享，这就消除了对象同步的需求。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总的来说，String被设计成不可变的出发点是效率和安全。这也是不可变类在很多情况下被优先使用的原因。</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>编程语言</tag>
+        <tag>Java</tag>
       </tags>
   </entry>
   <entry>
@@ -1319,75 +1319,6 @@
       </tags>
   </entry>
   <entry>
-    <title>根云平台初体验</title>
-    <url>/2020/08/19/%E6%A0%B9%E4%BA%91%E5%B9%B3%E5%8F%B0%E5%88%9D%E4%BD%93%E9%AA%8C/</url>
-    <content><![CDATA[<p>公司目前的产品偏重于边缘数采和边缘计算，对于规模较大的客户大多需求接入现有的工业互联网平台实现数据统筹管理。</p>
-<p>本文从根云互联网平台（以下简称平台）切入，研究边缘一体机接入平台的可行性。</p>
-<p>在正式开始之前需要先了解平台关于建模的高层设计。通过控制台进入后可以看到在左侧的物菜单下有物模型、物实例和模型模板库三个子菜单。</p>
-<span id="more"></span>
-
-<img src="menu.png"/>
-
-<p>结合介绍文档和页面功能，我们可以总结出平台关于物建模的高层设计。</p>
-<img src="high-level.png"/>
-
-<ol>
-<li>物模型是物理设备的高层次抽象，定义物理设备通用的属性和行为</li>
-<li>物实例是物模型的具体实现，对应现实设备或者网关</li>
-<li>模型模板库是物模型的行业知识库，用于快速创建物模型</li>
-</ol>
-<h2 id="设备建模"><a href="#设备建模" class="headerlink" title="设备建模"></a>设备建模</h2><h3 id="物模型"><a href="#物模型" class="headerlink" title="物模型"></a>物模型</h3><p>基于平台关于建模的设定，我们首先建立我们的物模型。选择物模型类型为网关，填入基本信息即可创建成功。</p>
-<img src="model1.png"/>
-
-<p>为物模型添加一个变量标识为AA001对应电流接入。</p>
-<img src="model2.png"/>
-
-<h3 id="物实例"><a href="#物实例" class="headerlink" title="物实例"></a>物实例</h3><p>物模型建立完成后就可以基于物模型创建物实例了。</p>
-<img src="instance1.png"/>
-
-<h2 id="连接验证"><a href="#连接验证" class="headerlink" title="连接验证"></a>连接验证</h2><p>在设备建模完成后，我们可以通过MQTT网页测试工具向平台发送实时数据。</p>
-<p>测试地址：<a href="https://developer-pre.rootcloudapp.com/docs/resource/mqtt-api-test/">https://developer-pre.rootcloudapp.com/docs/resource/mqtt-api-test/</a></p>
-<h3 id="建立连接"><a href="#建立连接" class="headerlink" title="建立连接"></a>建立连接</h3><img src="connect.png"/>
-
-<p>相关页面输入如下所示，</p>
-<p>服务器地址：mqtt-broker-pre.rootcloudapp.com</p>
-<p>Username和clientId : xxxxxxx（通过物实例页面获取到的认证标识）</p>
-<p>端口：8084</p>
-<p>Password：xxxx（通过物实例页面获取到的认证密钥）</p>
-<h3 id="发布数据"><a href="#发布数据" class="headerlink" title="发布数据"></a>发布数据</h3><p>连接建立成功后可以通过发布功能发布数据到平台。</p>
-<img src="publish-data.png"/>
-
-<p>其中发布的主题是：<code>v4/p/post/thing/live/json/1.1</code>。发布的内容根据需求定义，具体字段可以查看文档：</p>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line"><span class="attr">&quot;body&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line"><span class="attr">&quot;things&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">	<span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">	<span class="attr">&quot;thingType&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Gateway&quot;</span><span class="punctuation">,</span></span><br><span class="line">	<span class="attr">&quot;items&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">	  <span class="attr">&quot;qBad&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">	  <span class="attr">&quot;ts&quot;</span><span class="punctuation">:</span> <span class="number">1620720246796</span><span class="punctuation">,</span></span><br><span class="line">	  <span class="attr">&quot;properties&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">	    <span class="attr">&quot;AA001&quot;</span><span class="punctuation">:</span> <span class="number">13</span></span><br><span class="line">	  <span class="punctuation">&#125;</span></span><br><span class="line">	<span class="punctuation">&#125;</span><span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>例如以上报文中我们需要关注几个部分，其中thingType可以选择Device和Gateway，选择Gateway时，id为空字符串即可。ts对应上报的时间戳，properties中的AA001就是我们在物模型中定义的属性名。</p>
-<p>发送完之后我们在物实例中可以看到AA001对应的电流的实时值为13。</p>
-<img src="result.png"/>
-
-<h3 id="代码测试"><a href="#代码测试" class="headerlink" title="代码测试"></a>代码测试</h3><p>我们还可以模拟MQTT的客户端进行连接后向平台发送数据。在客户端程序中需要建立连接，模拟数据格式和发送数据。在客户端选型上我们选择了eclipse paho，使用spring-integration-mqtt进行客户端封装。</p>
-<img src="code.png"/>
-
-<p>如代码所示，通过暴露的MyGateway接口发送消息到管道，管道接收了消息之后通过创建客户端将消息发送到目标主题。</p>
-<p>发送一段时间后在平台端可以看到AA001的变化趋势。</p>
-<img src="code-result.png"/>
-
-<h2 id="业务验证"><a href="#业务验证" class="headerlink" title="业务验证"></a>业务验证</h2><p>基于边缘端拓扑结构，我们在平台进行建模如下：</p>
-<img src="solution.png"/>
-
-<p>首先一个节点对应一体机，在一体机上安装一个MQTT客户端发送数据到平台的MQTT队列。平台侧通过部署一个多节点网关对多个节点进行管理。呈现效果如下：</p>
-<img src="result1.png"/>
-
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>通过<strong>连接验证</strong>，我们确认了可以通过边缘程序发送数据到MQTT队列并在平台进行展示的可行性。通过<strong>业务验证</strong>，我们将边缘端的设备结构和物模型进行匹配，实现了一个网关对应一台边缘智能机并通过复合物进行统一管理的实现路径。</p>
-<img src="path.png"/>]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>应用技术</tag>
-        <tag>数据采集</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>时序数据可视化的降采样算法</title>
     <url>/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/</url>
     <content><![CDATA[<p>工业场景中，时序数据的可视化是一个无法回避的话题。时序数据的超大数据量给图形的展示性能带来了挑战，而通过降采样的方式减少图形的展示点数来迎合性能的同时，又会带来算法复杂度、算法可伸缩以及正确性等多方面的权衡。</p>
@@ -1460,6 +1391,75 @@
       <tags>
         <tag>可视化</tag>
         <tag>算法</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>根云平台初体验</title>
+    <url>/2020/08/19/%E6%A0%B9%E4%BA%91%E5%B9%B3%E5%8F%B0%E5%88%9D%E4%BD%93%E9%AA%8C/</url>
+    <content><![CDATA[<p>公司目前的产品偏重于边缘数采和边缘计算，对于规模较大的客户大多需求接入现有的工业互联网平台实现数据统筹管理。</p>
+<p>本文从根云互联网平台（以下简称平台）切入，研究边缘一体机接入平台的可行性。</p>
+<p>在正式开始之前需要先了解平台关于建模的高层设计。通过控制台进入后可以看到在左侧的物菜单下有物模型、物实例和模型模板库三个子菜单。</p>
+<span id="more"></span>
+
+<img src="menu.png"/>
+
+<p>结合介绍文档和页面功能，我们可以总结出平台关于物建模的高层设计。</p>
+<img src="high-level.png"/>
+
+<ol>
+<li>物模型是物理设备的高层次抽象，定义物理设备通用的属性和行为</li>
+<li>物实例是物模型的具体实现，对应现实设备或者网关</li>
+<li>模型模板库是物模型的行业知识库，用于快速创建物模型</li>
+</ol>
+<h2 id="设备建模"><a href="#设备建模" class="headerlink" title="设备建模"></a>设备建模</h2><h3 id="物模型"><a href="#物模型" class="headerlink" title="物模型"></a>物模型</h3><p>基于平台关于建模的设定，我们首先建立我们的物模型。选择物模型类型为网关，填入基本信息即可创建成功。</p>
+<img src="model1.png"/>
+
+<p>为物模型添加一个变量标识为AA001对应电流接入。</p>
+<img src="model2.png"/>
+
+<h3 id="物实例"><a href="#物实例" class="headerlink" title="物实例"></a>物实例</h3><p>物模型建立完成后就可以基于物模型创建物实例了。</p>
+<img src="instance1.png"/>
+
+<h2 id="连接验证"><a href="#连接验证" class="headerlink" title="连接验证"></a>连接验证</h2><p>在设备建模完成后，我们可以通过MQTT网页测试工具向平台发送实时数据。</p>
+<p>测试地址：<a href="https://developer-pre.rootcloudapp.com/docs/resource/mqtt-api-test/">https://developer-pre.rootcloudapp.com/docs/resource/mqtt-api-test/</a></p>
+<h3 id="建立连接"><a href="#建立连接" class="headerlink" title="建立连接"></a>建立连接</h3><img src="connect.png"/>
+
+<p>相关页面输入如下所示，</p>
+<p>服务器地址：mqtt-broker-pre.rootcloudapp.com</p>
+<p>Username和clientId : xxxxxxx（通过物实例页面获取到的认证标识）</p>
+<p>端口：8084</p>
+<p>Password：xxxx（通过物实例页面获取到的认证密钥）</p>
+<h3 id="发布数据"><a href="#发布数据" class="headerlink" title="发布数据"></a>发布数据</h3><p>连接建立成功后可以通过发布功能发布数据到平台。</p>
+<img src="publish-data.png"/>
+
+<p>其中发布的主题是：<code>v4/p/post/thing/live/json/1.1</code>。发布的内容根据需求定义，具体字段可以查看文档：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line"><span class="attr">&quot;body&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line"><span class="attr">&quot;things&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">	<span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">	<span class="attr">&quot;thingType&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Gateway&quot;</span><span class="punctuation">,</span></span><br><span class="line">	<span class="attr">&quot;items&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">	  <span class="attr">&quot;qBad&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">	  <span class="attr">&quot;ts&quot;</span><span class="punctuation">:</span> <span class="number">1620720246796</span><span class="punctuation">,</span></span><br><span class="line">	  <span class="attr">&quot;properties&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">	    <span class="attr">&quot;AA001&quot;</span><span class="punctuation">:</span> <span class="number">13</span></span><br><span class="line">	  <span class="punctuation">&#125;</span></span><br><span class="line">	<span class="punctuation">&#125;</span><span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>例如以上报文中我们需要关注几个部分，其中thingType可以选择Device和Gateway，选择Gateway时，id为空字符串即可。ts对应上报的时间戳，properties中的AA001就是我们在物模型中定义的属性名。</p>
+<p>发送完之后我们在物实例中可以看到AA001对应的电流的实时值为13。</p>
+<img src="result.png"/>
+
+<h3 id="代码测试"><a href="#代码测试" class="headerlink" title="代码测试"></a>代码测试</h3><p>我们还可以模拟MQTT的客户端进行连接后向平台发送数据。在客户端程序中需要建立连接，模拟数据格式和发送数据。在客户端选型上我们选择了eclipse paho，使用spring-integration-mqtt进行客户端封装。</p>
+<img src="code.png"/>
+
+<p>如代码所示，通过暴露的MyGateway接口发送消息到管道，管道接收了消息之后通过创建客户端将消息发送到目标主题。</p>
+<p>发送一段时间后在平台端可以看到AA001的变化趋势。</p>
+<img src="code-result.png"/>
+
+<h2 id="业务验证"><a href="#业务验证" class="headerlink" title="业务验证"></a>业务验证</h2><p>基于边缘端拓扑结构，我们在平台进行建模如下：</p>
+<img src="solution.png"/>
+
+<p>首先一个节点对应一体机，在一体机上安装一个MQTT客户端发送数据到平台的MQTT队列。平台侧通过部署一个多节点网关对多个节点进行管理。呈现效果如下：</p>
+<img src="result1.png"/>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>通过<strong>连接验证</strong>，我们确认了可以通过边缘程序发送数据到MQTT队列并在平台进行展示的可行性。通过<strong>业务验证</strong>，我们将边缘端的设备结构和物模型进行匹配，实现了一个网关对应一台边缘智能机并通过复合物进行统一管理的实现路径。</p>
+<img src="path.png"/>]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>应用技术</tag>
+        <tag>数据采集</tag>
       </tags>
   </entry>
   <entry>
