@@ -393,39 +393,6 @@
       </tags>
   </entry>
   <entry>
-    <title>为什么Java中的String设计成不可变的</title>
-    <url>/2020/03/13/%E4%B8%BA%E4%BB%80%E4%B9%88Java%E4%B8%AD%E7%9A%84String%E8%AE%BE%E8%AE%A1%E6%88%90%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%9A%84/</url>
-    <content><![CDATA[<p>原文出处：<a href="https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/">https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/</a></p>
-<p>在Java中String类是不可变的(final)。简单来说，一个不可变的类就意味着他的实例是不可修改的，实例的所有信息都是在实例创建的时候被初始化并且不可被修改。不可变类的设计有很多优点。这篇博文主要从内存，同步和数据结构的角度来具体说明这种不可变的概念。</p>
-<span id="more"></span>
-
-<h2 id="String-Pool-的需要"><a href="#String-Pool-的需要" class="headerlink" title="String Pool 的需要"></a>String Pool 的需要</h2><p>String Pool（String intern pool）是在方法区的一块特殊存储区域。当一个String被创建时如果发现当前String已经存在于String Pool，则会返回一个已存在String的引用而不会新建一个对象。以下代码只会创建一个String对象在堆内存中：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">String</span> <span class="variable">string1</span> <span class="operator">=</span> <span class="string">&quot;abcd&quot;</span>;</span><br><span class="line"><span class="type">String</span> <span class="variable">string2</span> <span class="operator">=</span> <span class="string">&quot;abcd&quot;</span>;</span><br></pre></td></tr></table></figure>
-
-<p>下图是创建的过程：</p>
-<img src="string-create.png" />
-
-<p>假设一个String是可变的，改变了一个引用指向的String会导致其他引用得到错误的值。</p>
-<h2 id="缓存-Hash-Code"><a href="#缓存-Hash-Code" class="headerlink" title="缓存 Hash Code"></a>缓存 Hash Code</h2><p>在Java中，对于String的Hash Code使用是非常频繁的，例如在HashMap或HashSet中。将String设计成不可变可以保证他的Hash Code始终一致，这样Hash Code就可以被缓存并且不用担心变化。这就意味着，不需要在每次使用String的时候都去计算他的Hash Code，这也使得程序运行更加高效。</p>
-<h2 id="简化使用"><a href="#简化使用" class="headerlink" title="简化使用"></a>简化使用</h2><p>为了更加详细的阐述，我们考虑以下程序：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">HashSet&lt;String&gt; set = <span class="keyword">new</span> <span class="title class_">HashSet</span>&lt;String&gt;();</span><br><span class="line">set.add(<span class="keyword">new</span> <span class="title class_">String</span>(<span class="string">&quot;a&quot;</span>));</span><br><span class="line">set.add(<span class="keyword">new</span> <span class="title class_">String</span>(<span class="string">&quot;b&quot;</span>));</span><br><span class="line">set.add(<span class="keyword">new</span> <span class="title class_">String</span>(<span class="string">&quot;c&quot;</span>));</span><br><span class="line"> </span><br><span class="line"><span class="keyword">for</span>(String a: set)&#123;</span><br><span class="line">	a.value = <span class="string">&quot;a&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在这个例子中，如果String是可变的，那么就会违背set的设计初衷（set包含不重复的元素）。当然上面的例子只是为了论证，实际上String类中没有value这个字段。我们在使用set的时候同样要注意这个问题，如果set中的元素会发生变化，那么就有可能违背set的不重复设定。</p>
-<h2 id="安全"><a href="#安全" class="headerlink" title="安全"></a>安全</h2><p>String在很多Java类中被广泛用作参数，例如网络连接，文件打开等。假设String是可变的，一个连接或者一个文件就可能被改变，这会导致严重的安全隐患。某个方法以为正在连接到一个机器，实际并没有。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">boolean</span> <span class="title function_">connect</span><span class="params">(String s)</span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSecure(s)) &#123; </span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">SecurityException</span>(); </span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">//here will cause problem, if s is changed before this by using other references.    </span></span><br><span class="line">    causeProblem(s);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>因为不可变对象不能被改变，他们还可以在多线程中被自由的共享，这就消除了对象同步的需求。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总的来说，String被设计成不可变的出发点是效率和安全。这也是不可变类在很多情况下被优先使用的原因。</p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>编程语言</tag>
-        <tag>Java</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>一次性能事故的处理和总结</title>
     <url>/2019/07/12/%E4%B8%80%E6%AC%A1%E6%80%A7%E8%83%BD%E4%BA%8B%E6%95%85%E7%9A%84%E5%A4%84%E7%90%86%E5%92%8C%E6%80%BB%E7%BB%93/</url>
     <content><![CDATA[<p>前几天做了一个工况统计的功能，查询最近7天的数据然后分析数据的分布。</p>
@@ -573,6 +540,39 @@
       <tags>
         <tag>问题解决</tag>
         <tag>性能优化</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>为什么Java中的String设计成不可变的</title>
+    <url>/2020/03/13/%E4%B8%BA%E4%BB%80%E4%B9%88Java%E4%B8%AD%E7%9A%84String%E8%AE%BE%E8%AE%A1%E6%88%90%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%9A%84/</url>
+    <content><![CDATA[<p>原文出处：<a href="https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/">https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/</a></p>
+<p>在Java中String类是不可变的(final)。简单来说，一个不可变的类就意味着他的实例是不可修改的，实例的所有信息都是在实例创建的时候被初始化并且不可被修改。不可变类的设计有很多优点。这篇博文主要从内存，同步和数据结构的角度来具体说明这种不可变的概念。</p>
+<span id="more"></span>
+
+<h2 id="String-Pool-的需要"><a href="#String-Pool-的需要" class="headerlink" title="String Pool 的需要"></a>String Pool 的需要</h2><p>String Pool（String intern pool）是在方法区的一块特殊存储区域。当一个String被创建时如果发现当前String已经存在于String Pool，则会返回一个已存在String的引用而不会新建一个对象。以下代码只会创建一个String对象在堆内存中：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">String</span> <span class="variable">string1</span> <span class="operator">=</span> <span class="string">&quot;abcd&quot;</span>;</span><br><span class="line"><span class="type">String</span> <span class="variable">string2</span> <span class="operator">=</span> <span class="string">&quot;abcd&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>下图是创建的过程：</p>
+<img src="string-create.png" />
+
+<p>假设一个String是可变的，改变了一个引用指向的String会导致其他引用得到错误的值。</p>
+<h2 id="缓存-Hash-Code"><a href="#缓存-Hash-Code" class="headerlink" title="缓存 Hash Code"></a>缓存 Hash Code</h2><p>在Java中，对于String的Hash Code使用是非常频繁的，例如在HashMap或HashSet中。将String设计成不可变可以保证他的Hash Code始终一致，这样Hash Code就可以被缓存并且不用担心变化。这就意味着，不需要在每次使用String的时候都去计算他的Hash Code，这也使得程序运行更加高效。</p>
+<h2 id="简化使用"><a href="#简化使用" class="headerlink" title="简化使用"></a>简化使用</h2><p>为了更加详细的阐述，我们考虑以下程序：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">HashSet&lt;String&gt; set = <span class="keyword">new</span> <span class="title class_">HashSet</span>&lt;String&gt;();</span><br><span class="line">set.add(<span class="keyword">new</span> <span class="title class_">String</span>(<span class="string">&quot;a&quot;</span>));</span><br><span class="line">set.add(<span class="keyword">new</span> <span class="title class_">String</span>(<span class="string">&quot;b&quot;</span>));</span><br><span class="line">set.add(<span class="keyword">new</span> <span class="title class_">String</span>(<span class="string">&quot;c&quot;</span>));</span><br><span class="line"> </span><br><span class="line"><span class="keyword">for</span>(String a: set)&#123;</span><br><span class="line">	a.value = <span class="string">&quot;a&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这个例子中，如果String是可变的，那么就会违背set的设计初衷（set包含不重复的元素）。当然上面的例子只是为了论证，实际上String类中没有value这个字段。我们在使用set的时候同样要注意这个问题，如果set中的元素会发生变化，那么就有可能违背set的不重复设定。</p>
+<h2 id="安全"><a href="#安全" class="headerlink" title="安全"></a>安全</h2><p>String在很多Java类中被广泛用作参数，例如网络连接，文件打开等。假设String是可变的，一个连接或者一个文件就可能被改变，这会导致严重的安全隐患。某个方法以为正在连接到一个机器，实际并没有。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">boolean</span> <span class="title function_">connect</span><span class="params">(String s)</span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSecure(s)) &#123; </span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">SecurityException</span>(); </span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">//here will cause problem, if s is changed before this by using other references.    </span></span><br><span class="line">    causeProblem(s);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>因为不可变对象不能被改变，他们还可以在多线程中被自由的共享，这就消除了对象同步的需求。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总的来说，String被设计成不可变的出发点是效率和安全。这也是不可变类在很多情况下被优先使用的原因。</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>编程语言</tag>
+        <tag>Java</tag>
       </tags>
   </entry>
   <entry>
