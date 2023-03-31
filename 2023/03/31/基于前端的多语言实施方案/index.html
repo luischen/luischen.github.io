@@ -1,0 +1,594 @@
+
+ <!DOCTYPE HTML>
+<html >
+<head>
+  <meta charset="UTF-8">
+  
+    <title>基于前端的多语言实施方案 | Next Station</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Luis Chen">
+    
+
+    
+    <meta name="description" content="随着公司产品的进一步成熟，按照走出园区走出街道的发展路线，走出国门是走向巅峰的必经之路，而打通国际化的第一步就是多语言版本的支持。目前产品的技术架构是vue+SpringBoot的前后端分离架构，我们选择了基于vue-i18n的前端实施方案。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于前端的多语言实施方案">
+<meta property="og:url" content="https://luischen.github.io/2023/03/31/%E5%9F%BA%E4%BA%8E%E5%89%8D%E7%AB%AF%E7%9A%84%E5%A4%9A%E8%AF%AD%E8%A8%80%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="随着公司产品的进一步成熟，按照走出园区走出街道的发展路线，走出国门是走向巅峰的必经之路，而打通国际化的第一步就是多语言版本的支持。目前产品的技术架构是vue+SpringBoot的前后端分离架构，我们选择了基于vue-i18n的前端实施方案。">
+<meta property="og:locale">
+<meta property="og:image" content="https://luischen.github.io/2023/03/31/%E5%9F%BA%E4%BA%8E%E5%89%8D%E7%AB%AF%E7%9A%84%E5%A4%9A%E8%AF%AD%E8%A8%80%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/overview.png">
+<meta property="og:image" content="https://luischen.github.io/2023/03/31/%E5%9F%BA%E4%BA%8E%E5%89%8D%E7%AB%AF%E7%9A%84%E5%A4%9A%E8%AF%AD%E8%A8%80%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/ally.png">
+<meta property="og:image" content="https://luischen.github.io/2023/03/31/%E5%9F%BA%E4%BA%8E%E5%89%8D%E7%AB%AF%E7%9A%84%E5%A4%9A%E8%AF%AD%E8%A8%80%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/ally-view.png">
+<meta property="og:image" content="https://luischen.github.io/2023/03/31/%E5%9F%BA%E4%BA%8E%E5%89%8D%E7%AB%AF%E7%9A%84%E5%A4%9A%E8%AF%AD%E8%A8%80%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/ally-edit.png">
+<meta property="og:image" content="https://luischen.github.io/2023/03/31/%E5%9F%BA%E4%BA%8E%E5%89%8D%E7%AB%AF%E7%9A%84%E5%A4%9A%E8%AF%AD%E8%A8%80%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/change-after.png">
+<meta property="article:published_time" content="2023-03-31T01:52:30.000Z">
+<meta property="article:modified_time" content="2023-03-31T02:12:04.453Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="解决方案">
+<meta property="article:tag" content="前端技术">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://luischen.github.io/2023/03/31/%E5%9F%BA%E4%BA%8E%E5%89%8D%E7%AB%AF%E7%9A%84%E5%A4%9A%E8%AF%AD%E8%A8%80%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/overview.png">
+
+    
+    <link rel="alternative" href="/atom.xml" title="Next Station" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/NextStation.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/NextStation.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Next Station">Next Station</a></h1>
+				<h2 class="blog-motto">Code Made the Future</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2023/03/31/基于前端的多语言实施方案/" title="基于前端的多语言实施方案" itemprop="url">基于前端的多语言实施方案</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Luis Chen" target="_blank" itemprop="author">Luis Chen</a>
+		
+  <p class="article-time">
+    <time datetime="2023-03-31T01:52:30.000Z" itemprop="datePublished"> Published 2023-03-31</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">方案概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%96%BD"><span class="toc-number">2.</span> <span class="toc-text">项目实施</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A1%86%E6%9E%B6%E6%90%AD%E5%BB%BA"><span class="toc-number">2.1.</span> <span class="toc-text">框架搭建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%86%E5%88%AB%E9%85%8D%E7%BD%AE%E9%A1%B9"><span class="toc-number">2.2.</span> <span class="toc-text">识别配置项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AF%AD%E8%A8%80%E5%8C%85"><span class="toc-number">2.3.</span> <span class="toc-text">更新语言包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A1%B5%E9%9D%A2%E6%A0%B7%E5%BC%8F%E8%B0%83%E6%95%B4"><span class="toc-number">2.4.</span> <span class="toc-text">页面样式调整</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E5%9B%9E%E9%A1%BE"><span class="toc-number">3.</span> <span class="toc-text">方案回顾</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95"><span class="toc-number">4.</span> <span class="toc-text">附录</span></a></li></ol>
+		
+		</div>
+		
+		<p>随着公司产品的进一步成熟，按照走出园区走出街道的发展路线，走出国门是走向巅峰的必经之路，而打通国际化的第一步就是多语言版本的支持。目前产品的技术架构是vue+SpringBoot的前后端分离架构，我们选择了基于vue-i18n的前端实施方案。</p>
+<span id="more"></span>
+
+<h2 id="方案概述"><a href="#方案概述" class="headerlink" title="方案概述"></a>方案概述</h2><p>多语言的核心是将页面hard code的资源如label标签、表格title等元素抽象成语言配置项，通过监测用户的语言偏好注入合适的语言包，以满足多语言支持和切换的需求。</p>
+<img src="overview.png" alt="overview" style="zoom:30%;" />
+
+<p>vue-i18n是一个基于vue.js的国际化组件，通过提供一组简单的API封装提供了基于vue的国际化解决方案。</p>
+<p>从宏观层面，vue-i18n的应用步骤可以概括如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. 准备语言包，可以是js格式也可以是json格式</span><br><span class="line">2. 通过一个js（建议命名为i18n.js）将语言包引入vue-i18n对象</span><br><span class="line">3. 设置系统使用的locale来具体定位语言包</span><br><span class="line">4. 修改页面所有hard code的地方，使用语言包中的配置项代替hard code</span><br></pre></td></tr></table></figure>
+
+<p>从微观实施角度出发，项目的应用步骤为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1. 多语言框架搭建（包含语言包、i18n.js和locale相关的准备工作）</span><br><span class="line">2. 识别页面所有的配置项，进行命名</span><br><span class="line">3. 依据已经识别的配置项更新语言包</span><br><span class="line">4. 测试并重复步骤2</span><br><span class="line">5. 所有配置项都被识别出之后，调整页面样式适配多语言</span><br></pre></td></tr></table></figure>
+
+<p>下面我们基于微观角度来看看具体到项目实施，如何实现多语言。</p>
+<h2 id="项目实施"><a href="#项目实施" class="headerlink" title="项目实施"></a>项目实施</h2><h3 id="框架搭建"><a href="#框架搭建" class="headerlink" title="框架搭建"></a>框架搭建</h3><p>框架搭建可以基于官网的startup，当然这个startup为了考虑通用性，应用到具体项目的时候还需要进行一些适当的扩展和裁剪。</p>
+<p>首先需要安装vue-i18n插件，安装的时候需要区分项目的vue版本，如果是vue2则使用vue-i18n@8，否则使用vue-i18n@9。</p>
+<p>然后我们在项目目录src&#x2F;common 下创建了lang&#x2F;locale的目录结构，主要包含了三个文件：</p>
+<ol>
+<li><p>lang&#x2F;i18n.js</p>
+<p>通过i18n.js，构造一个包含语言包的Vuei18n对象。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">Vue</span> <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">VueI18</span>n <span class="keyword">from</span> <span class="string">&#x27;vue-i18n&#x27;</span></span><br><span class="line"><span class="keyword">import</span> enLocale <span class="keyword">from</span> <span class="string">&#x27;./locale/en&#x27;</span></span><br><span class="line"><span class="keyword">import</span> cnLocal <span class="keyword">from</span> <span class="string">&#x27;./locale/zh-CN&#x27;</span></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">use</span>(<span class="title class_">VueI18</span>n)</span><br><span class="line"><span class="keyword">const</span> messages = &#123;</span><br><span class="line">  <span class="attr">en</span>: &#123;</span><br><span class="line">    ...enLocale</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">zh</span>: &#123;</span><br><span class="line">    ...cnLocal</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> i18n = <span class="keyword">new</span> <span class="title class_">VueI18</span>n(&#123;</span><br><span class="line">  <span class="attr">locale</span>: <span class="variable language_">localStorage</span>.<span class="title function_">getItem</span>(<span class="string">&#x27;lang&#x27;</span>) || <span class="string">&#x27;en&#x27;</span>,</span><br><span class="line">  messages,</span><br><span class="line">  <span class="attr">fallbackLocale</span>: <span class="string">&#x27;zh&#x27;</span>,</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> i18n</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+</li>
+<li><p>lang&#x2F;locale&#x2F;en.json</p>
+<p>英文语言包，json格式，大概的内容如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;common&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>    </span><br><span class="line">    <span class="attr">&quot;userProfile&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>      </span><br><span class="line">      <span class="attr">&quot;changePassword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Change Password&quot;</span><span class="punctuation">,</span>      </span><br><span class="line">      <span class="attr">&quot;originalPassword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Original Password&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;newPassword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;New Password&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;cancel&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Cancel&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;save&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Save&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>lang&#x2F;locale&#x2F;zh-CN.json</p>
+<p>中文的语言包</p>
+</li>
+</ol>
+<p>最后将vue-i18n对象通过main.js注入到全局的vue对象中，我们基于vue-i18n的多语言前端框架就搭建完成了。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*main.js*/</span></span><br><span class="line"><span class="keyword">import</span> i18n <span class="keyword">from</span> <span class="string">&#x27;@/common/lang/i18n&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span><br><span class="line">  <span class="attr">el</span>: <span class="string">&#x27;#app&#x27;</span>,</span><br><span class="line">  router,</span><br><span class="line">  i18n,</span><br><span class="line">  store,</span><br><span class="line">  <span class="attr">render</span>: <span class="function">(<span class="params">h</span>) =&gt;</span> <span class="title function_">h</span>(<span class="title class_">App</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="识别配置项"><a href="#识别配置项" class="headerlink" title="识别配置项"></a>识别配置项</h3><p>在开始之前我们确定了配置项的三层配置结构：</p>
+<p><code>&#123;app&#125;.&#123;module&#125;.&#123;SID&#125;</code></p>
+<p>以上文出现过的 “common.userProfile.newPassword” 为例，应用是公共平台，模块是用户信息，唯一标识就是newPassword。</p>
+<p>在识别配置项的时候我们可以引入vscode的多语言插件 - i18n Ally。通过i18n Ally可以快速的定位出页面的hard code编码，并通过Ally编辑器快速的编辑多语言信息。</p>
+<p>安装好插件后，首先编辑项目目录下的.vscode&#x2F;settings.json文件加入Ally的配置，</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;i18n-ally.localesPaths&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;src/common/lang/locale&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;i18n-ally.keystyle&quot;</span><span class="punctuation">:</span> <span class="string">&quot;nested&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;i18n-ally.sortKeys&quot;</span><span class="punctuation">:</span> <span class="keyword">true</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;i18n-ally.enabledParsers&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;ts&quot;</span><span class="punctuation">,</span> <span class="string">&quot;json&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;i18n-ally.sourceLanguage&quot;</span><span class="punctuation">:</span> <span class="string">&quot;zh-CN&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;i18n-ally.displayLanguage&quot;</span><span class="punctuation">:</span> <span class="string">&quot;zh-CN&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;i18n-ally.enabledFrameworks&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;vue&quot;</span><span class="punctuation">,</span> <span class="string">&quot;react&quot;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>重启VSCode后就可以看到左边出现了i18n Ally的图标，</p>
+<img src="ally.png" alt="image-20230317133051553" style="zoom:50%;" />
+
+<p>选择待翻译文件，点击Ally图标就可以识别出文件中hard code的配置项了。</p>
+<img src="ally-view.png" alt="image-20230317133551544" style="zoom:50%;" />
+
+<p>如图所示，当前页面有4个待翻译项，选择一个hard code string可以添加为配置项，也可以定位到具体位置，修改为已有配置项。更新完成后代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;el-button</span><br><span class="line">          class=&quot;submit&quot;</span><br><span class="line">          type=&quot;primary&quot;</span><br><span class="line">          @click=&quot;submitForm(&#x27;ruleForm&#x27;)&quot;</span><br><span class="line">          &gt;&#123;&#123; $t(&#x27;common.save&#x27;) &#125;&#125;&lt;/el-button&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<img src="ally-edit.png" alt="image-20230317134325836" style="zoom:50%;" />
+
+<p>翻译进度部分主要处理多语言不一致的情况，如果一个配置项加了英文没有加中文翻译，那么在中文的进度就会提示有缺失的文案或者空值，提醒用户有遗漏。这时候点击改配置项可以进入配置项的Ally编辑器，来编辑对应的中英文信息。</p>
+<p>在翻译树部分展示的是系统现有的配置项，可以作为配置项定义的结构参考，也可以直接复制配置项路径应用到当前文件。</p>
+<h3 id="更新语言包"><a href="#更新语言包" class="headerlink" title="更新语言包"></a>更新语言包</h3><p>经过识别配置项，我们可以得到一个初始版本的配置项和系统中文翻译的对应关系。</p>
+<p>为了方便管理维护和多方协作，我们定义了语言包管理的模板，格式如下：</p>
+<table>
+<thead>
+<tr>
+<th>APP</th>
+<th>Module</th>
+<th>SID</th>
+<th>en</th>
+<th>zh-CN</th>
+<th>其他语言</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>common</td>
+<td></td>
+<td>cancel</td>
+<td>Cancel</td>
+<td>取消</td>
+<td></td>
+</tr>
+<tr>
+<td>common</td>
+<td>userProfile</td>
+<td>newPassword</td>
+<td>New Password</td>
+<td>新密码</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>前面三列组成了唯一的配置项ID，后面一列对应一种语言，所以经过识别语言包我们的1-3列和zh-CN列已经填充完成，需要组织翻译人员完成en列的填写即可。</p>
+<p>为了方便实际操作，<a target="_blank" rel="noopener" href="https://gitee.com/luischen/toolbox">我们还开发了一款语言包生成工具</a> ，支持Excel和json文件的互转。当Excel版本的语言包更新完成后可以自动根据语言列生成对应的json文件，部署到环境即可完成语言包的实时更新。</p>
+<p><strong>语言包的更新是一个迭代的过程，通过测试发现问题后需要重新识别配置项并更新语言包。</strong></p>
+<h3 id="页面样式调整"><a href="#页面样式调整" class="headerlink" title="页面样式调整"></a>页面样式调整</h3><p>在完成多语言的更新后，由于语言描述的长度差异会对页面展示造成冲击，如图所示一个很简单的例子：</p>
+<img src="change-after.png" alt=""/>
+
+<p>原密码和新密码在中文模式下是一行，换成英文后变成了两行，这时候就需要调整页面label的宽度来适配中英文了。</p>
+<p>页面样式调整主要通过全页面的测试来覆盖，也可以理解为一个迭代的过程。</p>
+<h2 id="方案回顾"><a href="#方案回顾" class="headerlink" title="方案回顾"></a>方案回顾</h2><p>在上述多语言方案和具体实施过程中，我们首先基于现有系统技术架构明确方案是基于前端的多语言实施方案，采用了vue生态中比较常用的vue-i18n作为主要实现基座。在识别配置项的过程中我们引入了i18n-Ally插件协助我们快速发现待配置项，识别出配置项后考虑语言包管理的便捷性，我们采用统一的Excel模板管理语言包，并通过自研工具完成json语言包和Excel语言包的转换。在实施过程中运用迭代更新的策略，逐步完善语言包和系统样式，最终实现了系统的多语言支持。</p>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p>附录部分主要记录一些语言替换过程中遇到的坑。</p>
+<ol>
+<li><p>目前有部分配置项内容是写在数据库中的，如app name，menu name等。</p>
+<p>将数据库更新为唯一的配置项ID，而不是hard code，页面上通过配置项解析实现多语言支持。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;app-name&quot;</span>&gt;</span></span><br><span class="line">                  &#123;&#123; $t(app.appName) &#125;&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>placeholder，title这些html属性需要改成动态赋值</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">:placeholder=&quot;$t(&#x27;login.password_placeholder&#x27;)&quot;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>后端直接返回的错误信息。</p>
+<p>后端定义错误返回信息的时候需要定义成{app}.{“err”}.{errId}的格式在前端进行解析。</p>
+</li>
+<li><p>通用字符串的配置，采用插值</p>
+<p>例如有的label需要配置冒号，这时候可以定义成：</p>
+<p><code>common.label.region= Region&#123;post&#125;</code></p>
+<p>在使用的时候将post传值进去：</p>
+<p><code>this.$t(&#39;common.label.region&#39;,&#123;post:&#39;:&#39;&#125;)</code></p>
+<p>解析出来就是 “Region :”</p>
+</li>
+<li><p>复数的配置,采用预定义函数tc</p>
+<p>如查询页面的时间范围可能为1小时，2小时…12小时，这时候可以使用tc函数</p>
+<p>配置的时候配置成：</p>
+<p><code>common.search.hour = &#123;num&#125;hour | &#123;num&#125;hours</code></p>
+<p>使用的时候：</p>
+<p><code>this.$tc(&#39;common.search.hour&#39;,10,&#123;num:&#39;10&#39;&#125;)</code></p>
+<p>这时候解析出来就是 10小时，对应的英文是 10 hours</p>
+</li>
+<li><p>嵌套多语言的运用</p>
+<p>如页面的非空校验，一般的提示是“请输入xxx”，这时候我们可以使用嵌套多语言减少资源的定义。</p>
+<p><code>data.collect.selectWarning = Please choose &#123;field&#125;</code></p>
+<p>使用的时候：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">this.$t(&#x27;data.collect.selectWarning&#x27;, &#123;</span><br><span class="line">            field: this.$t(&#x27;data.searchField.region&#x27;)</span><br><span class="line">          &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这样解析出来就是 “Please choose region”</p>
+</li>
+<li><p>ElementUI的国际化</p>
+<p>首先需要在i18n.js中引入element-ui的语言包，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">import eleEnLocale from &#x27;element-ui/lib/locale/lang/en&#x27;</span><br><span class="line">import eleZhLocale from &#x27;element-ui/lib/locale/lang/zh-CN&#x27;</span><br><span class="line">...</span><br><span class="line">const messages = &#123;</span><br><span class="line">  en: &#123;</span><br><span class="line">    ...enLocale,</span><br><span class="line">    ...eleEnLocale</span><br><span class="line">  &#125;,</span><br><span class="line">  zh: &#123;</span><br><span class="line">    ...cnLocal,</span><br><span class="line">    ...eleZhLocale</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后在main,js中注入ElementUI的时候传入i18n属性</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Vue.use(ElementUI, &#123;</span><br><span class="line">  i18n: (key, value) =&gt; i18n.t(key, value)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Echarts的国际化</p>
+<p>Echarts中的Tooltip在使用format函数的时候，函数作用域无法获取i18n的$t方法，这时候需要在图表创建方法时将i18n方法代理到当前作用域中：</p>
+<p><code>let that = this</code></p>
+<p>然后在format函数中使用 that.$t 即可</p>
+</li>
+<li><p>子组件中的props的默认值</p>
+<p>将props中的默认值，通过computed进行封装，使用的时候使用computed的值</p>
+</li>
+<li><p>嵌套组件中赋值不能加this</p>
+<p>如图所示的使用方式，在img中无法通过this来获取i18n对象，这时候把this去掉即可。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;el-table-column :label=&quot;this.$t(&#x27;common.operation&#x27;)&quot; min-width=&quot;4%&quot;&gt;</span><br><span class="line">    &lt;template #default=&quot;&#123; row &#125;&quot;&gt;</span><br><span class="line">    &lt;el-button&gt;</span><br><span class="line">    	&lt;img :title=&quot;$t(&#x27;core.configure.collectItem&#x27;)&quot;/&gt;</span><br><span class="line">    &lt;/el-button&gt;</span><br><span class="line">    &lt;/template&gt;</span><br><span class="line">&lt;/el-table-column&gt;</span><br></pre></td></tr></table></figure></li>
+</ol>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/">技术总结</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/解决方案/">解决方案</a><a href="/tags/前端技术/">前端技术</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="https://luischen.github.io/2023/03/31/%E5%9F%BA%E4%BA%8E%E5%89%8D%E7%AB%AF%E7%9A%84%E5%A4%9A%E8%AF%AD%E8%A8%80%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/" data-title="基于前端的多语言实施方案 | Next Station" data-tsina="" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2022/12/29/如何监测配置数据的变化/"  title="如何监测配置数据的变化">
+ <strong>下一篇：</strong><br/> 
+ <span>如何监测配置数据的变化
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">方案概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%96%BD"><span class="toc-number">2.</span> <span class="toc-text">项目实施</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A1%86%E6%9E%B6%E6%90%AD%E5%BB%BA"><span class="toc-number">2.1.</span> <span class="toc-text">框架搭建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%86%E5%88%AB%E9%85%8D%E7%BD%AE%E9%A1%B9"><span class="toc-number">2.2.</span> <span class="toc-text">识别配置项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AF%AD%E8%A8%80%E5%8C%85"><span class="toc-number">2.3.</span> <span class="toc-text">更新语言包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A1%B5%E9%9D%A2%E6%A0%B7%E5%BC%8F%E8%B0%83%E6%95%B4"><span class="toc-number">2.4.</span> <span class="toc-text">页面样式调整</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E5%9B%9E%E9%A1%BE"><span class="toc-number">3.</span> <span class="toc-text">方案回顾</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95"><span class="toc-number">4.</span> <span class="toc-text">附录</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/人生感悟/" title="人生感悟">人生感悟<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/技术总结/" title="技术总结">技术总结<sup>21</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">Tag Cloud</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Golang/" style="font-size: 10px;">Golang</a> <a href="/tags/InfluxDB/" style="font-size: 12.5px;">InfluxDB</a> <a href="/tags/Java/" style="font-size: 12.5px;">Java</a> <a href="/tags/%E5%89%8D%E7%AB%AF%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">前端技术</a> <a href="/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/" style="font-size: 12.5px;">可视化</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E5%8F%8D%E6%80%9D/" style="font-size: 10px;">工作反思</a> <a href="/tags/%E5%BA%94%E7%94%A8%E6%8A%80%E6%9C%AF/" style="font-size: 20px;">应用技术</a> <a href="/tags/%E5%BC%80%E5%8F%91%E6%8A%80%E6%9C%AF/" style="font-size: 15px;">开发技术</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 10px;">微服务</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.5px;">性能优化</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E6%8A%80%E6%9C%AF/" style="font-size: 15px;">数据技术</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86/" style="font-size: 12.5px;">数据采集</a> <a href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;">架构设计</a> <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 12.5px;">算法</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E9%9B%86%E6%88%90/" style="font-size: 10px;">系统集成</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/" style="font-size: 12.5px;">编程语言</a> <a href="/tags/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" style="font-size: 15px;">解决方案</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 17.5px;">设计模式</a> <a href="/tags/%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3/" style="font-size: 12.5px;">问题解决</a>
+    </div>
+  </div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://gitee.com/luischen" target="_blank" title="Gitee, My Code Space">Gitee, My Code Space</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,This is Luis in Next-Station. <br/>
+			Join me on a journey of endless possibilities at the Next Station.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2023 
+		
+		<a href="/about" target="_blank" title="Luis Chen">Luis Chen</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

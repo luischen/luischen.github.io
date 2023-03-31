@@ -170,6 +170,7 @@
       <tags>
         <tag>InfluxDB</tag>
         <tag>数据技术</tag>
+        <tag>解决方案</tag>
       </tags>
   </entry>
   <entry>
@@ -979,6 +980,168 @@
       </tags>
   </entry>
   <entry>
+    <title>基于前端的多语言实施方案</title>
+    <url>/2023/03/31/%E5%9F%BA%E4%BA%8E%E5%89%8D%E7%AB%AF%E7%9A%84%E5%A4%9A%E8%AF%AD%E8%A8%80%E5%AE%9E%E6%96%BD%E6%96%B9%E6%A1%88/</url>
+    <content><![CDATA[<p>随着公司产品的进一步成熟，按照走出园区走出街道的发展路线，走出国门是走向巅峰的必经之路，而打通国际化的第一步就是多语言版本的支持。目前产品的技术架构是vue+SpringBoot的前后端分离架构，我们选择了基于vue-i18n的前端实施方案。</p>
+<span id="more"></span>
+
+<h2 id="方案概述"><a href="#方案概述" class="headerlink" title="方案概述"></a>方案概述</h2><p>多语言的核心是将页面hard code的资源如label标签、表格title等元素抽象成语言配置项，通过监测用户的语言偏好注入合适的语言包，以满足多语言支持和切换的需求。</p>
+<img src="overview.png" alt="overview" style="zoom:30%;" />
+
+<p>vue-i18n是一个基于vue.js的国际化组件，通过提供一组简单的API封装提供了基于vue的国际化解决方案。</p>
+<p>从宏观层面，vue-i18n的应用步骤可以概括如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1. 准备语言包，可以是js格式也可以是json格式</span><br><span class="line">2. 通过一个js（建议命名为i18n.js）将语言包引入vue-i18n对象</span><br><span class="line">3. 设置系统使用的locale来具体定位语言包</span><br><span class="line">4. 修改页面所有hard code的地方，使用语言包中的配置项代替hard code</span><br></pre></td></tr></table></figure>
+
+<p>从微观实施角度出发，项目的应用步骤为：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1. 多语言框架搭建（包含语言包、i18n.js和locale相关的准备工作）</span><br><span class="line">2. 识别页面所有的配置项，进行命名</span><br><span class="line">3. 依据已经识别的配置项更新语言包</span><br><span class="line">4. 测试并重复步骤2</span><br><span class="line">5. 所有配置项都被识别出之后，调整页面样式适配多语言</span><br></pre></td></tr></table></figure>
+
+<p>下面我们基于微观角度来看看具体到项目实施，如何实现多语言。</p>
+<h2 id="项目实施"><a href="#项目实施" class="headerlink" title="项目实施"></a>项目实施</h2><h3 id="框架搭建"><a href="#框架搭建" class="headerlink" title="框架搭建"></a>框架搭建</h3><p>框架搭建可以基于官网的startup，当然这个startup为了考虑通用性，应用到具体项目的时候还需要进行一些适当的扩展和裁剪。</p>
+<p>首先需要安装vue-i18n插件，安装的时候需要区分项目的vue版本，如果是vue2则使用vue-i18n@8，否则使用vue-i18n@9。</p>
+<p>然后我们在项目目录src&#x2F;common 下创建了lang&#x2F;locale的目录结构，主要包含了三个文件：</p>
+<ol>
+<li><p>lang&#x2F;i18n.js</p>
+<p>通过i18n.js，构造一个包含语言包的Vuei18n对象。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">Vue</span> <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">VueI18</span>n <span class="keyword">from</span> <span class="string">&#x27;vue-i18n&#x27;</span></span><br><span class="line"><span class="keyword">import</span> enLocale <span class="keyword">from</span> <span class="string">&#x27;./locale/en&#x27;</span></span><br><span class="line"><span class="keyword">import</span> cnLocal <span class="keyword">from</span> <span class="string">&#x27;./locale/zh-CN&#x27;</span></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">use</span>(<span class="title class_">VueI18</span>n)</span><br><span class="line"><span class="keyword">const</span> messages = &#123;</span><br><span class="line">  <span class="attr">en</span>: &#123;</span><br><span class="line">    ...enLocale</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">zh</span>: &#123;</span><br><span class="line">    ...cnLocal</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> i18n = <span class="keyword">new</span> <span class="title class_">VueI18</span>n(&#123;</span><br><span class="line">  <span class="attr">locale</span>: <span class="variable language_">localStorage</span>.<span class="title function_">getItem</span>(<span class="string">&#x27;lang&#x27;</span>) || <span class="string">&#x27;en&#x27;</span>,</span><br><span class="line">  messages,</span><br><span class="line">  <span class="attr">fallbackLocale</span>: <span class="string">&#x27;zh&#x27;</span>,</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> i18n</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+</li>
+<li><p>lang&#x2F;locale&#x2F;en.json</p>
+<p>英文语言包，json格式，大概的内容如下：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;common&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>    </span><br><span class="line">    <span class="attr">&quot;userProfile&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>      </span><br><span class="line">      <span class="attr">&quot;changePassword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Change Password&quot;</span><span class="punctuation">,</span>      </span><br><span class="line">      <span class="attr">&quot;originalPassword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Original Password&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;newPassword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;New Password&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;cancel&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Cancel&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;save&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Save&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>lang&#x2F;locale&#x2F;zh-CN.json</p>
+<p>中文的语言包</p>
+</li>
+</ol>
+<p>最后将vue-i18n对象通过main.js注入到全局的vue对象中，我们基于vue-i18n的多语言前端框架就搭建完成了。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*main.js*/</span></span><br><span class="line"><span class="keyword">import</span> i18n <span class="keyword">from</span> <span class="string">&#x27;@/common/lang/i18n&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span><br><span class="line">  <span class="attr">el</span>: <span class="string">&#x27;#app&#x27;</span>,</span><br><span class="line">  router,</span><br><span class="line">  i18n,</span><br><span class="line">  store,</span><br><span class="line">  <span class="attr">render</span>: <span class="function">(<span class="params">h</span>) =&gt;</span> <span class="title function_">h</span>(<span class="title class_">App</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="识别配置项"><a href="#识别配置项" class="headerlink" title="识别配置项"></a>识别配置项</h3><p>在开始之前我们确定了配置项的三层配置结构：</p>
+<p><code>&#123;app&#125;.&#123;module&#125;.&#123;SID&#125;</code></p>
+<p>以上文出现过的 “common.userProfile.newPassword” 为例，应用是公共平台，模块是用户信息，唯一标识就是newPassword。</p>
+<p>在识别配置项的时候我们可以引入vscode的多语言插件 - i18n Ally。通过i18n Ally可以快速的定位出页面的hard code编码，并通过Ally编辑器快速的编辑多语言信息。</p>
+<p>安装好插件后，首先编辑项目目录下的.vscode&#x2F;settings.json文件加入Ally的配置，</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;i18n-ally.localesPaths&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;src/common/lang/locale&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;i18n-ally.keystyle&quot;</span><span class="punctuation">:</span> <span class="string">&quot;nested&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;i18n-ally.sortKeys&quot;</span><span class="punctuation">:</span> <span class="keyword">true</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;i18n-ally.enabledParsers&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;ts&quot;</span><span class="punctuation">,</span> <span class="string">&quot;json&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;i18n-ally.sourceLanguage&quot;</span><span class="punctuation">:</span> <span class="string">&quot;zh-CN&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;i18n-ally.displayLanguage&quot;</span><span class="punctuation">:</span> <span class="string">&quot;zh-CN&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;i18n-ally.enabledFrameworks&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;vue&quot;</span><span class="punctuation">,</span> <span class="string">&quot;react&quot;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>重启VSCode后就可以看到左边出现了i18n Ally的图标，</p>
+<img src="ally.png" alt="image-20230317133051553" style="zoom:50%;" />
+
+<p>选择待翻译文件，点击Ally图标就可以识别出文件中hard code的配置项了。</p>
+<img src="ally-view.png" alt="image-20230317133551544" style="zoom:50%;" />
+
+<p>如图所示，当前页面有4个待翻译项，选择一个hard code string可以添加为配置项，也可以定位到具体位置，修改为已有配置项。更新完成后代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;el-button</span><br><span class="line">          class=&quot;submit&quot;</span><br><span class="line">          type=&quot;primary&quot;</span><br><span class="line">          @click=&quot;submitForm(&#x27;ruleForm&#x27;)&quot;</span><br><span class="line">          &gt;&#123;&#123; $t(&#x27;common.save&#x27;) &#125;&#125;&lt;/el-button&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<img src="ally-edit.png" alt="image-20230317134325836" style="zoom:50%;" />
+
+<p>翻译进度部分主要处理多语言不一致的情况，如果一个配置项加了英文没有加中文翻译，那么在中文的进度就会提示有缺失的文案或者空值，提醒用户有遗漏。这时候点击改配置项可以进入配置项的Ally编辑器，来编辑对应的中英文信息。</p>
+<p>在翻译树部分展示的是系统现有的配置项，可以作为配置项定义的结构参考，也可以直接复制配置项路径应用到当前文件。</p>
+<h3 id="更新语言包"><a href="#更新语言包" class="headerlink" title="更新语言包"></a>更新语言包</h3><p>经过识别配置项，我们可以得到一个初始版本的配置项和系统中文翻译的对应关系。</p>
+<p>为了方便管理维护和多方协作，我们定义了语言包管理的模板，格式如下：</p>
+<table>
+<thead>
+<tr>
+<th>APP</th>
+<th>Module</th>
+<th>SID</th>
+<th>en</th>
+<th>zh-CN</th>
+<th>其他语言</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>common</td>
+<td></td>
+<td>cancel</td>
+<td>Cancel</td>
+<td>取消</td>
+<td></td>
+</tr>
+<tr>
+<td>common</td>
+<td>userProfile</td>
+<td>newPassword</td>
+<td>New Password</td>
+<td>新密码</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>前面三列组成了唯一的配置项ID，后面一列对应一种语言，所以经过识别语言包我们的1-3列和zh-CN列已经填充完成，需要组织翻译人员完成en列的填写即可。</p>
+<p>为了方便实际操作，<a href="https://gitee.com/luischen/toolbox">我们还开发了一款语言包生成工具</a> ，支持Excel和json文件的互转。当Excel版本的语言包更新完成后可以自动根据语言列生成对应的json文件，部署到环境即可完成语言包的实时更新。</p>
+<p><strong>语言包的更新是一个迭代的过程，通过测试发现问题后需要重新识别配置项并更新语言包。</strong></p>
+<h3 id="页面样式调整"><a href="#页面样式调整" class="headerlink" title="页面样式调整"></a>页面样式调整</h3><p>在完成多语言的更新后，由于语言描述的长度差异会对页面展示造成冲击，如图所示一个很简单的例子：</p>
+<img src="change-after.png" alt=""/>
+
+<p>原密码和新密码在中文模式下是一行，换成英文后变成了两行，这时候就需要调整页面label的宽度来适配中英文了。</p>
+<p>页面样式调整主要通过全页面的测试来覆盖，也可以理解为一个迭代的过程。</p>
+<h2 id="方案回顾"><a href="#方案回顾" class="headerlink" title="方案回顾"></a>方案回顾</h2><p>在上述多语言方案和具体实施过程中，我们首先基于现有系统技术架构明确方案是基于前端的多语言实施方案，采用了vue生态中比较常用的vue-i18n作为主要实现基座。在识别配置项的过程中我们引入了i18n-Ally插件协助我们快速发现待配置项，识别出配置项后考虑语言包管理的便捷性，我们采用统一的Excel模板管理语言包，并通过自研工具完成json语言包和Excel语言包的转换。在实施过程中运用迭代更新的策略，逐步完善语言包和系统样式，最终实现了系统的多语言支持。</p>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p>附录部分主要记录一些语言替换过程中遇到的坑。</p>
+<ol>
+<li><p>目前有部分配置项内容是写在数据库中的，如app name，menu name等。</p>
+<p>将数据库更新为唯一的配置项ID，而不是hard code，页面上通过配置项解析实现多语言支持。</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;app-name&quot;</span>&gt;</span></span><br><span class="line">                  &#123;&#123; $t(app.appName) &#125;&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>placeholder，title这些html属性需要改成动态赋值</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">:placeholder=&quot;$t(&#x27;login.password_placeholder&#x27;)&quot;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>后端直接返回的错误信息。</p>
+<p>后端定义错误返回信息的时候需要定义成{app}.{“err”}.{errId}的格式在前端进行解析。</p>
+</li>
+<li><p>通用字符串的配置，采用插值</p>
+<p>例如有的label需要配置冒号，这时候可以定义成：</p>
+<p><code>common.label.region= Region&#123;post&#125;</code></p>
+<p>在使用的时候将post传值进去：</p>
+<p><code>this.$t(&#39;common.label.region&#39;,&#123;post:&#39;:&#39;&#125;)</code></p>
+<p>解析出来就是 “Region :”</p>
+</li>
+<li><p>复数的配置,采用预定义函数tc</p>
+<p>如查询页面的时间范围可能为1小时，2小时…12小时，这时候可以使用tc函数</p>
+<p>配置的时候配置成：</p>
+<p><code>common.search.hour = &#123;num&#125;hour | &#123;num&#125;hours</code></p>
+<p>使用的时候：</p>
+<p><code>this.$tc(&#39;common.search.hour&#39;,10,&#123;num:&#39;10&#39;&#125;)</code></p>
+<p>这时候解析出来就是 10小时，对应的英文是 10 hours</p>
+</li>
+<li><p>嵌套多语言的运用</p>
+<p>如页面的非空校验，一般的提示是“请输入xxx”，这时候我们可以使用嵌套多语言减少资源的定义。</p>
+<p><code>data.collect.selectWarning = Please choose &#123;field&#125;</code></p>
+<p>使用的时候：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">this.$t(&#x27;data.collect.selectWarning&#x27;, &#123;</span><br><span class="line">            field: this.$t(&#x27;data.searchField.region&#x27;)</span><br><span class="line">          &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这样解析出来就是 “Please choose region”</p>
+</li>
+<li><p>ElementUI的国际化</p>
+<p>首先需要在i18n.js中引入element-ui的语言包，</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import eleEnLocale from &#x27;element-ui/lib/locale/lang/en&#x27;</span><br><span class="line">import eleZhLocale from &#x27;element-ui/lib/locale/lang/zh-CN&#x27;</span><br><span class="line">...</span><br><span class="line">const messages = &#123;</span><br><span class="line">  en: &#123;</span><br><span class="line">    ...enLocale,</span><br><span class="line">    ...eleEnLocale</span><br><span class="line">  &#125;,</span><br><span class="line">  zh: &#123;</span><br><span class="line">    ...cnLocal,</span><br><span class="line">    ...eleZhLocale</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后在main,js中注入ElementUI的时候传入i18n属性</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Vue.use(ElementUI, &#123;</span><br><span class="line">  i18n: (key, value) =&gt; i18n.t(key, value)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Echarts的国际化</p>
+<p>Echarts中的Tooltip在使用format函数的时候，函数作用域无法获取i18n的$t方法，这时候需要在图表创建方法时将i18n方法代理到当前作用域中：</p>
+<p><code>let that = this</code></p>
+<p>然后在format函数中使用 that.$t 即可</p>
+</li>
+<li><p>子组件中的props的默认值</p>
+<p>将props中的默认值，通过computed进行封装，使用的时候使用computed的值</p>
+</li>
+<li><p>嵌套组件中赋值不能加this</p>
+<p>如图所示的使用方式，在img中无法通过this来获取i18n对象，这时候把this去掉即可。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;el-table-column :label=&quot;this.$t(&#x27;common.operation&#x27;)&quot; min-width=&quot;4%&quot;&gt;</span><br><span class="line">    &lt;template #default=&quot;&#123; row &#125;&quot;&gt;</span><br><span class="line">    &lt;el-button&gt;</span><br><span class="line">    	&lt;img :title=&quot;$t(&#x27;core.configure.collectItem&#x27;)&quot;/&gt;</span><br><span class="line">    &lt;/el-button&gt;</span><br><span class="line">    &lt;/template&gt;</span><br><span class="line">&lt;/el-table-column&gt;</span><br></pre></td></tr></table></figure></li>
+</ol>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>解决方案</tag>
+        <tag>前端技术</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>如何监测配置数据的变化</title>
     <url>/2022/12/29/%E5%A6%82%E4%BD%95%E7%9B%91%E6%B5%8B%E9%85%8D%E7%BD%AE%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%98%E5%8C%96/</url>
     <content><![CDATA[<p>在工业互联网平台上存在多种业务应用，每个应用有自己的配置数据，当配置数据发生变更的时候需要及时的下发到边缘节点让配置生效。我们可以通过节点管理模块提供手动下发的功能，即操作人员修改完配置后通知系统管理员进行对应节点的配置下发。实际操作中发现由于引发配置变更的点过于分散，导致经常会忘记下发而无法使配置及时生效。再者业务操作人员自己并不清楚当前操作的配置是否需要下发，会引发很多无效的沟通，降低了生产效率。</p>
@@ -1069,6 +1232,7 @@
         <category>技术总结</category>
       </categories>
       <tags>
+        <tag>解决方案</tag>
         <tag>开发技术</tag>
       </tags>
   </entry>
@@ -1427,6 +1591,7 @@
         <category>技术总结</category>
       </categories>
       <tags>
+        <tag>数据技术</tag>
         <tag>可视化</tag>
         <tag>算法</tag>
       </tags>
