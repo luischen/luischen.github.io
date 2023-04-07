@@ -1,23 +1,28 @@
 
- <!DOCTYPE HTML>
-<html >
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
 <head>
   <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
   
-    <title>一个Slash引发的ClassNotFound血案 | Next Station</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
-    
-    <meta name="author" content="Luis Chen">
-    
-
-    
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luis Chen">
+  <meta name="keywords" content="">
+  
     <meta name="description" content="公司开发了一款Web应用，开发架构基于Spring Boot，通过jar包的方式发布到服务器并通过命令行运行在内置的Tomcat上。上线将近一年，一切都是那么的风平浪静，然而一切的平静被上周的一次现场算法回访打破。 我们的数据分析人员本意只是想查看一下历史数据来确认算法的表现符合预期，结果发现历史数据查询页面怎么点都没有反应，而其他页面都是正常的，服务重启后一切恢复正常。 问题重现虽然问题通过服务">
 <meta property="og:type" content="article">
 <meta property="og:title" content="一个Slash引发的ClassNotFound血案">
 <meta property="og:url" content="https://luischen.github.io/2019/08/27/%E4%B8%80%E4%B8%AASlash%E5%BC%95%E5%8F%91%E7%9A%84ClassNotFound%E8%A1%80%E6%A1%88/index.html">
 <meta property="og:site_name" content="Next Station">
 <meta property="og:description" content="公司开发了一款Web应用，开发架构基于Spring Boot，通过jar包的方式发布到服务器并通过命令行运行在内置的Tomcat上。上线将近一年，一切都是那么的风平浪静，然而一切的平静被上周的一次现场算法回访打破。 我们的数据分析人员本意只是想查看一下历史数据来确认算法的表现符合预期，结果发现历史数据查询页面怎么点都没有反应，而其他页面都是正常的，服务重启后一切恢复正常。 问题重现虽然问题通过服务">
-<meta property="og:locale">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://luischen.github.io/2019/08/27/%E4%B8%80%E4%B8%AASlash%E5%BC%95%E5%8F%91%E7%9A%84ClassNotFound%E8%A1%80%E6%A1%88/classloader.png">
 <meta property="og:image" content="https://luischen.github.io/2019/08/27/%E4%B8%80%E4%B8%AASlash%E5%BC%95%E5%8F%91%E7%9A%84ClassNotFound%E8%A1%80%E6%A1%88/jsp-class.png">
 <meta property="og:image" content="https://luischen.github.io/2019/08/27/%E4%B8%80%E4%B8%AASlash%E5%BC%95%E5%8F%91%E7%9A%84ClassNotFound%E8%A1%80%E6%A1%88/jsp-flow.png">
@@ -26,91 +31,261 @@
 <meta property="article:author" content="Luis Chen">
 <meta property="article:tag" content="开发技术">
 <meta property="article:tag" content="问题解决">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://luischen.github.io/2019/08/27/%E4%B8%80%E4%B8%AASlash%E5%BC%95%E5%8F%91%E7%9A%84ClassNotFound%E8%A1%80%E6%A1%88/classloader.png">
+  
+  
+  
+  <title>一个Slash引发的ClassNotFound血案 - Next Station</title>
 
-    
-    <link rel="alternative" href="/atom.xml" title="Next Station" type="application/atom+xml">
-    
-    
-    <link rel="icon" href="/favicon.ico">
-    
-    
-    <link rel="apple-touch-icon" href="/img/NextStation.jpg">
-    <link rel="apple-touch-icon-precomposed" href="/img/NextStation.jpg">
-    
-    
-<link rel="stylesheet" href="/css/style.css">
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"luischen.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
 <meta name="generator" content="Hexo 6.2.0"></head>
 
-  <body>
-    <header>
-      
-<div>
-		
-			<div id="textlogo">
-				<h1 class="site-name"><a href="/" title="Next Station">Next Station</a></h1>
-				<h2 class="blog-motto">Code Made the Future</h2>
-			</div>
-			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
-			</a></div>
-			<nav class="animated">
-				<ul>
-					<ul>
-					 
-						<li><a href="/">Home</a></li>
-					
-						<li><a href="/archives">Archives</a></li>
-					
-						<li><a href="/about">About</a></li>
-					
-					<li>
- 					
-					<form class="search" action="/search/index.html" method="get" accept-charset="utf-8">
-						<label>Search</label>
-						<input type="search" id="search" autocomplete="off" name="q" maxlength="20" placeholder="Search" />
-					</form>
-					
-					</li>
-				</ul>
-			</nav>			
-</div>
-    </header>
-    <div id="container">
-      <div id="main" class="post" itemscope itemprop="blogPost">
+
+<body>
   
-	<article itemprop="articleBody"> 
-		<header class="article-info clearfix">
-  <h1 itemprop="name">
+
+  <header>
     
-      <a href="/2019/08/27/一个Slash引发的ClassNotFound血案/" title="一个Slash引发的ClassNotFound血案" itemprop="url">一个Slash引发的ClassNotFound血案</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Luis Chen" target="_blank" itemprop="author">Luis Chen</a>
-		
-  <p class="article-time">
-    <time datetime="2019-08-27T02:30:43.000Z" itemprop="datePublished"> Published 2019-08-27</time>
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Next Station</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="一个Slash引发的ClassNotFound血案"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
     
-  </p>
-</header>
-	<div class="article-content">
-		
-		<div id="toc" class="toc-article">
-			<strong class="toc-title">Contents</strong>
-		
-			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E9%87%8D%E7%8E%B0"><span class="toc-number">1.</span> <span class="toc-text">问题重现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">问题分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li></ol>
-		
-		</div>
-		
-		<p>公司开发了一款Web应用，开发架构基于Spring Boot，通过jar包的方式发布到服务器并通过命令行运行在内置的Tomcat上。上线将近一年，一切都是那么的风平浪静，然而一切的平静被上周的一次现场算法回访打破。</p>
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2019-08-27 10:30" pubdate>
+          2019年8月27日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          62 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">一个Slash引发的ClassNotFound血案</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>公司开发了一款Web应用，开发架构基于Spring Boot，通过jar包的方式发布到服务器并通过命令行运行在内置的Tomcat上。上线将近一年，一切都是那么的风平浪静，然而一切的平静被上周的一次现场算法回访打破。</p>
 <p>我们的数据分析人员本意只是想查看一下历史数据来确认算法的表现符合预期，结果发现历史数据查询页面怎么点都没有反应，而其他页面都是正常的，服务重启后一切恢复正常。</p>
 <h2 id="问题重现"><a href="#问题重现" class="headerlink" title="问题重现"></a>问题重现</h2><p>虽然问题通过服务重启后成功解决，但是出错的原因没有定位到也就意味着再次出错的可能性依然存在。</p>
 <span id="more"></span>
 
 <p>分析问题最直观的方式就是从错误出发，通过错误信息来反向推导错误发生的场景。在这个案例中我们查看了浏览器控制台和后台错误日志，最终获取了准确的错误信息：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2019</span>-08-<span class="number">23</span> <span class="number">14</span>:<span class="number">40</span>:<span class="number">47</span>,<span class="number">835</span> [http-nio-<span class="number">9090</span>-exec-<span class="number">8</span>] ERROR o.a.catalina.core.ContainerBase.[Tomcat].[localhost].[/].[dispatcherServlet] - Servlet.service() <span class="keyword">for</span> servlet [dispatcherServlet] in context with path [] threw exception [java.lang.ClassNotFoundException: org.apache.jsp.WEB_002dINF.views.report.report_005fmain_jsp] with root cause</span><br><span class="line">java.lang.ClassNotFoundException: org.apache.jsp.WEB_002dINF.views.report.report_005fmain_jsp</span><br><span class="line">	at java.net.URLClassLoader.findClass(URLClassLoader.java:<span class="number">381</span>)</span><br><span class="line">	at org.apache.jasper.servlet.JasperLoader.loadClass(JasperLoader.java:<span class="number">129</span>)</span><br><span class="line">	at org.apache.jasper.servlet.JasperLoader.loadClass(JasperLoader.java:<span class="number">60</span>)</span><br><span class="line">	at org.apache.catalina.core.DefaultInstanceManager.newInstance(DefaultInstanceManager.java:<span class="number">159</span>)</span><br><span class="line">	at org.apache.jasper.servlet.JspServletWrapper.getServlet(JspServletWrapper.java:<span class="number">171</span>)</span><br><span class="line">	at org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:<span class="number">380</span>)</span><br><span class="line">	at org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:<span class="number">386</span>)</span><br><span class="line">	at org.apache.jasper.servlet.JspServlet.service(JspServlet.java:<span class="number">330</span>)</span><br><span class="line">	at javax.servlet.http.HttpServlet.service(HttpServlet.java:<span class="number">742</span>)</span><br><span class="line">	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:<span class="number">231</span>)</span><br><span class="line">	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:<span class="number">166</span>)</span><br><span class="line">	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:<span class="number">52</span>)</span><br><span class="line">	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:<span class="number">193</span>)</span><br><span class="line">	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:<span class="number">166</span>)</span><br><span class="line">	at org.apache.catalina.core.ApplicationDispatcher.invoke(ApplicationDispatcher.java:<span class="number">728</span>)</span><br><span class="line">	at org.apache.catalina.core.ApplicationDispatcher.processRequest(ApplicationDispatcher.java:<span class="number">470</span>)</span><br><span class="line">	at org.apache.catalina.core.ApplicationDispatcher.doForward(ApplicationDispatcher.java:</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-number">2019</span>-08-<span class="hljs-number">23</span> <span class="hljs-number">14</span>:<span class="hljs-number">40</span>:<span class="hljs-number">47</span>,<span class="hljs-number">835</span> [http-nio-<span class="hljs-number">9090</span>-exec-<span class="hljs-number">8</span>] ERROR o.a.catalina.core.ContainerBase.[Tomcat].[localhost].[/].[dispatcherServlet] - Servlet.service() <span class="hljs-keyword">for</span> servlet [dispatcherServlet] in context with path [] threw exception [java.lang.ClassNotFoundException: org.apache.jsp.WEB_002dINF.views.report.report_005fmain_jsp] with root cause<br>java.lang.ClassNotFoundException: org.apache.jsp.WEB_002dINF.views.report.report_005fmain_jsp<br>	at java.net.URLClassLoader.findClass(URLClassLoader.java:<span class="hljs-number">381</span>)<br>	at org.apache.jasper.servlet.JasperLoader.loadClass(JasperLoader.java:<span class="hljs-number">129</span>)<br>	at org.apache.jasper.servlet.JasperLoader.loadClass(JasperLoader.java:<span class="hljs-number">60</span>)<br>	at org.apache.catalina.core.DefaultInstanceManager.newInstance(DefaultInstanceManager.java:<span class="hljs-number">159</span>)<br>	at org.apache.jasper.servlet.JspServletWrapper.getServlet(JspServletWrapper.java:<span class="hljs-number">171</span>)<br>	at org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:<span class="hljs-number">380</span>)<br>	at org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:<span class="hljs-number">386</span>)<br>	at org.apache.jasper.servlet.JspServlet.service(JspServlet.java:<span class="hljs-number">330</span>)<br>	at javax.servlet.http.HttpServlet.service(HttpServlet.java:<span class="hljs-number">742</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:<span class="hljs-number">231</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:<span class="hljs-number">166</span>)<br>	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:<span class="hljs-number">52</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:<span class="hljs-number">193</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:<span class="hljs-number">166</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.invoke(ApplicationDispatcher.java:<span class="hljs-number">728</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.processRequest(ApplicationDispatcher.java:<span class="hljs-number">470</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.doForward(ApplicationDispatcher.java:<br><br></code></pre></td></tr></table></figure>
 
 <p>这是一个ClassNotFoundException，通过错误信息我们可以在搜索引擎上找到一堆解答，甚至在Spring Boot的Github上都有类似的情况(<a target="_blank" rel="noopener" href="https://github.com/spring-projects/spring-boot/issues/5009)%E3%80%82">https://github.com/spring-projects/spring-boot/issues/5009)。</a></p>
 <p>结果总结下来就是：</p>
@@ -154,19 +329,19 @@
 </ol>
 <hr>
 <p>推导法是比较直观也是可以比较快速的发现问题的方法，但是在我们这个案例中我们发现错误堆栈中的URLClassLoader并不是问题发生的第一现场，真正的第一现场在java自己的包中，对我们逐步跟踪问题造成了困难。</p>
-<img src="classloader.png"/>
+<img src="classloader.png" srcset="/img/loading.gif" lazyload/>
 
 <hr>
 <p>鉴于此我们选择分析法作为我们解决问题的突破口。当然还有一个重要条件支持我们采用分析法解决问题，那就是在我们这个案例中我们存在OK和NOK两种情况，在每一个分析的节点我们都可以引入两种情况进行对比。</p>
 <p>在开始之前，由于要每一步比较差异，我们需要配置Eclipse的远程调试。传送门：(<a target="_blank" rel="noopener" href="https://www.cnblogs.com/east7/p/10285955.html">https://www.cnblogs.com/east7/p/10285955.html</a>)</p>
 <p>首先我们梳理一下Tomcat解析JSP的流程，由于我们基于类来描述流程，所以先罗列一下涉及的类以及主要的方法：</p>
-<img src="jsp-class.png"/>
+<img src="jsp-class.png" srcset="/img/loading.gif" lazyload/>
 
 <p>JspServlet类是主入口，接收jsp请求；</p>
 <p>JspRuntimeContext通过add和get方法来维持一个ServletWrapper的缓存；</p>
 <p>从JspServlet往后是加载的主要类，而从Compiler往后的类是编译用到的类。</p>
 <p>在大致了解了内部类结构后我们可以来看看Jsp加载的流程了，</p>
-<img src="jsp-flow.png"/>
+<img src="jsp-flow.png" srcset="/img/loading.gif" lazyload/>
 
 <p>从图中可以看出我们的报错点在获取Servlet的class这一步，那么我们从页面访问的步骤一步步比较OK和NOK表现的差异。</p>
 <ol>
@@ -175,26 +350,26 @@
 </li>
 <li><p>编译java文件</p>
 <p>我们注意到在Complier.class的generateJava这个方法中有一步是：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ctxt.checkOutputDir();</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">ctxt.checkOutputDir();<br></code></pre></td></tr></table></figure>
 
 <p>我们的重现恰恰是删除了ROOT目录，继续进去看代码</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">checkOutputDir</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (outputDir != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (!(<span class="keyword">new</span> <span class="title class_">File</span>(outputDir)).exists()) &#123;</span><br><span class="line">                makeOutputDir();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            createOutputDir();</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//由于一开始的outputDir为空会进入createOutputDir方法</span></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">File</span> <span class="variable">base</span> <span class="operator">=</span> options.getScratchDir();</span><br><span class="line">            baseUrl = base.toURI().toURL();</span><br><span class="line">            outputDir = base.getAbsolutePath() + File.separator + path +</span><br><span class="line">                    File.separator;</span><br><span class="line">            <span class="keyword">if</span> (!makeOutputDir()) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(Localizer.getMessage(<span class="string">&quot;jsp.error.outputfolder&quot;</span>));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (MalformedURLException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(Localizer.getMessage(<span class="string">&quot;jsp.error.outputfolder&quot;</span>), e);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">checkOutputDir</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">if</span> (outputDir != <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-keyword">if</span> (!(<span class="hljs-keyword">new</span> <span class="hljs-title class_">File</span>(outputDir)).exists()) &#123;<br>                makeOutputDir();<br>            &#125;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            createOutputDir();<br>        &#125;<br>&#125;<br><span class="hljs-comment">//由于一开始的outputDir为空会进入createOutputDir方法</span><br><span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">File</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> options.getScratchDir();<br>            baseUrl = base.toURI().toURL();<br>            outputDir = base.getAbsolutePath() + File.separator + path +<br>                    File.separator;<br>            <span class="hljs-keyword">if</span> (!makeOutputDir()) &#123;<br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(Localizer.getMessage(<span class="hljs-string">&quot;jsp.error.outputfolder&quot;</span>));<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (MalformedURLException e) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(Localizer.getMessage(<span class="hljs-string">&quot;jsp.error.outputfolder&quot;</span>), e);<br>        &#125;<br><br></code></pre></td></tr></table></figure>
 
 <p>这里对baseUrl进行赋值，联想到之前看到一个关于UrlClassPath加载资源的解读，ucp类会根据baseUrl来加载不同的loader进行资源加载。通过debug我们发现这个地方的baseUrl在OK和NOK两种情况下确实存在差异。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">NOK：</span><br><span class="line">baseURL = file:/tmp/tomcat.2612162063177545213.9090/work/Tomcat/localhost/ROOT</span><br><span class="line">OK：</span><br><span class="line">baseURL = file:/tmp/tomcat.2612162063177545213.9090/work/Tomcat/localhost/ROOT/</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs shell">NOK：<br>baseURL = file:/tmp/tomcat.2612162063177545213.9090/work/Tomcat/localhost/ROOT<br>OK：<br>baseURL = file:/tmp/tomcat.2612162063177545213.9090/work/Tomcat/localhost/ROOT/<br><br></code></pre></td></tr></table></figure>
 
 <p>对照ucp的代码</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Loader <span class="title function_">getLoader</span><span class="params">(<span class="keyword">final</span> URL url)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> java.security.AccessController.doPrivileged(</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">java</span>.security.PrivilegedExceptionAction&lt;Loader&gt;() &#123;</span><br><span class="line">                <span class="keyword">public</span> Loader <span class="title function_">run</span><span class="params">()</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">                    <span class="type">String</span> <span class="variable">file</span> <span class="operator">=</span> url.getFile();</span><br><span class="line">                    <span class="keyword">if</span> (file != <span class="literal">null</span> &amp;&amp; file.endsWith(<span class="string">&quot;/&quot;</span>)) &#123;</span><br><span class="line">                        <span class="keyword">if</span> (<span class="string">&quot;file&quot;</span>.equals(url.getProtocol())) &#123;</span><br><span class="line">                            <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">FileLoader</span>(url);</span><br><span class="line">                        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                            <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Loader</span>(url);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">JarLoader</span>(url, jarHandler, lmap, acc);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;, acc);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (java.security.PrivilegedActionException pae) &#123;</span><br><span class="line">            <span class="keyword">throw</span> (IOException)pae.getException();</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> Loader <span class="hljs-title function_">getLoader</span><span class="hljs-params">(<span class="hljs-keyword">final</span> URL url)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">return</span> java.security.AccessController.doPrivileged(<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">java</span>.security.PrivilegedExceptionAction&lt;Loader&gt;() &#123;<br>                <span class="hljs-keyword">public</span> Loader <span class="hljs-title function_">run</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>                    <span class="hljs-type">String</span> <span class="hljs-variable">file</span> <span class="hljs-operator">=</span> url.getFile();<br>                    <span class="hljs-keyword">if</span> (file != <span class="hljs-literal">null</span> &amp;&amp; file.endsWith(<span class="hljs-string">&quot;/&quot;</span>)) &#123;<br>                        <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;file&quot;</span>.equals(url.getProtocol())) &#123;<br>                            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileLoader</span>(url);<br>                        &#125; <span class="hljs-keyword">else</span> &#123;<br>                            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Loader</span>(url);<br>                        &#125;<br>                    &#125; <span class="hljs-keyword">else</span> &#123;<br>                        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JarLoader</span>(url, jarHandler, lmap, acc);<br>                    &#125;<br>                &#125;<br>            &#125;, acc);<br>        &#125; <span class="hljs-keyword">catch</span> (java.security.PrivilegedActionException pae) &#123;<br>            <span class="hljs-keyword">throw</span> (IOException)pae.getException();<br>        &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
 
 <p>我们发现当出现”&#x2F;”的时候我们是通过fileLoader来加载资源，而没有”&#x2F;”的情况我们默认到jarLoader，用jarLoader去加载一个文件路径当然会返回ClassNotFound了。</p>
 </li>
 </ol>
 <hr>
 <p>至此我们终于将这个问题的来龙去脉理清楚了，那这一个“&#x2F;”的差异是怎么来的呢，回到那段代码片段：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">baseUrl = base.toURI().toURL();</span><br><span class="line">         outputDir = base.getAbsolutePath() + File.separator + path +</span><br><span class="line">                 File.separator;</span><br><span class="line">         <span class="keyword">if</span> (!makeOutputDir()) &#123;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java">baseUrl = base.toURI().toURL();<br>         outputDir = base.getAbsolutePath() + File.separator + path +<br>                 File.separator;<br>         <span class="hljs-keyword">if</span> (!makeOutputDir()) &#123;<br></code></pre></td></tr></table></figure>
 
 <p>OK和NOK的情况base是一样的，唯一的区别就是OK的情况文件目录都是存在的，而NOK的时候文件夹是没有的，是不是这种差异导致了一个”&#x2F;”的差异呢，还是看代码吧：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//base.toURI():</span></span><br><span class="line"><span class="keyword">public</span> URI <span class="title function_">toURI</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">File</span> <span class="variable">f</span> <span class="operator">=</span> getAbsoluteFile();</span><br><span class="line">            <span class="type">String</span> <span class="variable">sp</span> <span class="operator">=</span> slashify(f.getPath(), f.isDirectory());</span><br><span class="line">            <span class="keyword">if</span> (sp.startsWith(<span class="string">&quot;//&quot;</span>))</span><br><span class="line">                sp = <span class="string">&quot;//&quot;</span> + sp;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">URI</span>(<span class="string">&quot;file&quot;</span>, <span class="literal">null</span>, sp, <span class="literal">null</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (URISyntaxException x) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(x);         <span class="comment">// Can&#x27;t happen</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="comment">//Slashify():</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> String <span class="title function_">slashify</span><span class="params">(String path, <span class="type">boolean</span> isDirectory)</span> &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">p</span> <span class="operator">=</span> path;</span><br><span class="line">        <span class="keyword">if</span> (File.separatorChar != <span class="string">&#x27;/&#x27;</span>)</span><br><span class="line">            p = p.replace(File.separatorChar, <span class="string">&#x27;/&#x27;</span>);</span><br><span class="line">        <span class="keyword">if</span> (!p.startsWith(<span class="string">&quot;/&quot;</span>))</span><br><span class="line">            p = <span class="string">&quot;/&quot;</span> + p;</span><br><span class="line">        <span class="keyword">if</span> (!p.endsWith(<span class="string">&quot;/&quot;</span>) &amp;&amp; isDirectory)</span><br><span class="line">            p = p + <span class="string">&quot;/&quot;</span>;</span><br><span class="line">        <span class="keyword">return</span> p;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//base.toURI():</span><br><span class="hljs-keyword">public</span> URI <span class="hljs-title function_">toURI</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">File</span> <span class="hljs-variable">f</span> <span class="hljs-operator">=</span> getAbsoluteFile();<br>            <span class="hljs-type">String</span> <span class="hljs-variable">sp</span> <span class="hljs-operator">=</span> slashify(f.getPath(), f.isDirectory());<br>            <span class="hljs-keyword">if</span> (sp.startsWith(<span class="hljs-string">&quot;//&quot;</span>))<br>                sp = <span class="hljs-string">&quot;//&quot;</span> + sp;<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">URI</span>(<span class="hljs-string">&quot;file&quot;</span>, <span class="hljs-literal">null</span>, sp, <span class="hljs-literal">null</span>);<br>        &#125; <span class="hljs-keyword">catch</span> (URISyntaxException x) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(x);         <span class="hljs-comment">// Can&#x27;t happen</span><br>        &#125;<br>    &#125;<br><span class="hljs-comment">//Slashify():</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> String <span class="hljs-title function_">slashify</span><span class="hljs-params">(String path, <span class="hljs-type">boolean</span> isDirectory)</span> &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> path;<br>        <span class="hljs-keyword">if</span> (File.separatorChar != <span class="hljs-string">&#x27;/&#x27;</span>)<br>            p = p.replace(File.separatorChar, <span class="hljs-string">&#x27;/&#x27;</span>);<br>        <span class="hljs-keyword">if</span> (!p.startsWith(<span class="hljs-string">&quot;/&quot;</span>))<br>            p = <span class="hljs-string">&quot;/&quot;</span> + p;<br>        <span class="hljs-keyword">if</span> (!p.endsWith(<span class="hljs-string">&quot;/&quot;</span>) &amp;&amp; isDirectory)<br>            p = p + <span class="hljs-string">&quot;/&quot;</span>;<br>        <span class="hljs-keyword">return</span> p;<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>从上面的代码可以看出只有满足isDirectory的判断才会给URI加上”&#x2F;”，在我们NOK的情况下由于文件夹不存在isDirectory返回false不会加上结尾的”&#x2F;”，导致了baseURI的差异，并最终导致了ClassNotFoundException的生产血案。</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在这个案例中我们主要使用了经验法和分析法来定位问题，查找本源。</p>
@@ -203,347 +378,375 @@
 <p>参考材料：</p>
 <p><a target="_blank" rel="noopener" href="http://www.docjar.com/html/api/sun/misc/URLClassPath.java.html">http://www.docjar.com/html/api/sun/misc/URLClassPath.java.html</a></p>
 <p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/b8e331840961">https://www.jianshu.com/p/b8e331840961</a></p>
-  
-	</div>
-		<footer class="article-footer clearfix">
-<div class="article-catetags">
 
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/">技术总结</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/开发技术/">开发技术</a><a href="/tags/问题解决/">问题解决</a>
-  </div>
-
-</div>
-
-
-
-	<div class="article-share" id="share">
-	
-	  <div data-url="https://luischen.github.io/2019/08/27/%E4%B8%80%E4%B8%AASlash%E5%BC%95%E5%8F%91%E7%9A%84ClassNotFound%E8%A1%80%E6%A1%88/" data-title="一个Slash引发的ClassNotFound血案 | Next Station" data-tsina="" class="share clearfix">
-	  </div>
-	
-	</div>
-
-
-</footer>
-
-   	       
-	</article>
-	
-<nav class="article-nav clearfix">
- 
- <div class="prev" >
- <a href="/2020/03/13/为什么Java中的String设计成不可变的/" title="为什么Java中的String设计成不可变的">
-  <strong>上一篇：</strong><br/>
-  <span>
-  为什么Java中的String设计成不可变的</span>
-</a>
-</div>
-
-
-<div class="next">
-<a href="/2019/07/17/统计二进制1的代码解读/"  title="统计二进制1的代码解读">
- <strong>下一篇：</strong><br/> 
- <span>统计二进制1的代码解读
-</span>
-</a>
-</div>
-
-</nav>
-
-	
-
-
-
-</div>  
-      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
-
-  <div id="toc" class="toc-aside">
-  <strong class="toc-title">Contents</strong>
- 
- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E9%87%8D%E7%8E%B0"><span class="toc-number">1.</span> <span class="toc-text">问题重现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">问题分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li></ol>
- 
-  </div>
-
-<div id="asidepart">
-<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
-<aside class="clearfix">
-
-  
-
-
-  
-<div class="categorieslist">
-	<p class="asidetitle">Categories</p>
-		<ul>
-		
-		  
-			<li><a href="/categories/人生感悟/" title="人生感悟">人生感悟<sup>1</sup></a></li>
-		  
-		
-		  
-			<li><a href="/categories/技术总结/" title="技术总结">技术总结<sup>21</sup></a></li>
-		  
-		
-		</ul>
-</div>
-
-
-  
-  <div class="tagcloudlist">
-    <p class="asidetitle">Tag Cloud</p>
-    <div class="tagcloudlist clearfix">
-       <a href="/tags/Golang/" style="font-size: 10px;">Golang</a> <a href="/tags/InfluxDB/" style="font-size: 12.5px;">InfluxDB</a> <a href="/tags/Java/" style="font-size: 12.5px;">Java</a> <a href="/tags/%E5%89%8D%E7%AB%AF%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">前端技术</a> <a href="/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/" style="font-size: 12.5px;">可视化</a> <a href="/tags/%E5%B7%A5%E4%BD%9C%E5%8F%8D%E6%80%9D/" style="font-size: 10px;">工作反思</a> <a href="/tags/%E5%BA%94%E7%94%A8%E6%8A%80%E6%9C%AF/" style="font-size: 20px;">应用技术</a> <a href="/tags/%E5%BC%80%E5%8F%91%E6%8A%80%E6%9C%AF/" style="font-size: 15px;">开发技术</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 10px;">微服务</a> <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" style="font-size: 12.5px;">性能优化</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E6%8A%80%E6%9C%AF/" style="font-size: 15px;">数据技术</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86/" style="font-size: 12.5px;">数据采集</a> <a href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" style="font-size: 10px;">架构设计</a> <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 12.5px;">算法</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E9%9B%86%E6%88%90/" style="font-size: 10px;">系统集成</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/" style="font-size: 12.5px;">编程语言</a> <a href="/tags/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" style="font-size: 15px;">解决方案</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 17.5px;">设计模式</a> <a href="/tags/%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3/" style="font-size: 12.5px;">问题解决</a>
-    </div>
-  </div>
-
-
-  <div class="linkslist">
-  <p class="asidetitle">Links</p>
-    <ul>
-        
-          <li>
+                
+              </div>
             
-            	<a href="https://gitee.com/luischen" target="_blank" title="Gitee, My Code Space">Gitee, My Code Space</a>
-            
-          </li>
-        
-    </ul>
-</div>
-
-</aside>
-</div>
-    </div>
-    <footer><div id="footer" >
-	
-	<div class="line">
-		<span></span>
-		<div class="author"></div>
-	</div>
-	
-	
-	<section class="info">
-		<p> Hello ,This is Luis in Next-Station. <br/>
-			Join me on a journey of endless possibilities at the Next Station.</p>
-	</section>
-	 
-	<div class="social-font" class="clearfix">
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-	</div>
-			
-		
-
-		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2023 
-		
-		<a href="/about" target="_blank" title="Luis Chen">Luis Chen</a>
-		
-		
-		</p>
-</div>
-</footer>
-    <script src="/js/jquery-2.0.3.min.js"></script>
-<script src="/js/jquery.imagesloaded.min.js"></script>
-<script src="/js/gallery.js"></script>
-<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
-
-<script type="text/javascript">
-$(document).ready(function(){ 
-  $('.navbar').click(function(){
-    $('header nav').toggleClass('shownav');
-  });
-  var myWidth = 0;
-  function getSize(){
-    if( typeof( window.innerWidth ) == 'number' ) {
-      myWidth = window.innerWidth;
-    } else if( document.documentElement && document.documentElement.clientWidth) {
-      myWidth = document.documentElement.clientWidth;
-    };
-  };
-  var m = $('#main'),
-      a = $('#asidepart'),
-      c = $('.closeaside'),
-      o = $('.openaside');
-  c.click(function(){
-    a.addClass('fadeOut').css('display', 'none');
-    o.css('display', 'block').addClass('fadeIn');
-    m.addClass('moveMain');
-  });
-  o.click(function(){
-    o.css('display', 'none').removeClass('beforeFadeIn');
-    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
-    m.removeClass('moveMain');
-  });
-  $(window).scroll(function(){
-    o.css("top",Math.max(80,260-$(this).scrollTop()));
-  });
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
   
-  $(window).resize(function(){
-    getSize(); 
-    if (myWidth >= 1024) {
-      $('header nav').removeClass('shownav');
-    }else{
-      m.removeClass('moveMain');
-      a.css('display', 'block').removeClass('fadeOut');
-      o.css('display', 'none');
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
       
-      $('#toc.toc-aside').css('display', 'none');
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
         
+  <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" class="category-chain-item">技术总结</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%BC%80%E5%8F%91%E6%8A%80%E6%9C%AF/">#开发技术</a>
+      
+        <a href="/tags/%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3/">#问题解决</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>一个Slash引发的ClassNotFound血案</div>
+      <div>https://luischen.github.io/2019/08/27/一个Slash引发的ClassNotFound血案/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luis Chen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2019年8月27日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/03/13/%E4%B8%BA%E4%BB%80%E4%B9%88Java%E4%B8%AD%E7%9A%84String%E8%AE%BE%E8%AE%A1%E6%88%90%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%9A%84/" title="为什么Java中的String设计成不可变的">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">为什么Java中的String设计成不可变的</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/07/17/%E7%BB%9F%E8%AE%A1%E4%BA%8C%E8%BF%9B%E5%88%B61%E7%9A%84%E4%BB%A3%E7%A0%81%E8%A7%A3%E8%AF%BB/" title="统计二进制1的代码解读">
+                        <span class="hidden-mobile">统计二进制1的代码解读</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
     }
-  });
-});
-</script>
 
-<script type="text/javascript">
-$(document).ready(function(){ 
-  var ai = $('.article-content>iframe'),
-      ae = $('.article-content>embed'),
-      t  = $('#toc'),
-      ta = $('#toc.toc-aside'),
-      o  = $('.openaside'),
-      c  = $('.closeaside');
-  if(ai.length>0){
-    ai.wrap('<div class="video-container" />');
-  };
-  if(ae.length>0){
-   ae.wrap('<div class="video-container" />');
-  };
-  c.click(function(){
-    ta.css('display', 'block').addClass('fadeIn');
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
   });
-  o.click(function(){
-    ta.css('display', 'none');
-  });
-  $(window).scroll(function(){
-    ta.css("top",Math.max(140,320-$(this).scrollTop()));
-  });
-});
 </script>
 
 
-<script type="text/javascript">
-$(document).ready(function(){ 
-  var $this = $('.share'),
-      url = $this.attr('data-url'),
-      encodedUrl = encodeURIComponent(url),
-      title = $this.attr('data-title'),
-      tsina = $this.attr('data-tsina'),
-      description = $this.attr('description');
-  var html = [
-  '<div class="hoverqrcode clearfix"></div>',
-  '<a class="overlay" id="qrcode"></a>',
-  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
-  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
-  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
-  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
-  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
-  '<span title="Share to"></span>'
-  ].join('');
-  $this.append(html);
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
 
-  $('.hoverqrcode').hide();
+  <script>Fluid.plugins.codeWidget();</script>
 
-  var myWidth = 0;
-  function updatehoverqrcode(){
-    if( typeof( window.innerWidth ) == 'number' ) {
-      myWidth = window.innerWidth;
-    } else if( document.documentElement && document.documentElement.clientWidth) {
-      myWidth = document.documentElement.clientWidth;
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
     };
-    var qrsize = myWidth > 1024 ? 200:100;
-    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
-    var p = $('.article-share-qrcode').position();
-    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
-                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
-                          .qrcode(options);
-  };
-  $(window).resize(function(){
-    $('.hoverqrcode').hide();
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
   });
-  $('.article-share-qrcode').click(function(){
-    updatehoverqrcode();
-    $('.hoverqrcode').toggle();
-  });
-  $('.article-share-qrcode').hover(function(){}, function(){
-      $('.hoverqrcode').hide();
-  });
-});   
 </script>
 
 
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
-<script src="/fancybox/jquery.fancybox.pack.js"></script>
-<script type="text/javascript">
-$(document).ready(function(){ 
-  $('.article-content').each(function(i){
-    $(this).find('img').each(function(){
-      if ($(this).parent().hasClass('fancybox')) return;
-      var alt = this.alt;
-      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
-      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
-    });
-    $(this).find('.fancybox').each(function(){
-      $(this).attr('rel', 'article' + i);
-    });
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
   });
-  if($.fancybox){
-    $('.fancybox').fancybox();
-  }
-}); 
 </script>
 
 
+  <script>Fluid.plugins.imageCaption();</script>
 
-<!-- Analytics Begin -->
-
-
-
+  <script  src="/js/local-search.js" ></script>
 
 
-<!-- Analytics End -->
-
-<!-- Totop Begin -->
-
-	<div id="totop">
-	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
-	</div>
-	<script src="/js/totop.js"></script>
-
-<!-- Totop End -->
-
-<!-- MathJax Begin -->
-<!-- mathjax config similar to math.stackexchange -->
 
 
-<!-- MathJax End -->
 
-<!-- Tiny_search Begin -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
 
-<!-- Tiny_search End -->
 
-  </body>
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
 </html>
