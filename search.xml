@@ -283,6 +283,150 @@
 ]]></content>
   </entry>
   <entry>
+    <title>一个Slash引发的ClassNotFound血案</title>
+    <url>/2019/08/27/%E4%B8%80%E4%B8%AASlash%E5%BC%95%E5%8F%91%E7%9A%84ClassNotFound%E8%A1%80%E6%A1%88/</url>
+    <content><![CDATA[<p>公司开发了一款Web应用，开发架构基于Spring Boot，通过jar包的方式发布到服务器并通过命令行运行在内置的Tomcat上。上线将近一年，一切都是那么的风平浪静，然而一切的平静被上周的一次现场算法回访打破。</p>
+<p>我们的数据分析人员本意只是想查看一下历史数据来确认算法的表现符合预期，结果发现历史数据查询页面怎么点都没有反应，而其他页面都是正常的，服务重启后一切恢复正常。</p>
+<h2 id="问题重现"><a href="#问题重现" class="headerlink" title="问题重现"></a>问题重现</h2><p>虽然问题通过服务重启后成功解决，但是出错的原因没有定位到也就意味着再次出错的可能性依然存在。</p>
+<span id="more"></span>
+
+<p>分析问题最直观的方式就是从错误出发，通过错误信息来反向推导错误发生的场景。在这个案例中我们查看了浏览器控制台和后台错误日志，最终获取了准确的错误信息：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-number">2019</span>-08-<span class="hljs-number">23</span> <span class="hljs-number">14</span>:<span class="hljs-number">40</span>:<span class="hljs-number">47</span>,<span class="hljs-number">835</span> [http-nio-<span class="hljs-number">9090</span>-exec-<span class="hljs-number">8</span>] ERROR o.a.catalina.core.ContainerBase.[Tomcat].[localhost].[/].[dispatcherServlet] - Servlet.service() <span class="hljs-keyword">for</span> servlet [dispatcherServlet] in context with path [] threw exception [java.lang.ClassNotFoundException: org.apache.jsp.WEB_002dINF.views.report.report_005fmain_jsp] with root cause<br>java.lang.ClassNotFoundException: org.apache.jsp.WEB_002dINF.views.report.report_005fmain_jsp<br>	at java.net.URLClassLoader.findClass(URLClassLoader.java:<span class="hljs-number">381</span>)<br>	at org.apache.jasper.servlet.JasperLoader.loadClass(JasperLoader.java:<span class="hljs-number">129</span>)<br>	at org.apache.jasper.servlet.JasperLoader.loadClass(JasperLoader.java:<span class="hljs-number">60</span>)<br>	at org.apache.catalina.core.DefaultInstanceManager.newInstance(DefaultInstanceManager.java:<span class="hljs-number">159</span>)<br>	at org.apache.jasper.servlet.JspServletWrapper.getServlet(JspServletWrapper.java:<span class="hljs-number">171</span>)<br>	at org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:<span class="hljs-number">380</span>)<br>	at org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:<span class="hljs-number">386</span>)<br>	at org.apache.jasper.servlet.JspServlet.service(JspServlet.java:<span class="hljs-number">330</span>)<br>	at javax.servlet.http.HttpServlet.service(HttpServlet.java:<span class="hljs-number">742</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:<span class="hljs-number">231</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:<span class="hljs-number">166</span>)<br>	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:<span class="hljs-number">52</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:<span class="hljs-number">193</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:<span class="hljs-number">166</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.invoke(ApplicationDispatcher.java:<span class="hljs-number">728</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.processRequest(ApplicationDispatcher.java:<span class="hljs-number">470</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.doForward(ApplicationDispatcher.java:<br><br></code></pre></td></tr></table></figure>
+
+<p>这是一个ClassNotFoundException，通过错误信息我们可以在搜索引擎上找到一堆解答，甚至在Spring Boot的Github上都有类似的情况(<a href="https://github.com/spring-projects/spring-boot/issues/5009)%E3%80%82">https://github.com/spring-projects/spring-boot/issues/5009)。</a></p>
+<p>结果总结下来就是：</p>
+<blockquote>
+<p>Spring Boot内置的Tomcat会在系统根目录的&#x2F;tmp下创建Tomcat开头的临时目录，tmp目录的定时清理会导致部分文件的class文件找不到，解决办法是指定一个work目录不要使用默认的tmp目录。</p>
+</blockquote>
+<p>听起来很有道理，官方都这么说了那照着做就行了呗。</p>
+<p>然而作为一个好奇心爆棚的程序员，这样的解释显得苍白而无力，但是这个解释倒是给我们的重现提供了很好的便利，毕竟只有充分重现了这个问题才能更好的去探究深层次的原因。 </p>
+<p>于是在官方解释的指导下，我们进行了多次重现的尝试，最终将问题范围缩小如下：</p>
+<p><span style="color:red">在Tomcat启动后将tmp下的ROOT目录删除，访问的第一个页面会出现无法访问的情况，后台出现ClassNotFoundException，之后再访问其他页面都是正常。</span></p>
+<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><p>在进行问题分析的时候，我们一般会使用三种方式</p>
+<ul>
+<li><p>经验法</p>
+<p>结合自身的经验来猜测问题发生的可能原因，然后通过验证来定位问题具体原因</p>
+</li>
+<li><p>推导法</p>
+<p>从问题的发生点开始倒推，沿着问题发生的路径逐步接近问题的根源</p>
+</li>
+<li><p>分析法</p>
+<p>分析整个流程中的每一个节点，找到和问题可能相关的节点逐个验证从而找到导致问题的节点</p>
+</li>
+</ul>
+<hr>
+<p>经验法往往是遇到问题时第一个使用的方法，因为面对问题时冲在前面的往往是我们的直觉。在这个问题中我做了以下猜测，并逐一验证。</p>
+<ol>
+<li><p>class文件损坏</p>
+<p>做出这个假设的依据是，在同一个目录下存在两个页面的Class文件，一个可以访问一个不可以访问。</p>
+<p>验证方法也很简单，首先重启服务正常访问页面A获取到正常状态下的A.java和A.class文件；重启服务器后删除ROOT目录，再访问页面A触发错误，将目录下的java和class文件替换成正常状态的问题；再次访问页面，依然报错。</p>
+<p>至此我们推翻了我们关于Class文件损坏的假设。</p>
+</li>
+<li><p>dev-tool导致classloader不一致</p>
+<p>做出这个假设的依据是我们之前遇到的一个dev-tool的问题，Spring Boot在引入了dev-tool后会进行热加载，这时候由于jar包加载和class加载使用了不同的ClassLoader会出现ClassNotFoundException。</p>
+<p>我们之前解决这个问题的方法是去掉dev-tool，同样在这里我们也可以去掉dev-tool再走一遍重现步骤，发现问题依然存在。</p>
+<p>至此我们排除了Dev-tool导致ClassLoader不一致的假设。</p>
+</li>
+<li><p>class文件时间戳</p>
+<p>在我们查看正常文件和异常文件差异的时候发现，正常文件的时间戳和jar包中的jsp时间戳一致，而异常文件的时间戳是当前时间，那会不会是因为时间戳不一致导致的呢。</p>
+<p>为了验证这个假设我们从两方面入手a) 调整正常文件的时间戳到当前时间，结果正常文件依然正常 b) 调整异常文件的时间戳为jsp的时间，结果异常文件依然无法访问。</p>
+<p>于是我们也排除了Class文件时间戳的假设。</p>
+</li>
+</ol>
+<hr>
+<p>推导法是比较直观也是可以比较快速的发现问题的方法，但是在我们这个案例中我们发现错误堆栈中的URLClassLoader并不是问题发生的第一现场，真正的第一现场在java自己的包中，对我们逐步跟踪问题造成了困难。</p>
+<img src="classloader.png"/>
+
+<hr>
+<p>鉴于此我们选择分析法作为我们解决问题的突破口。当然还有一个重要条件支持我们采用分析法解决问题，那就是在我们这个案例中我们存在OK和NOK两种情况，在每一个分析的节点我们都可以引入两种情况进行对比。</p>
+<p>在开始之前，由于要每一步比较差异，我们需要配置Eclipse的远程调试。传送门：(<a href="https://www.cnblogs.com/east7/p/10285955.html">https://www.cnblogs.com/east7/p/10285955.html</a>)</p>
+<p>首先我们梳理一下Tomcat解析JSP的流程，由于我们基于类来描述流程，所以先罗列一下涉及的类以及主要的方法：</p>
+<img src="jsp-class.png"/>
+
+<p>JspServlet类是主入口，接收jsp请求；</p>
+<p>JspRuntimeContext通过add和get方法来维持一个ServletWrapper的缓存；</p>
+<p>从JspServlet往后是加载的主要类，而从Compiler往后的类是编译用到的类。</p>
+<p>在大致了解了内部类结构后我们可以来看看Jsp加载的流程了，</p>
+<img src="jsp-flow.png"/>
+
+<p>从图中可以看出我们的报错点在获取Servlet的class这一步，那么我们从页面访问的步骤一步步比较OK和NOK表现的差异。</p>
+<ol>
+<li><p>获取ServletWrapper</p>
+<p>这一步的作用是为每一个Jsp页面构建一个代理并缓存在JspRuntimeContext中，这样每次访问页面直接获取代理即可。从调试的结果看，构建wrapper的每个参数都是一样，而构建的wrapper结果也是一致的。</p>
+</li>
+<li><p>编译java文件</p>
+<p>我们注意到在Complier.class的generateJava这个方法中有一步是：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">ctxt.checkOutputDir();<br></code></pre></td></tr></table></figure>
+
+<p>我们的重现恰恰是删除了ROOT目录，继续进去看代码</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">checkOutputDir</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">if</span> (outputDir != <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-keyword">if</span> (!(<span class="hljs-keyword">new</span> <span class="hljs-title class_">File</span>(outputDir)).exists()) &#123;<br>                makeOutputDir();<br>            &#125;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            createOutputDir();<br>        &#125;<br>&#125;<br><span class="hljs-comment">//由于一开始的outputDir为空会进入createOutputDir方法</span><br><span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">File</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> options.getScratchDir();<br>            baseUrl = base.toURI().toURL();<br>            outputDir = base.getAbsolutePath() + File.separator + path +<br>                    File.separator;<br>            <span class="hljs-keyword">if</span> (!makeOutputDir()) &#123;<br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(Localizer.getMessage(<span class="hljs-string">&quot;jsp.error.outputfolder&quot;</span>));<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (MalformedURLException e) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(Localizer.getMessage(<span class="hljs-string">&quot;jsp.error.outputfolder&quot;</span>), e);<br>        &#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>这里对baseUrl进行赋值，联想到之前看到一个关于UrlClassPath加载资源的解读，ucp类会根据baseUrl来加载不同的loader进行资源加载。通过debug我们发现这个地方的baseUrl在OK和NOK两种情况下确实存在差异。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><code class="hljs shell">NOK：<br>baseURL = file:/tmp/tomcat.2612162063177545213.9090/work/Tomcat/localhost/ROOT<br>OK：<br>baseURL = file:/tmp/tomcat.2612162063177545213.9090/work/Tomcat/localhost/ROOT/<br><br></code></pre></td></tr></table></figure>
+
+<p>对照ucp的代码</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> Loader <span class="hljs-title function_">getLoader</span><span class="hljs-params">(<span class="hljs-keyword">final</span> URL url)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">return</span> java.security.AccessController.doPrivileged(<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">java</span>.security.PrivilegedExceptionAction&lt;Loader&gt;() &#123;<br>                <span class="hljs-keyword">public</span> Loader <span class="hljs-title function_">run</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>                    <span class="hljs-type">String</span> <span class="hljs-variable">file</span> <span class="hljs-operator">=</span> url.getFile();<br>                    <span class="hljs-keyword">if</span> (file != <span class="hljs-literal">null</span> &amp;&amp; file.endsWith(<span class="hljs-string">&quot;/&quot;</span>)) &#123;<br>                        <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;file&quot;</span>.equals(url.getProtocol())) &#123;<br>                            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileLoader</span>(url);<br>                        &#125; <span class="hljs-keyword">else</span> &#123;<br>                            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Loader</span>(url);<br>                        &#125;<br>                    &#125; <span class="hljs-keyword">else</span> &#123;<br>                        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JarLoader</span>(url, jarHandler, lmap, acc);<br>                    &#125;<br>                &#125;<br>            &#125;, acc);<br>        &#125; <span class="hljs-keyword">catch</span> (java.security.PrivilegedActionException pae) &#123;<br>            <span class="hljs-keyword">throw</span> (IOException)pae.getException();<br>        &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>我们发现当出现”&#x2F;”的时候我们是通过fileLoader来加载资源，而没有”&#x2F;”的情况我们默认到jarLoader，用jarLoader去加载一个文件路径当然会返回ClassNotFound了。</p>
+</li>
+</ol>
+<hr>
+<p>至此我们终于将这个问题的来龙去脉理清楚了，那这一个“&#x2F;”的差异是怎么来的呢，回到那段代码片段：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">baseUrl = base.toURI().toURL();<br>         outputDir = base.getAbsolutePath() + File.separator + path +<br>                 File.separator;<br>         <span class="hljs-keyword">if</span> (!makeOutputDir()) &#123;<br></code></pre></td></tr></table></figure>
+
+<p>OK和NOK的情况base是一样的，唯一的区别就是OK的情况文件目录都是存在的，而NOK的时候文件夹是没有的，是不是这种差异导致了一个”&#x2F;”的差异呢，还是看代码吧：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//base.toURI():</span><br><span class="hljs-keyword">public</span> URI <span class="hljs-title function_">toURI</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">File</span> <span class="hljs-variable">f</span> <span class="hljs-operator">=</span> getAbsoluteFile();<br>            <span class="hljs-type">String</span> <span class="hljs-variable">sp</span> <span class="hljs-operator">=</span> slashify(f.getPath(), f.isDirectory());<br>            <span class="hljs-keyword">if</span> (sp.startsWith(<span class="hljs-string">&quot;//&quot;</span>))<br>                sp = <span class="hljs-string">&quot;//&quot;</span> + sp;<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">URI</span>(<span class="hljs-string">&quot;file&quot;</span>, <span class="hljs-literal">null</span>, sp, <span class="hljs-literal">null</span>);<br>        &#125; <span class="hljs-keyword">catch</span> (URISyntaxException x) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(x);         <span class="hljs-comment">// Can&#x27;t happen</span><br>        &#125;<br>    &#125;<br><span class="hljs-comment">//Slashify():</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> String <span class="hljs-title function_">slashify</span><span class="hljs-params">(String path, <span class="hljs-type">boolean</span> isDirectory)</span> &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> path;<br>        <span class="hljs-keyword">if</span> (File.separatorChar != <span class="hljs-string">&#x27;/&#x27;</span>)<br>            p = p.replace(File.separatorChar, <span class="hljs-string">&#x27;/&#x27;</span>);<br>        <span class="hljs-keyword">if</span> (!p.startsWith(<span class="hljs-string">&quot;/&quot;</span>))<br>            p = <span class="hljs-string">&quot;/&quot;</span> + p;<br>        <span class="hljs-keyword">if</span> (!p.endsWith(<span class="hljs-string">&quot;/&quot;</span>) &amp;&amp; isDirectory)<br>            p = p + <span class="hljs-string">&quot;/&quot;</span>;<br>        <span class="hljs-keyword">return</span> p;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>从上面的代码可以看出只有满足isDirectory的判断才会给URI加上”&#x2F;”，在我们NOK的情况下由于文件夹不存在isDirectory返回false不会加上结尾的”&#x2F;”，导致了baseURI的差异，并最终导致了ClassNotFoundException的生产血案。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在这个案例中我们主要使用了经验法和分析法来定位问题，查找本源。</p>
+<p>在经验分析的过程中我们遇到了阻碍，转而通过分析法分解了Tomcat对于Jsp请求的处理流程，在分析Jsp编译过程时发现会对baseURI进行赋值，结合我们已有的对URLClassLoader的加载过程的理解，于是我们对于baseURI的处理进行了着重分析。最终发现由于baseURI赋值时系统环境的差异导致了生成的baseURI产生了一个”&#x2F;”的差异，而这一个差异又导致资源加载的加载器选择差异，最终导致不合适的加载器加载不到资源的错误。</p>
+<p>在问题的解决上我们还是沿用官方的说法，指定一个tmp url用来存放tomcat的临时文件，避免被删除。</p>
+<p>参考材料：</p>
+<p><a href="http://www.docjar.com/html/api/sun/misc/URLClassPath.java.html">http://www.docjar.com/html/api/sun/misc/URLClassPath.java.html</a></p>
+<p><a href="https://www.jianshu.com/p/b8e331840961">https://www.jianshu.com/p/b8e331840961</a></p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>开发技术</tag>
+        <tag>问题解决</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>为什么Java中的String设计成不可变的</title>
+    <url>/2020/03/13/%E4%B8%BA%E4%BB%80%E4%B9%88Java%E4%B8%AD%E7%9A%84String%E8%AE%BE%E8%AE%A1%E6%88%90%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%9A%84/</url>
+    <content><![CDATA[<p>原文出处：<a href="https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/">https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/</a></p>
+<p>在Java中String类是不可变的(final)。简单来说，一个不可变的类就意味着他的实例是不可修改的，实例的所有信息都是在实例创建的时候被初始化并且不可被修改。不可变类的设计有很多优点。这篇博文主要从内存，同步和数据结构的角度来具体说明这种不可变的概念。</p>
+<span id="more"></span>
+
+<h2 id="String-Pool-的需要"><a href="#String-Pool-的需要" class="headerlink" title="String Pool 的需要"></a>String Pool 的需要</h2><p>String Pool（String intern pool）是在方法区的一块特殊存储区域。当一个String被创建时如果发现当前String已经存在于String Pool，则会返回一个已存在String的引用而不会新建一个对象。以下代码只会创建一个String对象在堆内存中：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">String</span> <span class="hljs-variable">string1</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;abcd&quot;</span>;<br><span class="hljs-type">String</span> <span class="hljs-variable">string2</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;abcd&quot;</span>;<br></code></pre></td></tr></table></figure>
+
+<p>下图是创建的过程：</p>
+<img src="string-create.png" />
+
+<p>假设一个String是可变的，改变了一个引用指向的String会导致其他引用得到错误的值。</p>
+<h2 id="缓存-Hash-Code"><a href="#缓存-Hash-Code" class="headerlink" title="缓存 Hash Code"></a>缓存 Hash Code</h2><p>在Java中，对于String的Hash Code使用是非常频繁的，例如在HashMap或HashSet中。将String设计成不可变可以保证他的Hash Code始终一致，这样Hash Code就可以被缓存并且不用担心变化。这就意味着，不需要在每次使用String的时候都去计算他的Hash Code，这也使得程序运行更加高效。</p>
+<h2 id="简化使用"><a href="#简化使用" class="headerlink" title="简化使用"></a>简化使用</h2><p>为了更加详细的阐述，我们考虑以下程序：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">HashSet&lt;String&gt; set = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashSet</span>&lt;String&gt;();<br>set.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(<span class="hljs-string">&quot;a&quot;</span>));<br>set.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(<span class="hljs-string">&quot;b&quot;</span>));<br>set.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(<span class="hljs-string">&quot;c&quot;</span>));<br> <br><span class="hljs-keyword">for</span>(String a: set)&#123;<br>	a.value = <span class="hljs-string">&quot;a&quot;</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在这个例子中，如果String是可变的，那么就会违背set的设计初衷（set包含不重复的元素）。当然上面的例子只是为了论证，实际上String类中没有value这个字段。我们在使用set的时候同样要注意这个问题，如果set中的元素会发生变化，那么就有可能违背set的不重复设定。</p>
+<h2 id="安全"><a href="#安全" class="headerlink" title="安全"></a>安全</h2><p>String在很多Java类中被广泛用作参数，例如网络连接，文件打开等。假设String是可变的，一个连接或者一个文件就可能被改变，这会导致严重的安全隐患。某个方法以为正在连接到一个机器，实际并没有。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">boolean</span> <span class="hljs-title function_">connect</span><span class="hljs-params">(String s)</span>&#123;<br>    <span class="hljs-keyword">if</span> (!isSecure(s)) &#123; <br>		<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SecurityException</span>(); <br>	&#125;<br>    <span class="hljs-comment">//here will cause problem, if s is changed before this by using other references.    </span><br>    causeProblem(s);<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>因为不可变对象不能被改变，他们还可以在多线程中被自由的共享，这就消除了对象同步的需求。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总的来说，String被设计成不可变的出发点是效率和安全。这也是不可变类在很多情况下被优先使用的原因。</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>编程语言</tag>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>一次性能事故的处理和总结</title>
     <url>/2019/07/12/%E4%B8%80%E6%AC%A1%E6%80%A7%E8%83%BD%E4%BA%8B%E6%95%85%E7%9A%84%E5%A4%84%E7%90%86%E5%92%8C%E6%80%BB%E7%BB%93/</url>
     <content><![CDATA[<p>前几天做了一个工况统计的功能，查询最近7天的数据然后分析数据的分布。</p>
@@ -428,41 +572,8 @@
         <category>技术总结</category>
       </categories>
       <tags>
-        <tag>性能优化</tag>
         <tag>问题解决</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>为什么Java中的String设计成不可变的</title>
-    <url>/2020/03/13/%E4%B8%BA%E4%BB%80%E4%B9%88Java%E4%B8%AD%E7%9A%84String%E8%AE%BE%E8%AE%A1%E6%88%90%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%9A%84/</url>
-    <content><![CDATA[<p>原文出处：<a href="https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/">https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/</a></p>
-<p>在Java中String类是不可变的(final)。简单来说，一个不可变的类就意味着他的实例是不可修改的，实例的所有信息都是在实例创建的时候被初始化并且不可被修改。不可变类的设计有很多优点。这篇博文主要从内存，同步和数据结构的角度来具体说明这种不可变的概念。</p>
-<span id="more"></span>
-
-<h2 id="String-Pool-的需要"><a href="#String-Pool-的需要" class="headerlink" title="String Pool 的需要"></a>String Pool 的需要</h2><p>String Pool（String intern pool）是在方法区的一块特殊存储区域。当一个String被创建时如果发现当前String已经存在于String Pool，则会返回一个已存在String的引用而不会新建一个对象。以下代码只会创建一个String对象在堆内存中：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">String</span> <span class="hljs-variable">string1</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;abcd&quot;</span>;<br><span class="hljs-type">String</span> <span class="hljs-variable">string2</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;abcd&quot;</span>;<br></code></pre></td></tr></table></figure>
-
-<p>下图是创建的过程：</p>
-<img src="string-create.png" />
-
-<p>假设一个String是可变的，改变了一个引用指向的String会导致其他引用得到错误的值。</p>
-<h2 id="缓存-Hash-Code"><a href="#缓存-Hash-Code" class="headerlink" title="缓存 Hash Code"></a>缓存 Hash Code</h2><p>在Java中，对于String的Hash Code使用是非常频繁的，例如在HashMap或HashSet中。将String设计成不可变可以保证他的Hash Code始终一致，这样Hash Code就可以被缓存并且不用担心变化。这就意味着，不需要在每次使用String的时候都去计算他的Hash Code，这也使得程序运行更加高效。</p>
-<h2 id="简化使用"><a href="#简化使用" class="headerlink" title="简化使用"></a>简化使用</h2><p>为了更加详细的阐述，我们考虑以下程序：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">HashSet&lt;String&gt; set = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashSet</span>&lt;String&gt;();<br>set.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(<span class="hljs-string">&quot;a&quot;</span>));<br>set.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(<span class="hljs-string">&quot;b&quot;</span>));<br>set.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(<span class="hljs-string">&quot;c&quot;</span>));<br> <br><span class="hljs-keyword">for</span>(String a: set)&#123;<br>	a.value = <span class="hljs-string">&quot;a&quot;</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>在这个例子中，如果String是可变的，那么就会违背set的设计初衷（set包含不重复的元素）。当然上面的例子只是为了论证，实际上String类中没有value这个字段。我们在使用set的时候同样要注意这个问题，如果set中的元素会发生变化，那么就有可能违背set的不重复设定。</p>
-<h2 id="安全"><a href="#安全" class="headerlink" title="安全"></a>安全</h2><p>String在很多Java类中被广泛用作参数，例如网络连接，文件打开等。假设String是可变的，一个连接或者一个文件就可能被改变，这会导致严重的安全隐患。某个方法以为正在连接到一个机器，实际并没有。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">boolean</span> <span class="hljs-title function_">connect</span><span class="hljs-params">(String s)</span>&#123;<br>    <span class="hljs-keyword">if</span> (!isSecure(s)) &#123; <br>		<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SecurityException</span>(); <br>	&#125;<br>    <span class="hljs-comment">//here will cause problem, if s is changed before this by using other references.    </span><br>    causeProblem(s);<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>因为不可变对象不能被改变，他们还可以在多线程中被自由的共享，这就消除了对象同步的需求。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总的来说，String被设计成不可变的出发点是效率和安全。这也是不可变类在很多情况下被优先使用的原因。</p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>编程语言</tag>
-        <tag>Java</tag>
+        <tag>性能优化</tag>
       </tags>
   </entry>
   <entry>
@@ -873,117 +984,6 @@
       </categories>
       <tags>
         <tag>应用技术</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>一个Slash引发的ClassNotFound血案</title>
-    <url>/2019/08/27/%E4%B8%80%E4%B8%AASlash%E5%BC%95%E5%8F%91%E7%9A%84ClassNotFound%E8%A1%80%E6%A1%88/</url>
-    <content><![CDATA[<p>公司开发了一款Web应用，开发架构基于Spring Boot，通过jar包的方式发布到服务器并通过命令行运行在内置的Tomcat上。上线将近一年，一切都是那么的风平浪静，然而一切的平静被上周的一次现场算法回访打破。</p>
-<p>我们的数据分析人员本意只是想查看一下历史数据来确认算法的表现符合预期，结果发现历史数据查询页面怎么点都没有反应，而其他页面都是正常的，服务重启后一切恢复正常。</p>
-<h2 id="问题重现"><a href="#问题重现" class="headerlink" title="问题重现"></a>问题重现</h2><p>虽然问题通过服务重启后成功解决，但是出错的原因没有定位到也就意味着再次出错的可能性依然存在。</p>
-<span id="more"></span>
-
-<p>分析问题最直观的方式就是从错误出发，通过错误信息来反向推导错误发生的场景。在这个案例中我们查看了浏览器控制台和后台错误日志，最终获取了准确的错误信息：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-number">2019</span>-08-<span class="hljs-number">23</span> <span class="hljs-number">14</span>:<span class="hljs-number">40</span>:<span class="hljs-number">47</span>,<span class="hljs-number">835</span> [http-nio-<span class="hljs-number">9090</span>-exec-<span class="hljs-number">8</span>] ERROR o.a.catalina.core.ContainerBase.[Tomcat].[localhost].[/].[dispatcherServlet] - Servlet.service() <span class="hljs-keyword">for</span> servlet [dispatcherServlet] in context with path [] threw exception [java.lang.ClassNotFoundException: org.apache.jsp.WEB_002dINF.views.report.report_005fmain_jsp] with root cause<br>java.lang.ClassNotFoundException: org.apache.jsp.WEB_002dINF.views.report.report_005fmain_jsp<br>	at java.net.URLClassLoader.findClass(URLClassLoader.java:<span class="hljs-number">381</span>)<br>	at org.apache.jasper.servlet.JasperLoader.loadClass(JasperLoader.java:<span class="hljs-number">129</span>)<br>	at org.apache.jasper.servlet.JasperLoader.loadClass(JasperLoader.java:<span class="hljs-number">60</span>)<br>	at org.apache.catalina.core.DefaultInstanceManager.newInstance(DefaultInstanceManager.java:<span class="hljs-number">159</span>)<br>	at org.apache.jasper.servlet.JspServletWrapper.getServlet(JspServletWrapper.java:<span class="hljs-number">171</span>)<br>	at org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:<span class="hljs-number">380</span>)<br>	at org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:<span class="hljs-number">386</span>)<br>	at org.apache.jasper.servlet.JspServlet.service(JspServlet.java:<span class="hljs-number">330</span>)<br>	at javax.servlet.http.HttpServlet.service(HttpServlet.java:<span class="hljs-number">742</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:<span class="hljs-number">231</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:<span class="hljs-number">166</span>)<br>	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:<span class="hljs-number">52</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:<span class="hljs-number">193</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:<span class="hljs-number">166</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.invoke(ApplicationDispatcher.java:<span class="hljs-number">728</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.processRequest(ApplicationDispatcher.java:<span class="hljs-number">470</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.doForward(ApplicationDispatcher.java:<br><br></code></pre></td></tr></table></figure>
-
-<p>这是一个ClassNotFoundException，通过错误信息我们可以在搜索引擎上找到一堆解答，甚至在Spring Boot的Github上都有类似的情况(<a href="https://github.com/spring-projects/spring-boot/issues/5009)%E3%80%82">https://github.com/spring-projects/spring-boot/issues/5009)。</a></p>
-<p>结果总结下来就是：</p>
-<blockquote>
-<p>Spring Boot内置的Tomcat会在系统根目录的&#x2F;tmp下创建Tomcat开头的临时目录，tmp目录的定时清理会导致部分文件的class文件找不到，解决办法是指定一个work目录不要使用默认的tmp目录。</p>
-</blockquote>
-<p>听起来很有道理，官方都这么说了那照着做就行了呗。</p>
-<p>然而作为一个好奇心爆棚的程序员，这样的解释显得苍白而无力，但是这个解释倒是给我们的重现提供了很好的便利，毕竟只有充分重现了这个问题才能更好的去探究深层次的原因。 </p>
-<p>于是在官方解释的指导下，我们进行了多次重现的尝试，最终将问题范围缩小如下：</p>
-<p><span style="color:red">在Tomcat启动后将tmp下的ROOT目录删除，访问的第一个页面会出现无法访问的情况，后台出现ClassNotFoundException，之后再访问其他页面都是正常。</span></p>
-<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><p>在进行问题分析的时候，我们一般会使用三种方式</p>
-<ul>
-<li><p>经验法</p>
-<p>结合自身的经验来猜测问题发生的可能原因，然后通过验证来定位问题具体原因</p>
-</li>
-<li><p>推导法</p>
-<p>从问题的发生点开始倒推，沿着问题发生的路径逐步接近问题的根源</p>
-</li>
-<li><p>分析法</p>
-<p>分析整个流程中的每一个节点，找到和问题可能相关的节点逐个验证从而找到导致问题的节点</p>
-</li>
-</ul>
-<hr>
-<p>经验法往往是遇到问题时第一个使用的方法，因为面对问题时冲在前面的往往是我们的直觉。在这个问题中我做了以下猜测，并逐一验证。</p>
-<ol>
-<li><p>class文件损坏</p>
-<p>做出这个假设的依据是，在同一个目录下存在两个页面的Class文件，一个可以访问一个不可以访问。</p>
-<p>验证方法也很简单，首先重启服务正常访问页面A获取到正常状态下的A.java和A.class文件；重启服务器后删除ROOT目录，再访问页面A触发错误，将目录下的java和class文件替换成正常状态的问题；再次访问页面，依然报错。</p>
-<p>至此我们推翻了我们关于Class文件损坏的假设。</p>
-</li>
-<li><p>dev-tool导致classloader不一致</p>
-<p>做出这个假设的依据是我们之前遇到的一个dev-tool的问题，Spring Boot在引入了dev-tool后会进行热加载，这时候由于jar包加载和class加载使用了不同的ClassLoader会出现ClassNotFoundException。</p>
-<p>我们之前解决这个问题的方法是去掉dev-tool，同样在这里我们也可以去掉dev-tool再走一遍重现步骤，发现问题依然存在。</p>
-<p>至此我们排除了Dev-tool导致ClassLoader不一致的假设。</p>
-</li>
-<li><p>class文件时间戳</p>
-<p>在我们查看正常文件和异常文件差异的时候发现，正常文件的时间戳和jar包中的jsp时间戳一致，而异常文件的时间戳是当前时间，那会不会是因为时间戳不一致导致的呢。</p>
-<p>为了验证这个假设我们从两方面入手a) 调整正常文件的时间戳到当前时间，结果正常文件依然正常 b) 调整异常文件的时间戳为jsp的时间，结果异常文件依然无法访问。</p>
-<p>于是我们也排除了Class文件时间戳的假设。</p>
-</li>
-</ol>
-<hr>
-<p>推导法是比较直观也是可以比较快速的发现问题的方法，但是在我们这个案例中我们发现错误堆栈中的URLClassLoader并不是问题发生的第一现场，真正的第一现场在java自己的包中，对我们逐步跟踪问题造成了困难。</p>
-<img src="classloader.png"/>
-
-<hr>
-<p>鉴于此我们选择分析法作为我们解决问题的突破口。当然还有一个重要条件支持我们采用分析法解决问题，那就是在我们这个案例中我们存在OK和NOK两种情况，在每一个分析的节点我们都可以引入两种情况进行对比。</p>
-<p>在开始之前，由于要每一步比较差异，我们需要配置Eclipse的远程调试。传送门：(<a href="https://www.cnblogs.com/east7/p/10285955.html">https://www.cnblogs.com/east7/p/10285955.html</a>)</p>
-<p>首先我们梳理一下Tomcat解析JSP的流程，由于我们基于类来描述流程，所以先罗列一下涉及的类以及主要的方法：</p>
-<img src="jsp-class.png"/>
-
-<p>JspServlet类是主入口，接收jsp请求；</p>
-<p>JspRuntimeContext通过add和get方法来维持一个ServletWrapper的缓存；</p>
-<p>从JspServlet往后是加载的主要类，而从Compiler往后的类是编译用到的类。</p>
-<p>在大致了解了内部类结构后我们可以来看看Jsp加载的流程了，</p>
-<img src="jsp-flow.png"/>
-
-<p>从图中可以看出我们的报错点在获取Servlet的class这一步，那么我们从页面访问的步骤一步步比较OK和NOK表现的差异。</p>
-<ol>
-<li><p>获取ServletWrapper</p>
-<p>这一步的作用是为每一个Jsp页面构建一个代理并缓存在JspRuntimeContext中，这样每次访问页面直接获取代理即可。从调试的结果看，构建wrapper的每个参数都是一样，而构建的wrapper结果也是一致的。</p>
-</li>
-<li><p>编译java文件</p>
-<p>我们注意到在Complier.class的generateJava这个方法中有一步是：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">ctxt.checkOutputDir();<br></code></pre></td></tr></table></figure>
-
-<p>我们的重现恰恰是删除了ROOT目录，继续进去看代码</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">checkOutputDir</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">if</span> (outputDir != <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-keyword">if</span> (!(<span class="hljs-keyword">new</span> <span class="hljs-title class_">File</span>(outputDir)).exists()) &#123;<br>                makeOutputDir();<br>            &#125;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            createOutputDir();<br>        &#125;<br>&#125;<br><span class="hljs-comment">//由于一开始的outputDir为空会进入createOutputDir方法</span><br><span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">File</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> options.getScratchDir();<br>            baseUrl = base.toURI().toURL();<br>            outputDir = base.getAbsolutePath() + File.separator + path +<br>                    File.separator;<br>            <span class="hljs-keyword">if</span> (!makeOutputDir()) &#123;<br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(Localizer.getMessage(<span class="hljs-string">&quot;jsp.error.outputfolder&quot;</span>));<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (MalformedURLException e) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(Localizer.getMessage(<span class="hljs-string">&quot;jsp.error.outputfolder&quot;</span>), e);<br>        &#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>这里对baseUrl进行赋值，联想到之前看到一个关于UrlClassPath加载资源的解读，ucp类会根据baseUrl来加载不同的loader进行资源加载。通过debug我们发现这个地方的baseUrl在OK和NOK两种情况下确实存在差异。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><code class="hljs shell">NOK：<br>baseURL = file:/tmp/tomcat.2612162063177545213.9090/work/Tomcat/localhost/ROOT<br>OK：<br>baseURL = file:/tmp/tomcat.2612162063177545213.9090/work/Tomcat/localhost/ROOT/<br><br></code></pre></td></tr></table></figure>
-
-<p>对照ucp的代码</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> Loader <span class="hljs-title function_">getLoader</span><span class="hljs-params">(<span class="hljs-keyword">final</span> URL url)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">return</span> java.security.AccessController.doPrivileged(<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">java</span>.security.PrivilegedExceptionAction&lt;Loader&gt;() &#123;<br>                <span class="hljs-keyword">public</span> Loader <span class="hljs-title function_">run</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>                    <span class="hljs-type">String</span> <span class="hljs-variable">file</span> <span class="hljs-operator">=</span> url.getFile();<br>                    <span class="hljs-keyword">if</span> (file != <span class="hljs-literal">null</span> &amp;&amp; file.endsWith(<span class="hljs-string">&quot;/&quot;</span>)) &#123;<br>                        <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;file&quot;</span>.equals(url.getProtocol())) &#123;<br>                            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileLoader</span>(url);<br>                        &#125; <span class="hljs-keyword">else</span> &#123;<br>                            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Loader</span>(url);<br>                        &#125;<br>                    &#125; <span class="hljs-keyword">else</span> &#123;<br>                        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JarLoader</span>(url, jarHandler, lmap, acc);<br>                    &#125;<br>                &#125;<br>            &#125;, acc);<br>        &#125; <span class="hljs-keyword">catch</span> (java.security.PrivilegedActionException pae) &#123;<br>            <span class="hljs-keyword">throw</span> (IOException)pae.getException();<br>        &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>我们发现当出现”&#x2F;”的时候我们是通过fileLoader来加载资源，而没有”&#x2F;”的情况我们默认到jarLoader，用jarLoader去加载一个文件路径当然会返回ClassNotFound了。</p>
-</li>
-</ol>
-<hr>
-<p>至此我们终于将这个问题的来龙去脉理清楚了，那这一个“&#x2F;”的差异是怎么来的呢，回到那段代码片段：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">baseUrl = base.toURI().toURL();<br>         outputDir = base.getAbsolutePath() + File.separator + path +<br>                 File.separator;<br>         <span class="hljs-keyword">if</span> (!makeOutputDir()) &#123;<br></code></pre></td></tr></table></figure>
-
-<p>OK和NOK的情况base是一样的，唯一的区别就是OK的情况文件目录都是存在的，而NOK的时候文件夹是没有的，是不是这种差异导致了一个”&#x2F;”的差异呢，还是看代码吧：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//base.toURI():</span><br><span class="hljs-keyword">public</span> URI <span class="hljs-title function_">toURI</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">File</span> <span class="hljs-variable">f</span> <span class="hljs-operator">=</span> getAbsoluteFile();<br>            <span class="hljs-type">String</span> <span class="hljs-variable">sp</span> <span class="hljs-operator">=</span> slashify(f.getPath(), f.isDirectory());<br>            <span class="hljs-keyword">if</span> (sp.startsWith(<span class="hljs-string">&quot;//&quot;</span>))<br>                sp = <span class="hljs-string">&quot;//&quot;</span> + sp;<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">URI</span>(<span class="hljs-string">&quot;file&quot;</span>, <span class="hljs-literal">null</span>, sp, <span class="hljs-literal">null</span>);<br>        &#125; <span class="hljs-keyword">catch</span> (URISyntaxException x) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(x);         <span class="hljs-comment">// Can&#x27;t happen</span><br>        &#125;<br>    &#125;<br><span class="hljs-comment">//Slashify():</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> String <span class="hljs-title function_">slashify</span><span class="hljs-params">(String path, <span class="hljs-type">boolean</span> isDirectory)</span> &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> path;<br>        <span class="hljs-keyword">if</span> (File.separatorChar != <span class="hljs-string">&#x27;/&#x27;</span>)<br>            p = p.replace(File.separatorChar, <span class="hljs-string">&#x27;/&#x27;</span>);<br>        <span class="hljs-keyword">if</span> (!p.startsWith(<span class="hljs-string">&quot;/&quot;</span>))<br>            p = <span class="hljs-string">&quot;/&quot;</span> + p;<br>        <span class="hljs-keyword">if</span> (!p.endsWith(<span class="hljs-string">&quot;/&quot;</span>) &amp;&amp; isDirectory)<br>            p = p + <span class="hljs-string">&quot;/&quot;</span>;<br>        <span class="hljs-keyword">return</span> p;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>从上面的代码可以看出只有满足isDirectory的判断才会给URI加上”&#x2F;”，在我们NOK的情况下由于文件夹不存在isDirectory返回false不会加上结尾的”&#x2F;”，导致了baseURI的差异，并最终导致了ClassNotFoundException的生产血案。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在这个案例中我们主要使用了经验法和分析法来定位问题，查找本源。</p>
-<p>在经验分析的过程中我们遇到了阻碍，转而通过分析法分解了Tomcat对于Jsp请求的处理流程，在分析Jsp编译过程时发现会对baseURI进行赋值，结合我们已有的对URLClassLoader的加载过程的理解，于是我们对于baseURI的处理进行了着重分析。最终发现由于baseURI赋值时系统环境的差异导致了生成的baseURI产生了一个”&#x2F;”的差异，而这一个差异又导致资源加载的加载器选择差异，最终导致不合适的加载器加载不到资源的错误。</p>
-<p>在问题的解决上我们还是沿用官方的说法，指定一个tmp url用来存放tomcat的临时文件，避免被删除。</p>
-<p>参考材料：</p>
-<p><a href="http://www.docjar.com/html/api/sun/misc/URLClassPath.java.html">http://www.docjar.com/html/api/sun/misc/URLClassPath.java.html</a></p>
-<p><a href="https://www.jianshu.com/p/b8e331840961">https://www.jianshu.com/p/b8e331840961</a></p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>问题解决</tag>
-        <tag>开发技术</tag>
       </tags>
   </entry>
   <entry>
