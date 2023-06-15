@@ -113,28 +113,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2016/05/26/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo new <span class="hljs-string">&quot;My New Post&quot;</span><br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo server<br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo generate<br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo deploy<br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-<h2 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h2><h3 id="生成的文件目录错乱"><a href="#生成的文件目录错乱" class="headerlink" title="生成的文件目录错乱"></a>生成的文件目录错乱</h3><p>原因是Next主题解析机制是二级目录、三级目录的按级解析，如果文章中出现了跳级的情况就会出现文件目录错乱。修复办法就是使用层层递进的目录定义。</p>
-<h3 id="修改每页文章数量"><a href="#修改每页文章数量" class="headerlink" title="修改每页文章数量"></a>修改每页文章数量</h3><p>在hexo的_config.yml中修改per_page配置项：</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">index_generator:</span><br>  <span class="hljs-attr">path:</span> <span class="hljs-string">&#x27;&#x27;</span><br>  <span class="hljs-attr">per_page:</span> <span class="hljs-number">5</span><br>  <span class="hljs-attr">order_by:</span> <span class="hljs-string">-date</span><br></code></pre></td></tr></table></figure>
-
-]]></content>
-  </entry>
-  <entry>
     <title>InfluxDB数据接入MQTT</title>
     <url>/2021/12/22/InfluxDB%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5MQTT/</url>
     <content><![CDATA[<p>在边缘计算场景中数据存储在边缘的时序数据库如 InfluxDB 中，如果不能将数据进行归集以统筹管理则可能形成数据孤岛，无法充分有效的发挥大数据的威力。</p>
@@ -281,6 +259,28 @@
         <tag>编程语言</tag>
         <tag>Java</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2016/05/26/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo new <span class="hljs-string">&quot;My New Post&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo server<br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo generate<br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo deploy<br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<h2 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h2><h3 id="生成的文件目录错乱"><a href="#生成的文件目录错乱" class="headerlink" title="生成的文件目录错乱"></a>生成的文件目录错乱</h3><p>原因是Next主题解析机制是二级目录、三级目录的按级解析，如果文章中出现了跳级的情况就会出现文件目录错乱。修复办法就是使用层层递进的目录定义。</p>
+<h3 id="修改每页文章数量"><a href="#修改每页文章数量" class="headerlink" title="修改每页文章数量"></a>修改每页文章数量</h3><p>在hexo的_config.yml中修改per_page配置项：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">index_generator:</span><br>  <span class="hljs-attr">path:</span> <span class="hljs-string">&#x27;&#x27;</span><br>  <span class="hljs-attr">per_page:</span> <span class="hljs-number">5</span><br>  <span class="hljs-attr">order_by:</span> <span class="hljs-string">-date</span><br></code></pre></td></tr></table></figure>
+
+]]></content>
   </entry>
   <entry>
     <title>一个Slash引发的ClassNotFound血案</title>
@@ -1330,6 +1330,108 @@
       </tags>
   </entry>
   <entry>
+    <title>微信登录集成</title>
+    <url>/2017/09/01/%E5%BE%AE%E4%BF%A1%E7%99%BB%E5%BD%95%E9%9B%86%E6%88%90/</url>
+    <content><![CDATA[<p>平台上线快一年了，注册人数却始终不见起色，看着下面这注册走势可把大伙儿急的。一着急一上火就刷朋友圈，朋友圈，朋友圈？灵感来了有没有？ </p>
+<p>如果我们可以支持微信登录，那么微信日活5.7亿岂不都是我们的潜在客户了？不用多久升职加薪，当上总经理，出任CEO，迎娶白富美，走上人生巅峰。想想还有点小激动呢。</p>
+<span id="more"></span>
+
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>说干就干，程序员一般套路：<code>代码未动，文档先行</code>。先找到微信开放平台（<a href="https://open.weixin.qq.com)-&gt;/">https://open.weixin.qq.com）-&gt;</a> 资源中心-&gt; 网站应用，把开发文档刷一遍。不管看没看懂咱都是看过源代码，噢不原文档的人了。</p>
+<p>象征性的总结一下，主要分三步走：</p>
+<ol>
+<li>授权换code（开门）</li>
+<li>code换token（找钥匙）</li>
+<li>token获取用户消息（该干啥干啥）</li>
+</ol>
+<p>当然，如果你觉得找到了钥匙你就拥有了全世界那你就simple simple了。用着人家的文档，坐拥5.7亿的日活，不交点保护费合适吗？</p>
+<p>首先你要在开放平台注册一个账号，并通过开发者资质认证（300大洋一年）。然后到管理中心，创建一个网站应用并通过审核，这个不要钱。</p>
+<blockquote>
+<p>注:这里面有一个很重要的字段，叫授权回调域，最好和实际开发的回调域名保持一致。</p>
+<p>网上很多文章说可以配置成顶级域名，开发使用二级域名，反正我试过这样不通，</p>
+<p>错误信息：redirect_uri 参数错误。</p>
+</blockquote>
+<p>OK，到此为止，你才真正拥有了全世界。</p>
+<h2 id="集成设计"><a href="#集成设计" class="headerlink" title="集成设计"></a>集成设计</h2><p>既然是登录集成首先我们需要审视用户模型，我们原来的用户模型是简单的用户密码认证方式，简单来说就是一张主用户表，加一堆外延表。这无疑给我们用户的扩展提供了便利，本着KISS的原则，我们的用户模型最终修改如下：</p>
+<img src="user-diagram.png"/>
+
+<p>主要的改动点就是增加了一个t_wx_bind_info表，围绕这个数据模型，我们的逻辑可以如下展开：</p>
+<ol>
+<li>首次微信登录，获取用户信息后保存至t_wx_bind_info, 此时的微信注册信息处于<strong>游离态</strong>，用户通过后续选择a) 绑定到现有用户 b) 创建新用户 将微信注册用户转化为<strong>激活态</strong></li>
+<li>未绑定微信用户登录，用户授权后获取access token，通过token里面的unionId获取加载t_wx_bind_info中游离态的用户信息，用户同样需要通过选择来将<strong>游离态</strong>转化为<strong>激活态</strong></li>
+<li>已绑定微信用户登录，用户授权后获取access token，通过token里面的unionId获取t_wx_bind_info中激活态的用户并做正常登陆，之后用户可以通过用户管理模块进行微信解绑</li>
+<li>系统账号登录，普通账号可以通过账号管理模块进行账号绑定和解绑</li>
+</ol>
+<p>也许一张图来的更直观点，</p>
+<img src="flow.png"/>
+
+<blockquote>
+<p>关于用户解绑后t_wx_bind_info的思考<br>正常来说我们有两个选择，<br>	删除这条信息，每次绑定从头来过<br>	恢复至游离态，下次绑定的时候直接使用<br>至于取舍见仁见智，每个选择都是优劣并存的，其实只要明白各自的优劣使用哪种方案并不重要。</p>
+</blockquote>
+<h2 id="开发实现"><a href="#开发实现" class="headerlink" title="开发实现"></a>开发实现</h2><p>俗话说的好，talk is cheap, show me the code.</p>
+<p>那接下来就是coding show了，主要是记录一下开发的过程，方便以后用到的时候复制粘贴。</p>
+<h3 id="登录页面"><a href="#登录页面" class="headerlink" title="登录页面"></a>登录页面</h3><p>登录页面增加微信登录的按钮，至于背景图片可以到开放平台的资源中心下载相应尺寸的背景图片。</p>
+<p>给登录按钮添加事件，</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-keyword">var</span> dName = <span class="hljs-variable language_">document</span>.<span class="hljs-property">domain</span>;<br><span class="hljs-keyword">var</span> redirectUri = <br>	<span class="hljs-built_in">encodeURIComponent</span>(<span class="hljs-string">&quot;http://&quot;</span> +dName+<span class="hljs-string">&quot;&lt;%=request.getContextPath()%&gt;/wechat_callback.do?rout=fromLogin&quot;</span>);<br><span class="hljs-keyword">var</span> wechatLoginUrl = <br>	<span class="hljs-string">&quot;https://open.weixin.qq.com/connect/qrconnect?appid=wx62c35d8f6a203158&quot;</span><br>	+<span class="hljs-string">&quot;&amp;redirect_uri=&quot;</span>+redirectUri<br>	+<span class="hljs-string">&quot;&amp;response_type=code&amp;scope=snsapi_login&amp;state=123#wechat_redirect&quot;</span>;<br>location.<span class="hljs-property">href</span> = wechatLoginUrl;<br></code></pre></td></tr></table></figure>
+
+<p>实现的效果，是点击按钮后会跳到微信自己的二维码页面。</p>
+<img src="qr-code.png"/>
+
+<p>注意点：</p>
+<ul>
+<li>RedirectUrl需要经过urlEncode</li>
+<li>AppId需要通过微信开发者资质认证后获得</li>
+<li>其他参数按照文档填写即可</li>
+</ul>
+<h3 id="后台实现"><a href="#后台实现" class="headerlink" title="后台实现"></a>后台实现</h3><p>程序入口是redirectUrl指向的地址，一般是一个restful的资源。类图如下：</p>
+<img src="class-diagram.png"/>
+
+<p>在wechatCallback类中有两个分支分别处理扫码登录后的回调和账号登录后绑定微信的回调。主要的区别是重定向的页面和错误页面不同。</p>
+<ul>
+<li><p>扫码登录</p>
+<p>成功后跳转到信息补全页面，失败后跳转到登录页面并提示错误信息。</p>
+</li>
+<li><p>登录绑定</p>
+<p>成功后跳转到当前页面，失败后跳转到当前页面并提示错误信息。</p>
+</li>
+</ul>
+<p>BindService主要处理t_wx_bind_info表的CRUD操作，sync方法用于同步微信信息和账户信息。 </p>
+<p>WechatUtil类是连接微信API的工具类，主要逻辑是通过httpClient组装请求信息与微信服务器进行信息交换。</p>
+<h2 id="效果展示"><a href="#效果展示" class="headerlink" title="效果展示"></a>效果展示</h2><ol>
+<li><p>登录页面</p>
+<img src="step1.png"/>
+</li>
+<li><p>扫码成功</p>
+<img src="step2.png"/>
+</li>
+<li><p>跳转到信息补全，可以选择新创建账号还是绑定已有账号</p>
+<img src="step3.png"/>
+</li>
+<li><p>选择绑定到已有账户，输入用户密码后就直接完成登录并可以看到微信绑定状态是已绑定</p>
+<img src="step4.png"/></li>
+</ol>
+<h2 id="问题汇总"><a href="#问题汇总" class="headerlink" title="问题汇总"></a>问题汇总</h2><ul>
+<li><p>AppId参数不对</p>
+<p>这个问题主要是在开发者资质认证阶段，我随便编个参数遇到的问题，填写正确的appId就可以了</p>
+</li>
+<li><p>RedirectUrl参数不对</p>
+<p>这个问题前面也说过了，在网站申请的时候回调域名一定要和开发的redirectUrl一致。比如申请的回调域名是manulism.com, redirectUrl使用test.manulism.com则会出现这个问题。</p>
+</li>
+<li><p>本地测试的问题</p>
+<p>由于微信平台配置的时候只接受回调域名，所以在本地要测试需要修改hosts文件里的域名mapping，文件目录在C:\Windows\System32\drivers\etc</p>
+<p>新增一行：</p>
+<p>192.168.8.254  test.manulism.com</p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>应用技术</tag>
+        <tag>系统集成</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>微服务接口认证</title>
     <url>/2022/05/20/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/</url>
     <content><![CDATA[<p>在前后端分离的实践中接口定义问题是无法回避的。关于接口的认证和访问权限设置，这里记录一些个人想法。</p>
@@ -1471,108 +1573,6 @@
       <tags>
         <tag>架构设计</tag>
         <tag>微服务</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>微信登录集成</title>
-    <url>/2017/09/01/%E5%BE%AE%E4%BF%A1%E7%99%BB%E5%BD%95%E9%9B%86%E6%88%90/</url>
-    <content><![CDATA[<p>平台上线快一年了，注册人数却始终不见起色，看着下面这注册走势可把大伙儿急的。一着急一上火就刷朋友圈，朋友圈，朋友圈？灵感来了有没有？ </p>
-<p>如果我们可以支持微信登录，那么微信日活5.7亿岂不都是我们的潜在客户了？不用多久升职加薪，当上总经理，出任CEO，迎娶白富美，走上人生巅峰。想想还有点小激动呢。</p>
-<span id="more"></span>
-
-<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>说干就干，程序员一般套路：<code>代码未动，文档先行</code>。先找到微信开放平台（<a href="https://open.weixin.qq.com)-&gt;/">https://open.weixin.qq.com）-&gt;</a> 资源中心-&gt; 网站应用，把开发文档刷一遍。不管看没看懂咱都是看过源代码，噢不原文档的人了。</p>
-<p>象征性的总结一下，主要分三步走：</p>
-<ol>
-<li>授权换code（开门）</li>
-<li>code换token（找钥匙）</li>
-<li>token获取用户消息（该干啥干啥）</li>
-</ol>
-<p>当然，如果你觉得找到了钥匙你就拥有了全世界那你就simple simple了。用着人家的文档，坐拥5.7亿的日活，不交点保护费合适吗？</p>
-<p>首先你要在开放平台注册一个账号，并通过开发者资质认证（300大洋一年）。然后到管理中心，创建一个网站应用并通过审核，这个不要钱。</p>
-<blockquote>
-<p>注:这里面有一个很重要的字段，叫授权回调域，最好和实际开发的回调域名保持一致。</p>
-<p>网上很多文章说可以配置成顶级域名，开发使用二级域名，反正我试过这样不通，</p>
-<p>错误信息：redirect_uri 参数错误。</p>
-</blockquote>
-<p>OK，到此为止，你才真正拥有了全世界。</p>
-<h2 id="集成设计"><a href="#集成设计" class="headerlink" title="集成设计"></a>集成设计</h2><p>既然是登录集成首先我们需要审视用户模型，我们原来的用户模型是简单的用户密码认证方式，简单来说就是一张主用户表，加一堆外延表。这无疑给我们用户的扩展提供了便利，本着KISS的原则，我们的用户模型最终修改如下：</p>
-<img src="user-diagram.png"/>
-
-<p>主要的改动点就是增加了一个t_wx_bind_info表，围绕这个数据模型，我们的逻辑可以如下展开：</p>
-<ol>
-<li>首次微信登录，获取用户信息后保存至t_wx_bind_info, 此时的微信注册信息处于<strong>游离态</strong>，用户通过后续选择a) 绑定到现有用户 b) 创建新用户 将微信注册用户转化为<strong>激活态</strong></li>
-<li>未绑定微信用户登录，用户授权后获取access token，通过token里面的unionId获取加载t_wx_bind_info中游离态的用户信息，用户同样需要通过选择来将<strong>游离态</strong>转化为<strong>激活态</strong></li>
-<li>已绑定微信用户登录，用户授权后获取access token，通过token里面的unionId获取t_wx_bind_info中激活态的用户并做正常登陆，之后用户可以通过用户管理模块进行微信解绑</li>
-<li>系统账号登录，普通账号可以通过账号管理模块进行账号绑定和解绑</li>
-</ol>
-<p>也许一张图来的更直观点，</p>
-<img src="flow.png"/>
-
-<blockquote>
-<p>关于用户解绑后t_wx_bind_info的思考<br>正常来说我们有两个选择，<br>	删除这条信息，每次绑定从头来过<br>	恢复至游离态，下次绑定的时候直接使用<br>至于取舍见仁见智，每个选择都是优劣并存的，其实只要明白各自的优劣使用哪种方案并不重要。</p>
-</blockquote>
-<h2 id="开发实现"><a href="#开发实现" class="headerlink" title="开发实现"></a>开发实现</h2><p>俗话说的好，talk is cheap, show me the code.</p>
-<p>那接下来就是coding show了，主要是记录一下开发的过程，方便以后用到的时候复制粘贴。</p>
-<h3 id="登录页面"><a href="#登录页面" class="headerlink" title="登录页面"></a>登录页面</h3><p>登录页面增加微信登录的按钮，至于背景图片可以到开放平台的资源中心下载相应尺寸的背景图片。</p>
-<p>给登录按钮添加事件，</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-keyword">var</span> dName = <span class="hljs-variable language_">document</span>.<span class="hljs-property">domain</span>;<br><span class="hljs-keyword">var</span> redirectUri = <br>	<span class="hljs-built_in">encodeURIComponent</span>(<span class="hljs-string">&quot;http://&quot;</span> +dName+<span class="hljs-string">&quot;&lt;%=request.getContextPath()%&gt;/wechat_callback.do?rout=fromLogin&quot;</span>);<br><span class="hljs-keyword">var</span> wechatLoginUrl = <br>	<span class="hljs-string">&quot;https://open.weixin.qq.com/connect/qrconnect?appid=wx62c35d8f6a203158&quot;</span><br>	+<span class="hljs-string">&quot;&amp;redirect_uri=&quot;</span>+redirectUri<br>	+<span class="hljs-string">&quot;&amp;response_type=code&amp;scope=snsapi_login&amp;state=123#wechat_redirect&quot;</span>;<br>location.<span class="hljs-property">href</span> = wechatLoginUrl;<br></code></pre></td></tr></table></figure>
-
-<p>实现的效果，是点击按钮后会跳到微信自己的二维码页面。</p>
-<img src="qr-code.png"/>
-
-<p>注意点：</p>
-<ul>
-<li>RedirectUrl需要经过urlEncode</li>
-<li>AppId需要通过微信开发者资质认证后获得</li>
-<li>其他参数按照文档填写即可</li>
-</ul>
-<h3 id="后台实现"><a href="#后台实现" class="headerlink" title="后台实现"></a>后台实现</h3><p>程序入口是redirectUrl指向的地址，一般是一个restful的资源。类图如下：</p>
-<img src="class-diagram.png"/>
-
-<p>在wechatCallback类中有两个分支分别处理扫码登录后的回调和账号登录后绑定微信的回调。主要的区别是重定向的页面和错误页面不同。</p>
-<ul>
-<li><p>扫码登录</p>
-<p>成功后跳转到信息补全页面，失败后跳转到登录页面并提示错误信息。</p>
-</li>
-<li><p>登录绑定</p>
-<p>成功后跳转到当前页面，失败后跳转到当前页面并提示错误信息。</p>
-</li>
-</ul>
-<p>BindService主要处理t_wx_bind_info表的CRUD操作，sync方法用于同步微信信息和账户信息。 </p>
-<p>WechatUtil类是连接微信API的工具类，主要逻辑是通过httpClient组装请求信息与微信服务器进行信息交换。</p>
-<h2 id="效果展示"><a href="#效果展示" class="headerlink" title="效果展示"></a>效果展示</h2><ol>
-<li><p>登录页面</p>
-<img src="step1.png"/>
-</li>
-<li><p>扫码成功</p>
-<img src="step2.png"/>
-</li>
-<li><p>跳转到信息补全，可以选择新创建账号还是绑定已有账号</p>
-<img src="step3.png"/>
-</li>
-<li><p>选择绑定到已有账户，输入用户密码后就直接完成登录并可以看到微信绑定状态是已绑定</p>
-<img src="step4.png"/></li>
-</ol>
-<h2 id="问题汇总"><a href="#问题汇总" class="headerlink" title="问题汇总"></a>问题汇总</h2><ul>
-<li><p>AppId参数不对</p>
-<p>这个问题主要是在开发者资质认证阶段，我随便编个参数遇到的问题，填写正确的appId就可以了</p>
-</li>
-<li><p>RedirectUrl参数不对</p>
-<p>这个问题前面也说过了，在网站申请的时候回调域名一定要和开发的redirectUrl一致。比如申请的回调域名是manulism.com, redirectUrl使用test.manulism.com则会出现这个问题。</p>
-</li>
-<li><p>本地测试的问题</p>
-<p>由于微信平台配置的时候只接受回调域名，所以在本地要测试需要修改hosts文件里的域名mapping，文件目录在C:\Windows\System32\drivers\etc</p>
-<p>新增一行：</p>
-<p>192.168.8.254  test.manulism.com</p>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>应用技术</tag>
-        <tag>系统集成</tag>
       </tags>
   </entry>
   <entry>
@@ -1759,6 +1759,47 @@
       </tags>
   </entry>
   <entry>
+    <title>统计二进制1的代码解读</title>
+    <url>/2019/07/17/%E7%BB%9F%E8%AE%A1%E4%BA%8C%E8%BF%9B%E5%88%B61%E7%9A%84%E4%BB%A3%E7%A0%81%E8%A7%A3%E8%AF%BB/</url>
+    <content><![CDATA[<p>为了适应边缘计算的需求决定投入学习Go语言的浪潮，用了10年的java突然要去接受一个风格完全不一样的语言感觉真是太刺激了。 在看《Go语言圣经》的时候看到里面的一个计算二进制中1的个数的程序popcount，觉得挺有意思就拿出来分享一下吧。</p>
+<p>程序代码总计也没几行，可以说很一目了然了：</p>
+ <span id="more"></span>
+
+<img src="code.png"/>
+
+<p>程序分为两个部分，</p>
+<ol>
+<li>初始化构造一个长度为256的数组</li>
+<li>主程序PopCount通过8次右移操作分别求低8位的1数量然后相加</li>
+</ol>
+<p>那这么明显的结构，这么清晰的代码有啥好解读呢？主要原因是在第一遍看的时候产生了两个疑问，我觉得有必要记录一下解决疑惑的过程。</p>
+<h2 id="初始化数组为什么是256"><a href="#初始化数组为什么是256" class="headerlink" title="初始化数组为什么是256"></a>初始化数组为什么是256</h2><p>这个问题需要和PopCount主程序结合看。</p>
+<p>因为在主程序中使用的算法是将64位的无符号整数切割成8个8位，而8位的无符号整数取值范围是0-255，为了完整表示这256个数值的1的位数，所以使用了长度为256的数组。</p>
+<h2 id="初始化算法的依据是什么"><a href="#初始化算法的依据是什么" class="headerlink" title="初始化算法的依据是什么"></a>初始化算法的依据是什么</h2><p>其实初始化的算法就一句话 pc[i] &#x3D; pc[i&#x2F;2] + byte(i&amp;1)，一句话就得出了整数中二进制1的个数字典表也太神奇了吧。怎么来理解这个算法呢？经验？定理？当然可以选择记住就行。</p>
+<p>但是我们还是可以尝试着大声的念出这段代码的含义，</p>
+<blockquote>
+<p>整数 i 中1的个数等于整数 i&#x2F;2 中1的个数加上i在低1位的1的个数</p>
+</blockquote>
+<p>是不是有点灵感了？直接上图吧</p>
+<img src="algorithm.png"/>
+
+<p>从图中可以看出每个整数i的1的个数由两部分组成</p>
+<ol>
+<li>i&#x2F;2的1的个数，这部分就对应算法中的pc[i&#x2F;2]</li>
+<li>i&#x2F;2的余数，这部分对应算法中的byte[i&amp;1]</li>
+</ol>
+<hr>
+<p>到这里这段代码的疑惑就全部解开了，嗯就是这么Go！</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>Golang</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>设计模式实战之状态模式</title>
     <url>/2021/12/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/</url>
     <content><![CDATA[<p>系统启动阶段需要完成一些准备工作，最初是通过Spring Application Runner来实现，实现思路用业务语言描述就是：</p>
@@ -1836,47 +1877,6 @@
       </categories>
       <tags>
         <tag>设计模式</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>统计二进制1的代码解读</title>
-    <url>/2019/07/17/%E7%BB%9F%E8%AE%A1%E4%BA%8C%E8%BF%9B%E5%88%B61%E7%9A%84%E4%BB%A3%E7%A0%81%E8%A7%A3%E8%AF%BB/</url>
-    <content><![CDATA[<p>为了适应边缘计算的需求决定投入学习Go语言的浪潮，用了10年的java突然要去接受一个风格完全不一样的语言感觉真是太刺激了。 在看《Go语言圣经》的时候看到里面的一个计算二进制中1的个数的程序popcount，觉得挺有意思就拿出来分享一下吧。</p>
-<p>程序代码总计也没几行，可以说很一目了然了：</p>
- <span id="more"></span>
-
-<img src="code.png"/>
-
-<p>程序分为两个部分，</p>
-<ol>
-<li>初始化构造一个长度为256的数组</li>
-<li>主程序PopCount通过8次右移操作分别求低8位的1数量然后相加</li>
-</ol>
-<p>那这么明显的结构，这么清晰的代码有啥好解读呢？主要原因是在第一遍看的时候产生了两个疑问，我觉得有必要记录一下解决疑惑的过程。</p>
-<h2 id="初始化数组为什么是256"><a href="#初始化数组为什么是256" class="headerlink" title="初始化数组为什么是256"></a>初始化数组为什么是256</h2><p>这个问题需要和PopCount主程序结合看。</p>
-<p>因为在主程序中使用的算法是将64位的无符号整数切割成8个8位，而8位的无符号整数取值范围是0-255，为了完整表示这256个数值的1的位数，所以使用了长度为256的数组。</p>
-<h2 id="初始化算法的依据是什么"><a href="#初始化算法的依据是什么" class="headerlink" title="初始化算法的依据是什么"></a>初始化算法的依据是什么</h2><p>其实初始化的算法就一句话 pc[i] &#x3D; pc[i&#x2F;2] + byte(i&amp;1)，一句话就得出了整数中二进制1的个数字典表也太神奇了吧。怎么来理解这个算法呢？经验？定理？当然可以选择记住就行。</p>
-<p>但是我们还是可以尝试着大声的念出这段代码的含义，</p>
-<blockquote>
-<p>整数 i 中1的个数等于整数 i&#x2F;2 中1的个数加上i在低1位的1的个数</p>
-</blockquote>
-<p>是不是有点灵感了？直接上图吧</p>
-<img src="algorithm.png"/>
-
-<p>从图中可以看出每个整数i的1的个数由两部分组成</p>
-<ol>
-<li>i&#x2F;2的1的个数，这部分就对应算法中的pc[i&#x2F;2]</li>
-<li>i&#x2F;2的余数，这部分对应算法中的byte[i&amp;1]</li>
-</ol>
-<hr>
-<p>到这里这段代码的疑惑就全部解开了，嗯就是这么Go！</p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>算法</tag>
-        <tag>Golang</tag>
       </tags>
   </entry>
   <entry>
@@ -1987,6 +1987,67 @@
       </tags>
   </entry>
   <entry>
+    <title>设计模式实战之访问者模式</title>
+    <url>/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/</url>
+    <content><![CDATA[<p>访问者模式主要解决了数据结构和数据行为的分离，通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展。所以访问者模式可以理解为重构模式。</p>
+<p>访问者模式主要有四个角色：</p>
+<ol>
+<li>Visitor接口，通过抽象的访问者接口定义了访问的行为</li>
+<li>ConcreteVisitor实现类对访问行为进行具体的逻辑实现</li>
+<li>Element接口定义了被访问者的基本操作</li>
+<li>Element实现类定义了具体的被访问对象实现</li>
+</ol>
+<span id="more"></span>
+
+<img src="class-diagram.png" alt="Image" />
+
+<p>访问者模式适用于数据结构相对固定而行为可变的场景，结合类图也就是说Element以及其实现类相对固定，而需要改变的是访问这些Element之后的行为。访问者模式的可扩展性体现在visitor的可扩展。</p>
+<p>访问者模式最重要的优点我认为是实现了单一职责原则，每一个visitor实现类实现了一个功能，职责划分非常清晰。</p>
+<p>访问者模式的缺点：</p>
+<ul>
+<li>Element被访问类不可扩展</li>
+<li>Visitor直接依赖具体的被访问对象，不符合依赖倒置原则</li>
+<li>Visitor直接访问被依赖对象内部的方法，不符合迪米特法则</li>
+</ul>
+<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><p>在模型计算的触发中我们定义了三种计算任务，分别是特征计算任务、累积损伤计算任务和异常诊断计算任务。任务类型是相对固定的，而计算任务所对应的行为是有扩展需求的，这恰恰符合了访问者模式定义的使用场景。</p>
+<blockquote>
+<p>通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展</p>
+</blockquote>
+<h2 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h2><p>在进行详细的类图设计之前，我们进行角色匹配</p>
+<ul>
+<li>Element角色定义了被访问者的通用属性，对应计算认为的抽象类Task</li>
+<li>Element1等具体被访问者就对应了我们场景中的计算任务：FeatureTask、ModelTask等</li>
+<li>Visitor角色定义了访问者的行为</li>
+<li>ConcreteVisitor角色定义了具体的访问行为，如计算行为可以对应一个具体的CalculateVisitor</li>
+</ul>
+<p>结合访问者模式得到类图如下：</p>
+<img src="new-class-diagram.png" alt="Image" />
+
+<p>CalculateVisitor实现如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CalculateVisitor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Visitor</span>&#123;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">visit</span><span class="hljs-params">(FeatureTask featureTask)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;开始执行特征计算任务，任务名：&quot;</span>+featureTask.getName());<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">visit</span><span class="hljs-params">(ModelTask modelTask)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;开始执行模型计算任务，任务名：&quot;</span>+modelTask.getName());<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>对于CalculateVisitor来说引起变化的原因只有计算逻辑的变化，因此是符合单一职责原则的。计算任务类型固定，不存在任务的扩展需求，所以从扩展角度来看访问者模式是可以满足要求的。</p>
+<p>我们再看一下上面访问者的类图，发现迪米特法则也好依赖倒置原则也罢，问题的根源在于Visitor直接依赖了实现类，那直接依赖接口会怎么样呢？</p>
+<img src="future-class-diagram.png" alt="Image" />
+
+<p>依赖倒置的问题解决，Task接口和Visitor接口可以分别扩展，开闭的问题也解决了。CalculateVisitor中的实现：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CalculateVisitor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Visitor</span>&#123;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> &lt;T <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Task</span>&gt; <span class="hljs-keyword">void</span> <span class="hljs-title function_">visit</span><span class="hljs-params">(T task)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;开始执行特征计算任务，任务名：&quot;</span>+task.getName());<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>客户端调用如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">List&lt;Task&gt; taskList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br><span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">10</span>;i++)&#123;<br>    taskList.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FeatureTask</span>(<span class="hljs-string">&quot;F_&quot;</span>+i));<br>    taskList.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ModelTask</span>(<span class="hljs-string">&quot;M_&quot;</span>+i));<br>&#125;<br>Collections.shuffle(taskList);<br><span class="hljs-comment">//数据准备完成</span><br><span class="hljs-type">Visitor</span> <span class="hljs-variable">calculateVisitor</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CalculateVisitor</span>();<br><span class="hljs-keyword">for</span>(Task t: taskList)&#123;<br>    t.accept(calculateVisitor);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>在上面的例子中我们首先引入经典的访问者模式，将数据结构和行为分离后发现违背依赖倒置原则引发的扩展性问题其实可以通过泛型来解决。经过改造之后，设计更加灵活，可扩展性更好。</p>
+<p>但是我们要谨记每一个设计模式都有其适用的场景，设计模式没有银弹。</p>
+<p>对比以上两种访问者模式实现可以发现，第二种设计扩展性更好的同时带来了架构的复杂性，对于被访问者的要求更高了，也就是说他们必须是同类，只有这样才能将公共行为抽取到接口来满足依赖倒置原则；反观第一种设计，由于访问者直接访问实现类，所以被访问者实现类之间只存在accept这一个共性约束，被访问者之间是同事类的关系即可。</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>设计模式</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>适配后端的多语言方案</title>
     <url>/2023/04/23/%E9%80%82%E9%85%8D%E5%90%8E%E7%AB%AF%E7%9A%84%E5%A4%9A%E8%AF%AD%E8%A8%80%E6%96%B9%E6%A1%88/</url>
     <content><![CDATA[<p>在上一篇文章中我们实现了基于vue-i18n的前端多语言方案，在这个方案中我们考虑了部分前后端交互中存在的问题如数据库菜单、代码直接返回错误信息等。在实现过程中我们发现如果只是将资源文件在前端工程管理，一些对多语言依赖较强的后端系统就无法正常工作，如日志中心。基于前后端通用的考虑，我们将资源文件作为配置项移动到Nacos进行维护，这篇文章会在这个前提下对基于vue-i18n的前端多语言方案进行系统改造。</p>
@@ -2063,67 +2124,6 @@
         <tag>Java</tag>
         <tag>架构设计</tag>
         <tag>微服务</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>设计模式实战之访问者模式</title>
-    <url>/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/</url>
-    <content><![CDATA[<p>访问者模式主要解决了数据结构和数据行为的分离，通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展。所以访问者模式可以理解为重构模式。</p>
-<p>访问者模式主要有四个角色：</p>
-<ol>
-<li>Visitor接口，通过抽象的访问者接口定义了访问的行为</li>
-<li>ConcreteVisitor实现类对访问行为进行具体的逻辑实现</li>
-<li>Element接口定义了被访问者的基本操作</li>
-<li>Element实现类定义了具体的被访问对象实现</li>
-</ol>
-<span id="more"></span>
-
-<img src="class-diagram.png" alt="Image" />
-
-<p>访问者模式适用于数据结构相对固定而行为可变的场景，结合类图也就是说Element以及其实现类相对固定，而需要改变的是访问这些Element之后的行为。访问者模式的可扩展性体现在visitor的可扩展。</p>
-<p>访问者模式最重要的优点我认为是实现了单一职责原则，每一个visitor实现类实现了一个功能，职责划分非常清晰。</p>
-<p>访问者模式的缺点：</p>
-<ul>
-<li>Element被访问类不可扩展</li>
-<li>Visitor直接依赖具体的被访问对象，不符合依赖倒置原则</li>
-<li>Visitor直接访问被依赖对象内部的方法，不符合迪米特法则</li>
-</ul>
-<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><p>在模型计算的触发中我们定义了三种计算任务，分别是特征计算任务、累积损伤计算任务和异常诊断计算任务。任务类型是相对固定的，而计算任务所对应的行为是有扩展需求的，这恰恰符合了访问者模式定义的使用场景。</p>
-<blockquote>
-<p>通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展</p>
-</blockquote>
-<h2 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h2><p>在进行详细的类图设计之前，我们进行角色匹配</p>
-<ul>
-<li>Element角色定义了被访问者的通用属性，对应计算认为的抽象类Task</li>
-<li>Element1等具体被访问者就对应了我们场景中的计算任务：FeatureTask、ModelTask等</li>
-<li>Visitor角色定义了访问者的行为</li>
-<li>ConcreteVisitor角色定义了具体的访问行为，如计算行为可以对应一个具体的CalculateVisitor</li>
-</ul>
-<p>结合访问者模式得到类图如下：</p>
-<img src="new-class-diagram.png" alt="Image" />
-
-<p>CalculateVisitor实现如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CalculateVisitor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Visitor</span>&#123;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">visit</span><span class="hljs-params">(FeatureTask featureTask)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;开始执行特征计算任务，任务名：&quot;</span>+featureTask.getName());<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">visit</span><span class="hljs-params">(ModelTask modelTask)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;开始执行模型计算任务，任务名：&quot;</span>+modelTask.getName());<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>对于CalculateVisitor来说引起变化的原因只有计算逻辑的变化，因此是符合单一职责原则的。计算任务类型固定，不存在任务的扩展需求，所以从扩展角度来看访问者模式是可以满足要求的。</p>
-<p>我们再看一下上面访问者的类图，发现迪米特法则也好依赖倒置原则也罢，问题的根源在于Visitor直接依赖了实现类，那直接依赖接口会怎么样呢？</p>
-<img src="future-class-diagram.png" alt="Image" />
-
-<p>依赖倒置的问题解决，Task接口和Visitor接口可以分别扩展，开闭的问题也解决了。CalculateVisitor中的实现：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CalculateVisitor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Visitor</span>&#123;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> &lt;T <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Task</span>&gt; <span class="hljs-keyword">void</span> <span class="hljs-title function_">visit</span><span class="hljs-params">(T task)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;开始执行特征计算任务，任务名：&quot;</span>+task.getName());<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>客户端调用如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">List&lt;Task&gt; taskList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br><span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">10</span>;i++)&#123;<br>    taskList.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FeatureTask</span>(<span class="hljs-string">&quot;F_&quot;</span>+i));<br>    taskList.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ModelTask</span>(<span class="hljs-string">&quot;M_&quot;</span>+i));<br>&#125;<br>Collections.shuffle(taskList);<br><span class="hljs-comment">//数据准备完成</span><br><span class="hljs-type">Visitor</span> <span class="hljs-variable">calculateVisitor</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CalculateVisitor</span>();<br><span class="hljs-keyword">for</span>(Task t: taskList)&#123;<br>    t.accept(calculateVisitor);<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>在上面的例子中我们首先引入经典的访问者模式，将数据结构和行为分离后发现违背依赖倒置原则引发的扩展性问题其实可以通过泛型来解决。经过改造之后，设计更加灵活，可扩展性更好。</p>
-<p>但是我们要谨记每一个设计模式都有其适用的场景，设计模式没有银弹。</p>
-<p>对比以上两种访问者模式实现可以发现，第二种设计扩展性更好的同时带来了架构的复杂性，对于被访问者的要求更高了，也就是说他们必须是同类，只有这样才能将公共行为抽取到接口来满足依赖倒置原则；反观第一种设计，由于访问者直接访问实现类，所以被访问者实现类之间只存在accept这一个共性约束，被访问者之间是同事类的关系即可。</p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>设计模式</tag>
       </tags>
   </entry>
 </search>
