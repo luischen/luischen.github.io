@@ -1,0 +1,731 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luis Chen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="在工业场景中，节能减排一直是一个很重要的话题。而在我们服务的汽车制造行业，涂装车间的能耗在四大工艺过程中占比达到了70%，所以如何降低涂装车间的能耗成了降低汽车制造过程能耗的关键。 本文选择涂装车间的喷房风机作为研究对象，以空调的温湿度作为主要调整指标，尝试通过技术的手段来找到能耗最优解。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于可行方向的能耗寻优算法">
+<meta property="og:url" content="https://luischen.github.io/2023/09/18/%E5%9F%BA%E4%BA%8E%E5%8F%AF%E8%A1%8C%E6%96%B9%E5%90%91%E7%9A%84%E8%83%BD%E8%80%97%E5%AF%BB%E4%BC%98%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="在工业场景中，节能减排一直是一个很重要的话题。而在我们服务的汽车制造行业，涂装车间的能耗在四大工艺过程中占比达到了70%，所以如何降低涂装车间的能耗成了降低汽车制造过程能耗的关键。 本文选择涂装车间的喷房风机作为研究对象，以空调的温湿度作为主要调整指标，尝试通过技术的手段来找到能耗最优解。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://luischen.github.io/2023/09/18/%E5%9F%BA%E4%BA%8E%E5%8F%AF%E8%A1%8C%E6%96%B9%E5%90%91%E7%9A%84%E8%83%BD%E8%80%97%E5%AF%BB%E4%BC%98%E7%AE%97%E6%B3%95/程序流.png">
+<meta property="og:image" content="https://luischen.github.io/KT.png">
+<meta property="og:image" content="https://luischen.github.io/%E5%8D%95%E7%BA%AF%E5%BD%A2%E6%B3%95.png">
+<meta property="og:image" content="https://luischen.github.io/%E7%BA%A6%E6%9D%9F%E4%B8%80%E7%BB%B4%E6%90%9C%E7%B4%A2.png">
+<meta property="og:image" content="https://luischen.github.io/%E4%B8%80%E7%BB%B4%E6%90%9C%E7%B4%A2%E7%A8%8B%E5%BA%8F%E6%B5%81.png">
+<meta property="article:published_time" content="2023-09-18T10:02:11.000Z">
+<meta property="article:modified_time" content="2023-09-19T06:58:51.496Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="数据技术">
+<meta property="article:tag" content="算法">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://luischen.github.io/2023/09/18/%E5%9F%BA%E4%BA%8E%E5%8F%AF%E8%A1%8C%E6%96%B9%E5%90%91%E7%9A%84%E8%83%BD%E8%80%97%E5%AF%BB%E4%BC%98%E7%AE%97%E6%B3%95/程序流.png">
+  
+  
+  
+  <title>基于可行方向的能耗寻优算法 - Next Station</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"luischen.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Next Station</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="基于可行方向的能耗寻优算法"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-09-18 18:02" pubdate>
+          2023年9月18日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          59 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">基于可行方向的能耗寻优算法</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>在工业场景中，节能减排一直是一个很重要的话题。而在我们服务的汽车制造行业，涂装车间的能耗在四大工艺过程中占比达到了70%，所以如何降低涂装车间的能耗成了降低汽车制造过程能耗的关键。</p>
+<p>本文选择涂装车间的喷房风机作为研究对象，以空调的温湿度作为主要调整指标，尝试通过技术的手段来找到能耗最优解。</p>
+<span id="more"></span>
+
+<h2 id="问题定义"><a href="#问题定义" class="headerlink" title="问题定义"></a>问题定义</h2><p>已知能耗方程的条件下，设定一组温湿度的限定条件，通过优化算法找出使得能耗最小的温湿度值。</p>
+<blockquote>
+<p>使用穷举？<br>目前选择的优化指标有四个，每个指标的取值跨度为10，按照步长0.01计算，我们需要计算的次数为1000^4</p>
+</blockquote>
+<h2 id="算法概述"><a href="#算法概述" class="headerlink" title="算法概述"></a>算法概述</h2><p>经过研究，我们采用可行方向法作为算法的指导思想，由于存在温湿度的限定条件，所以算法进行了分支处理。</p>
+<blockquote>
+<p>可行方向是指沿该方向作微小移动后，所得到的新点是可行点，且目标函数值有所下降</p>
+</blockquote>
+<p>程序流程如下图所示：</p>
+<img src="程序流.png" srcset="/img/loading.gif" lazyload alt="image-20230919095324346" style="zoom:80%;" />
+
+<h2 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h2><p>算法实现部分我们通过对程序流图进行详细说明来描述算法的实现过程。</p>
+<h3 id="参数初始化"><a href="#参数初始化" class="headerlink" title="参数初始化"></a>参数初始化</h3><p>参数初始化可以根据经验选择限定条件的边界值，如夏季模式下选择温度最大值会降低空调的能耗。</p>
+<p>但是这种单一出发点的选择会导致算法陷入局部最优的困境，最终我们通过随机取样的方法从可行区间内选了10个点，通过多次计算减少了局部最优的可能性。随机选择出发点的同时通过指定伪随机种子，确保了算法的稳定性，即每一次优化都可以得到同样的解；通过种子的合理选择，保证选择的数据分布足够合理。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> List&lt;BigDecimal[]&gt; batchInitParam(List&lt;BigDecimal[]&gt; rangeList)&#123;<br>        List&lt;BigDecimal[]&gt; resultList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        BigDecimal[] result;<br>        <span class="hljs-comment">//取10个随机点</span><br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">10</span>;i++)&#123;<br>            result = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>[rangeList.size()];<br>            <span class="hljs-type">int</span> <span class="hljs-variable">seed</span> <span class="hljs-operator">=</span> i*<span class="hljs-number">10000</span>;<br>            result[<span class="hljs-number">0</span>] = randomFromRange(rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">1</span>],seed);<br>            result[<span class="hljs-number">1</span>] = randomFromRange(rangeList.get(<span class="hljs-number">1</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">1</span>)[<span class="hljs-number">1</span>],seed);<br>            result[<span class="hljs-number">2</span>] = randomFromRange(rangeList.get(<span class="hljs-number">2</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">2</span>)[<span class="hljs-number">1</span>],seed);<br>            result[<span class="hljs-number">3</span>] = randomFromRange(rangeList.get(<span class="hljs-number">3</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">3</span>)[<span class="hljs-number">1</span>],seed);<br>            resultList.add(result);<br>        &#125;<br>        <span class="hljs-keyword">return</span> resultList;<br>    &#125;<br><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> BigDecimal <span class="hljs-title function_">randomFromRange</span><span class="hljs-params">(BigDecimal low, BigDecimal up, <span class="hljs-type">int</span> seed)</span>&#123;<br>        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">gap</span> <span class="hljs-operator">=</span> up.subtract(low).abs();<br>        <span class="hljs-type">Random</span> <span class="hljs-variable">rd</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Random</span>(seed);<br>        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">factor</span> <span class="hljs-operator">=</span> BigDecimal.valueOf(rd.nextDouble());<br>        <span class="hljs-keyword">return</span> low.add(gap.multiply(factor));<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="收敛条件"><a href="#收敛条件" class="headerlink" title="收敛条件"></a>收敛条件</h3><p>算法的收敛条件包含：</p>
+<ol>
+<li><p>循环次数</p>
+<p>根据测试的结果，算法的收敛一般在10-15次循环，所以最终定义最大循环次数为25，超过最大循环次数后直接算法结束，返回最后一次计算的结果。</p>
+</li>
+<li><p>变化值</p>
+<p>通过监控目标函数的值变化，确定算法收敛，根据经验定义为前后两次值变化小于0.1则判定算法收敛，返回最后一次计算的结果。</p>
+</li>
+</ol>
+<h3 id="检查约束"><a href="#检查约束" class="headerlink" title="检查约束"></a>检查约束</h3><p>约束包含针对优化指标的范围约束和结果函数的合理性约束。</p>
+<ul>
+<li><p>范围约束</p>
+<p>范围约束是用户通过页面输入的温湿度范围，约束的形式为：<code>温度 &gt; 21 &amp;&amp; 温度 &lt; 26</code></p>
+<p>在实现中我们通过Java的Function接口来构建约束：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; <span class="hljs-title function_">buildConstraints</span><span class="hljs-params">(<span class="hljs-keyword">final</span> List&lt;BigDecimal[]&gt; rangeList)</span>&#123;<br>    	<span class="hljs-comment">//otobd是自定义的方法，将Object转换为BigDecimal对象</span><br>        List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; constraintList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        constraintList.add(val -&gt; <br>                           OptimizeUtils.otobd(val.get(<span class="hljs-string">&quot;param_1&quot;</span>)).negate().add(rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">0</span>]));<br>        constraintList.add(val -&gt; <br>                           OptimizeUtils.otobd(val.get(<span class="hljs-string">&quot;param_1&quot;</span>)).subtract(rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">1</span>]));<br>        <span class="hljs-comment">//更多约束条件省略...</span><br>        <span class="hljs-keyword">return</span> constraintList;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>检查约束的时候，直接使用Function的apply方法即可完成约束检查：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; <span class="hljs-title function_">checkConstraints</span><span class="hljs-params">(BigDecimal[] initParam)</span>&#123;<br>        List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; retConstraints = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        <span class="hljs-keyword">for</span> (Function&lt;Map&lt;String, Object&gt;, BigDecimal&gt; f0 : constraintsList) &#123;<br>            <span class="hljs-comment">//buildPointParam 方法通过将数组映射到Map，方便方法调用</span><br>            <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> f0.apply(OptimizeUtils.buildPointParam(initParam));<br>            <span class="hljs-keyword">if</span> (result.compareTo(BigDecimal.ZERO) &gt; <span class="hljs-number">0</span>) &#123;<br>                retConstraints.add(f0);<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> retConstraints;<br>    &#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>合理性约束</p>
+<p>在我们确定了使用Function来实现约束检查的时候，合理性约束只需要提供封装的方法即可。例如需求是小时能耗不能为负数，封装的方法就是返回最小的小时能耗，对应到Function的定义就是：</p>
+<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs clojure">(<span class="hljs-name"><span class="hljs-built_in">val</span></span> -&gt; minHourCostFunction(<span class="hljs-name"><span class="hljs-built_in">val</span></span>).negate())<br></code></pre></td></tr></table></figure>
+
+<p>这里对于Function的输出进行了negate操作，是为了在判断约束的时候可以统一使用大于0的判断。</p>
+</li>
+</ul>
+<h3 id="KT条件"><a href="#KT条件" class="headerlink" title="KT条件"></a>KT条件</h3><blockquote>
+<p>KT条件是指Karush-Kuhn-Tucker条件，它是数学优化问题中的一组条件，用于判断在约束条件下，某点是否为最优解。</p>
+</blockquote>
+<p>结合KT条件的一般呈现，</p>
+<p><img src="/KT.png" srcset="/img/loading.gif" lazyload alt="image-20230919110307733"></p>
+<p>我们得出如下结论：<strong>∇f(X)和∇g_i (X)已知，求解K-T条件，是在求解一组线性方程组。</strong></p>
+<p>主要求解过程使用Apache Math3包可以实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">double</span>[][] coefficients = <span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[initParam.length][constraintsBound.size()];<br><span class="hljs-comment">//省略构建系数矩阵的过程</span><br><span class="hljs-type">RealMatrix</span> <span class="hljs-variable">matrix1</span> <span class="hljs-operator">=</span> MatrixUtils.createRealMatrix(coefficients);<br><span class="hljs-comment">//常数项需要将梯度乘以-1，g为当前点的梯度</span><br>BigDecimal[] constants = gradientDiv(g,BigDecimal.valueOf(-<span class="hljs-number">1</span>));<br><br><span class="hljs-comment">//使用QR分解 求线性方程组唯一解</span><br><span class="hljs-type">DecompositionSolver</span> <span class="hljs-variable">solver</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">QRDecomposition</span>(matrix1).getSolver();<br><span class="hljs-type">double</span>[] constArr = <span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[constants.length];<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;constants.length;i++)&#123;<br>	constArr[i]=constants[i].doubleValue();<br>&#125;<br><span class="hljs-type">RealMatrix</span> <span class="hljs-variable">vector</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array2DRowRealMatrix</span>(constArr);<br><span class="hljs-type">RealMatrix</span> <span class="hljs-variable">solution</span> <span class="hljs-operator">=</span> solver.solve(vector);<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; solution.getRowDimension(); i++) &#123;<br>	<span class="hljs-keyword">if</span>(solution.getEntry(i, <span class="hljs-number">0</span>) &lt; <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>&#125;<br><span class="hljs-comment">//全部非负则满足KKT</span><br><span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br></code></pre></td></tr></table></figure>
+
+<h3 id="梯度模收敛"><a href="#梯度模收敛" class="headerlink" title="梯度模收敛"></a>梯度模收敛</h3><p>系统设定一个梯度模阈值（一般来自经验和反复试错），当梯度模小于阈值的时候，我们认为当前点已经到达了一个局部最优，直接返回当前点为本次优化结果。</p>
+<h3 id="计算方向向量"><a href="#计算方向向量" class="headerlink" title="计算方向向量"></a>计算方向向量</h3><p>计算方向是可行方向法的关键，一个好的方向可以让算法更快的完成收敛。从程序流图我们可以发现，计算方向来自两个分支，而针对有约束和无约束我们采用了不同计算方向的策略。</p>
+<ul>
+<li><p>无约束</p>
+<p>无约束情况适用梯度下降算法，当前点的负梯度方向即可行方向。</p>
+</li>
+<li><p>有约束</p>
+<p>有约束情况下适用单纯形法，求解约束附近使得目标函数值最小的方向向量即可行方向。</p>
+<p>定义算法表现形式如下：</p>
+<p><img src="/%E5%8D%95%E7%BA%AF%E5%BD%A2%E6%B3%95.png" srcset="/img/loading.gif" lazyload alt="image-20230919113443701"></p>
+<p>实现过程适用Apache Math3包即可：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">double</span>[] simplexSolver(<span class="hljs-type">double</span>[] g,<br>                                         BigDecimal[] initParam, Map&lt;String, Object&gt; fixParamMap,<br>                                         List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; constraints)&#123;<br>        <span class="hljs-comment">//传入目标函数的系数</span><br>        <span class="hljs-type">LinearObjectiveFunction</span> <span class="hljs-variable">f</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearObjectiveFunction</span>(g, <span class="hljs-number">0</span>);<br>        LinearConstraint[] constraintsArr = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>[constraints.size()+<span class="hljs-number">8</span>];<br>        <span class="hljs-comment">//初始化范围约束</span><br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;constraints.size();i++)&#123;<br>            <span class="hljs-type">double</span>[] g0 = calcGradient(initParam,fixParamMap,constraints.get(i),C_DELTA);<br>            constraintsArr[i] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(g0, Relationship.LEQ, <span class="hljs-number">0</span>);<br>        &#125;<br>    	<span class="hljs-comment">//构建值约束，需要在-1到1</span><br>        LinearConstraint[] commonConstraints = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>[]&#123;<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span> &#125;, Relationship.GEQ, -<span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>&#125;, Relationship.GEQ, -<span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span> &#125;, Relationship.GEQ, -<span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span> &#125;, Relationship.GEQ, -<span class="hljs-number">1</span>)<br>        &#125;;<br>        System.arraycopy(commonConstraints,<span class="hljs-number">0</span>,constraintsArr,constraints.size(),<span class="hljs-number">8</span>);<br>        <span class="hljs-type">LinearConstraintSet</span> <span class="hljs-variable">constraintsSet</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraintSet</span>(constraintsArr);<br>        <span class="hljs-type">SimplexSolver</span> <span class="hljs-variable">solver</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SimplexSolver</span>();<br>        <span class="hljs-type">PointValuePair</span> <span class="hljs-variable">solution</span> <span class="hljs-operator">=</span> solver.optimize(f,constraintsSet,GoalType.MINIMIZE);<br>        <span class="hljs-keyword">return</span> solution.getPoint();<br>    &#125;<br></code></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="约束一维搜索"><a href="#约束一维搜索" class="headerlink" title="约束一维搜索"></a>约束一维搜索</h3><blockquote>
+<p>所谓约束一维搜索，就是求解一元函数约束极小点的算法。在确定初始区间时，对产生的每一个探测点都必须进行可行性判断，如果违反了某个或者某些约束条件，就必须减少步长因子，以使新的探测点落在最近的一个约束边界上或约束边界的一个容许区间内。</p>
+</blockquote>
+<p><img src="/%E7%BA%A6%E6%9D%9F%E4%B8%80%E7%BB%B4%E6%90%9C%E7%B4%A2.png" srcset="/img/loading.gif" lazyload alt="image-20230919115450610"></p>
+<p>针对a、b两种单调的情况，x3和x1为相应情况的极小值，在c中我们得到一个[x1,x3]的区间，然后通过黄金分割法查找出区间最小值。</p>
+<p>算法步骤如下：</p>
+<p><img src="/%E4%B8%80%E7%BB%B4%E6%90%9C%E7%B4%A2%E7%A8%8B%E5%BA%8F%E6%B5%81.png" srcset="/img/loading.gif" lazyload alt="image-20230919140420388"></p>
+<p>在找到一个区间后，我们使用黄金分割法查找区间内的极小值。代码实现上使用递归逐步缩小范围，直到范围达到预定义的阈值，选取范围中心点作为极小点：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> BigDecimal[] findMinPoint(BigDecimal[] start, BigDecimal[] end,<br>                                      BigDecimal[] p1, BigDecimal[] p2,<br>                                      Map&lt;String, Object&gt; fixParamMap,Function&lt;Map&lt;String, Object&gt;, BigDecimal&gt; f)&#123;<br>        <span class="hljs-comment">//判断满足收敛精度</span><br>        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">threshold</span> <span class="hljs-operator">=</span> OptimizeUtils.calculateModulus(OptimizeUtils.gradientDiff(start,end));<br>        <span class="hljs-keyword">if</span>(threshold.compareTo(OptimizeUtils.GRATIO_THREASHOLD) &lt;<span class="hljs-number">0</span>)&#123;<br>            <span class="hljs-keyword">return</span> OptimizeUtils.gradientDiv(OptimizeUtils.gradientAdd(start,end), BigDecimal.valueOf(<span class="hljs-number">2</span>));<br>        &#125;<br>        BigDecimal f1,f2;<br>        <span class="hljs-comment">//初始化区间</span><br>        <span class="hljs-keyword">if</span>(p1 == <span class="hljs-literal">null</span>)<br>            p1 = calculateGoldRatio(start,end, OptimizeUtils.GRATIO_DOWN);<br>        f1 = f.apply(buildPointParam(p1,fixParamMap));<br>        <span class="hljs-keyword">if</span>(p2 == <span class="hljs-literal">null</span>)<br>            p2 = calculateGoldRatio(start,end, OptimizeUtils.GRATIO_UP);<br>        f2 = f.apply(buildPointParam(p2,fixParamMap));<br>        <span class="hljs-keyword">if</span>(f1.compareTo(f2) &lt;<span class="hljs-number">0</span>)&#123;<br>            <span class="hljs-keyword">return</span> findMinPoint(start,p2,<span class="hljs-literal">null</span>,p1,fixParamMap,f);<br>        &#125;<span class="hljs-keyword">else</span>&#123;<br>            <span class="hljs-keyword">return</span> findMinPoint(p1,end,p2,<span class="hljs-literal">null</span>,fixParamMap,f);<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="回顾总结"><a href="#回顾总结" class="headerlink" title="回顾总结"></a>回顾总结</h2><p>在这个案例中我们通过引入可行方向法对汽车制造工艺的涂装车间能耗进行优化。</p>
+<p>在可行方向的方向选择中我们结合了梯度下降法和单纯形法来应对是否存在约束的差异，明确了方向后我们采用了约束一维搜索获取下一次迭代的出发点，最终通过收敛条件得到一个相对最优解。</p>
+<p>为了解决局部最优的困境，我们引入随机多个初始出发点，进行多次求解，减少局部最优出现的可能性。</p>
+<p>最终经过验证的优化效果达到了15%的能耗节约。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" class="category-chain-item">技术总结</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%95%B0%E6%8D%AE%E6%8A%80%E6%9C%AF/">#数据技术</a>
+      
+        <a href="/tags/%E7%AE%97%E6%B3%95/">#算法</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>基于可行方向的能耗寻优算法</div>
+      <div>https://luischen.github.io/2023/09/18/基于可行方向的能耗寻优算法/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luis Chen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年9月18日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/06/13/%E4%BB%8E%E6%95%B0%E9%87%87%E5%88%B0%E5%B9%B3%E5%8F%B0%EF%BC%8C%E4%BD%A0%E5%8F%AF%E8%83%BD%E5%B7%AE%E4%B8%80%E4%B8%AAAirbyte/" title="从数采到平台，你可能差一个Airbyte">
+                        <span class="hidden-mobile">从数采到平台，你可能差一个Airbyte</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

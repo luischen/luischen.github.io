@@ -174,28 +174,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2016/05/26/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo new <span class="hljs-string">&quot;My New Post&quot;</span><br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo server<br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo generate<br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo deploy<br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-<h2 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h2><h3 id="生成的文件目录错乱"><a href="#生成的文件目录错乱" class="headerlink" title="生成的文件目录错乱"></a>生成的文件目录错乱</h3><p>原因是Next主题解析机制是二级目录、三级目录的按级解析，如果文章中出现了跳级的情况就会出现文件目录错乱。修复办法就是使用层层递进的目录定义。</p>
-<h3 id="修改每页文章数量"><a href="#修改每页文章数量" class="headerlink" title="修改每页文章数量"></a>修改每页文章数量</h3><p>在hexo的_config.yml中修改per_page配置项：</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">index_generator:</span><br>  <span class="hljs-attr">path:</span> <span class="hljs-string">&#x27;&#x27;</span><br>  <span class="hljs-attr">per_page:</span> <span class="hljs-number">5</span><br>  <span class="hljs-attr">order_by:</span> <span class="hljs-string">-date</span><br></code></pre></td></tr></table></figure>
-
-]]></content>
-  </entry>
-  <entry>
     <title>Java中的锁机制</title>
     <url>/2020/05/25/Java%E4%B8%AD%E7%9A%84%E9%94%81%E6%9C%BA%E5%88%B6/</url>
     <content><![CDATA[<p>说起Java中的并发，有一个永恒的话题就是锁机制，而提及Java中的锁，我们一般认为有两种形式，</p>
@@ -281,6 +259,28 @@
         <tag>编程语言</tag>
         <tag>Java</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2016/05/26/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo new <span class="hljs-string">&quot;My New Post&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo server<br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo generate<br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo deploy<br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<h2 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h2><h3 id="生成的文件目录错乱"><a href="#生成的文件目录错乱" class="headerlink" title="生成的文件目录错乱"></a>生成的文件目录错乱</h3><p>原因是Next主题解析机制是二级目录、三级目录的按级解析，如果文章中出现了跳级的情况就会出现文件目录错乱。修复办法就是使用层层递进的目录定义。</p>
+<h3 id="修改每页文章数量"><a href="#修改每页文章数量" class="headerlink" title="修改每页文章数量"></a>修改每页文章数量</h3><p>在hexo的_config.yml中修改per_page配置项：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">index_generator:</span><br>  <span class="hljs-attr">path:</span> <span class="hljs-string">&#x27;&#x27;</span><br>  <span class="hljs-attr">per_page:</span> <span class="hljs-number">5</span><br>  <span class="hljs-attr">order_by:</span> <span class="hljs-string">-date</span><br></code></pre></td></tr></table></figure>
+
+]]></content>
   </entry>
   <entry>
     <title>一个Slash引发的ClassNotFound血案</title>
@@ -1235,6 +1235,100 @@
       </tags>
   </entry>
   <entry>
+    <title>基于可行方向的能耗寻优算法</title>
+    <url>/2023/09/18/%E5%9F%BA%E4%BA%8E%E5%8F%AF%E8%A1%8C%E6%96%B9%E5%90%91%E7%9A%84%E8%83%BD%E8%80%97%E5%AF%BB%E4%BC%98%E7%AE%97%E6%B3%95/</url>
+    <content><![CDATA[<p>在工业场景中，节能减排一直是一个很重要的话题。而在我们服务的汽车制造行业，涂装车间的能耗在四大工艺过程中占比达到了70%，所以如何降低涂装车间的能耗成了降低汽车制造过程能耗的关键。</p>
+<p>本文选择涂装车间的喷房风机作为研究对象，以空调的温湿度作为主要调整指标，尝试通过技术的手段来找到能耗最优解。</p>
+<span id="more"></span>
+
+<h2 id="问题定义"><a href="#问题定义" class="headerlink" title="问题定义"></a>问题定义</h2><p>已知能耗方程的条件下，设定一组温湿度的限定条件，通过优化算法找出使得能耗最小的温湿度值。</p>
+<blockquote>
+<p>使用穷举？<br>目前选择的优化指标有四个，每个指标的取值跨度为10，按照步长0.01计算，我们需要计算的次数为1000^4</p>
+</blockquote>
+<h2 id="算法概述"><a href="#算法概述" class="headerlink" title="算法概述"></a>算法概述</h2><p>经过研究，我们采用可行方向法作为算法的指导思想，由于存在温湿度的限定条件，所以算法进行了分支处理。</p>
+<blockquote>
+<p>可行方向是指沿该方向作微小移动后，所得到的新点是可行点，且目标函数值有所下降</p>
+</blockquote>
+<p>程序流程如下图所示：</p>
+<img src="程序流.png" alt="image-20230919095324346" style="zoom:80%;" />
+
+<h2 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h2><p>算法实现部分我们通过对程序流图进行详细说明来描述算法的实现过程。</p>
+<h3 id="参数初始化"><a href="#参数初始化" class="headerlink" title="参数初始化"></a>参数初始化</h3><p>参数初始化可以根据经验选择限定条件的边界值，如夏季模式下选择温度最大值会降低空调的能耗。</p>
+<p>但是这种单一出发点的选择会导致算法陷入局部最优的困境，最终我们通过随机取样的方法从可行区间内选了10个点，通过多次计算减少了局部最优的可能性。随机选择出发点的同时通过指定伪随机种子，确保了算法的稳定性，即每一次优化都可以得到同样的解；通过种子的合理选择，保证选择的数据分布足够合理。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> List&lt;BigDecimal[]&gt; batchInitParam(List&lt;BigDecimal[]&gt; rangeList)&#123;<br>        List&lt;BigDecimal[]&gt; resultList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        BigDecimal[] result;<br>        <span class="hljs-comment">//取10个随机点</span><br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">10</span>;i++)&#123;<br>            result = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>[rangeList.size()];<br>            <span class="hljs-type">int</span> <span class="hljs-variable">seed</span> <span class="hljs-operator">=</span> i*<span class="hljs-number">10000</span>;<br>            result[<span class="hljs-number">0</span>] = randomFromRange(rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">1</span>],seed);<br>            result[<span class="hljs-number">1</span>] = randomFromRange(rangeList.get(<span class="hljs-number">1</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">1</span>)[<span class="hljs-number">1</span>],seed);<br>            result[<span class="hljs-number">2</span>] = randomFromRange(rangeList.get(<span class="hljs-number">2</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">2</span>)[<span class="hljs-number">1</span>],seed);<br>            result[<span class="hljs-number">3</span>] = randomFromRange(rangeList.get(<span class="hljs-number">3</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">3</span>)[<span class="hljs-number">1</span>],seed);<br>            resultList.add(result);<br>        &#125;<br>        <span class="hljs-keyword">return</span> resultList;<br>    &#125;<br><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> BigDecimal <span class="hljs-title function_">randomFromRange</span><span class="hljs-params">(BigDecimal low, BigDecimal up, <span class="hljs-type">int</span> seed)</span>&#123;<br>        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">gap</span> <span class="hljs-operator">=</span> up.subtract(low).abs();<br>        <span class="hljs-type">Random</span> <span class="hljs-variable">rd</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Random</span>(seed);<br>        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">factor</span> <span class="hljs-operator">=</span> BigDecimal.valueOf(rd.nextDouble());<br>        <span class="hljs-keyword">return</span> low.add(gap.multiply(factor));<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="收敛条件"><a href="#收敛条件" class="headerlink" title="收敛条件"></a>收敛条件</h3><p>算法的收敛条件包含：</p>
+<ol>
+<li><p>循环次数</p>
+<p>根据测试的结果，算法的收敛一般在10-15次循环，所以最终定义最大循环次数为25，超过最大循环次数后直接算法结束，返回最后一次计算的结果。</p>
+</li>
+<li><p>变化值</p>
+<p>通过监控目标函数的值变化，确定算法收敛，根据经验定义为前后两次值变化小于0.1则判定算法收敛，返回最后一次计算的结果。</p>
+</li>
+</ol>
+<h3 id="检查约束"><a href="#检查约束" class="headerlink" title="检查约束"></a>检查约束</h3><p>约束包含针对优化指标的范围约束和结果函数的合理性约束。</p>
+<ul>
+<li><p>范围约束</p>
+<p>范围约束是用户通过页面输入的温湿度范围，约束的形式为：<code>温度 &gt; 21 &amp;&amp; 温度 &lt; 26</code></p>
+<p>在实现中我们通过Java的Function接口来构建约束：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; <span class="hljs-title function_">buildConstraints</span><span class="hljs-params">(<span class="hljs-keyword">final</span> List&lt;BigDecimal[]&gt; rangeList)</span>&#123;<br>    	<span class="hljs-comment">//otobd是自定义的方法，将Object转换为BigDecimal对象</span><br>        List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; constraintList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        constraintList.add(val -&gt; <br>                           OptimizeUtils.otobd(val.get(<span class="hljs-string">&quot;param_1&quot;</span>)).negate().add(rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">0</span>]));<br>        constraintList.add(val -&gt; <br>                           OptimizeUtils.otobd(val.get(<span class="hljs-string">&quot;param_1&quot;</span>)).subtract(rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">1</span>]));<br>        <span class="hljs-comment">//更多约束条件省略...</span><br>        <span class="hljs-keyword">return</span> constraintList;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>检查约束的时候，直接使用Function的apply方法即可完成约束检查：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; <span class="hljs-title function_">checkConstraints</span><span class="hljs-params">(BigDecimal[] initParam)</span>&#123;<br>        List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; retConstraints = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        <span class="hljs-keyword">for</span> (Function&lt;Map&lt;String, Object&gt;, BigDecimal&gt; f0 : constraintsList) &#123;<br>            <span class="hljs-comment">//buildPointParam 方法通过将数组映射到Map，方便方法调用</span><br>            <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> f0.apply(OptimizeUtils.buildPointParam(initParam));<br>            <span class="hljs-keyword">if</span> (result.compareTo(BigDecimal.ZERO) &gt; <span class="hljs-number">0</span>) &#123;<br>                retConstraints.add(f0);<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> retConstraints;<br>    &#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>合理性约束</p>
+<p>在我们确定了使用Function来实现约束检查的时候，合理性约束只需要提供封装的方法即可。例如需求是小时能耗不能为负数，封装的方法就是返回最小的小时能耗，对应到Function的定义就是：</p>
+<figure class="highlight clojure"><table><tr><td class="code"><pre><code class="hljs clojure">(<span class="hljs-name"><span class="hljs-built_in">val</span></span> -&gt; minHourCostFunction(<span class="hljs-name"><span class="hljs-built_in">val</span></span>).negate())<br></code></pre></td></tr></table></figure>
+
+<p>这里对于Function的输出进行了negate操作，是为了在判断约束的时候可以统一使用大于0的判断。</p>
+</li>
+</ul>
+<h3 id="KT条件"><a href="#KT条件" class="headerlink" title="KT条件"></a>KT条件</h3><blockquote>
+<p>KT条件是指Karush-Kuhn-Tucker条件，它是数学优化问题中的一组条件，用于判断在约束条件下，某点是否为最优解。</p>
+</blockquote>
+<p>结合KT条件的一般呈现，</p>
+<p><img src="/KT.png" alt="image-20230919110307733"></p>
+<p>我们得出如下结论：<strong>∇f(X)和∇g_i (X)已知，求解K-T条件，是在求解一组线性方程组。</strong></p>
+<p>主要求解过程使用Apache Math3包可以实现：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">double</span>[][] coefficients = <span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[initParam.length][constraintsBound.size()];<br><span class="hljs-comment">//省略构建系数矩阵的过程</span><br><span class="hljs-type">RealMatrix</span> <span class="hljs-variable">matrix1</span> <span class="hljs-operator">=</span> MatrixUtils.createRealMatrix(coefficients);<br><span class="hljs-comment">//常数项需要将梯度乘以-1，g为当前点的梯度</span><br>BigDecimal[] constants = gradientDiv(g,BigDecimal.valueOf(-<span class="hljs-number">1</span>));<br><br><span class="hljs-comment">//使用QR分解 求线性方程组唯一解</span><br><span class="hljs-type">DecompositionSolver</span> <span class="hljs-variable">solver</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">QRDecomposition</span>(matrix1).getSolver();<br><span class="hljs-type">double</span>[] constArr = <span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[constants.length];<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;constants.length;i++)&#123;<br>	constArr[i]=constants[i].doubleValue();<br>&#125;<br><span class="hljs-type">RealMatrix</span> <span class="hljs-variable">vector</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array2DRowRealMatrix</span>(constArr);<br><span class="hljs-type">RealMatrix</span> <span class="hljs-variable">solution</span> <span class="hljs-operator">=</span> solver.solve(vector);<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; solution.getRowDimension(); i++) &#123;<br>	<span class="hljs-keyword">if</span>(solution.getEntry(i, <span class="hljs-number">0</span>) &lt; <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>&#125;<br><span class="hljs-comment">//全部非负则满足KKT</span><br><span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br></code></pre></td></tr></table></figure>
+
+<h3 id="梯度模收敛"><a href="#梯度模收敛" class="headerlink" title="梯度模收敛"></a>梯度模收敛</h3><p>系统设定一个梯度模阈值（一般来自经验和反复试错），当梯度模小于阈值的时候，我们认为当前点已经到达了一个局部最优，直接返回当前点为本次优化结果。</p>
+<h3 id="计算方向向量"><a href="#计算方向向量" class="headerlink" title="计算方向向量"></a>计算方向向量</h3><p>计算方向是可行方向法的关键，一个好的方向可以让算法更快的完成收敛。从程序流图我们可以发现，计算方向来自两个分支，而针对有约束和无约束我们采用了不同计算方向的策略。</p>
+<ul>
+<li><p>无约束</p>
+<p>无约束情况适用梯度下降算法，当前点的负梯度方向即可行方向。</p>
+</li>
+<li><p>有约束</p>
+<p>有约束情况下适用单纯形法，求解约束附近使得目标函数值最小的方向向量即可行方向。</p>
+<p>定义算法表现形式如下：</p>
+<p><img src="/%E5%8D%95%E7%BA%AF%E5%BD%A2%E6%B3%95.png" alt="image-20230919113443701"></p>
+<p>实现过程适用Apache Math3包即可：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">double</span>[] simplexSolver(<span class="hljs-type">double</span>[] g,<br>                                         BigDecimal[] initParam, Map&lt;String, Object&gt; fixParamMap,<br>                                         List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; constraints)&#123;<br>        <span class="hljs-comment">//传入目标函数的系数</span><br>        <span class="hljs-type">LinearObjectiveFunction</span> <span class="hljs-variable">f</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearObjectiveFunction</span>(g, <span class="hljs-number">0</span>);<br>        LinearConstraint[] constraintsArr = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>[constraints.size()+<span class="hljs-number">8</span>];<br>        <span class="hljs-comment">//初始化范围约束</span><br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;constraints.size();i++)&#123;<br>            <span class="hljs-type">double</span>[] g0 = calcGradient(initParam,fixParamMap,constraints.get(i),C_DELTA);<br>            constraintsArr[i] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(g0, Relationship.LEQ, <span class="hljs-number">0</span>);<br>        &#125;<br>    	<span class="hljs-comment">//构建值约束，需要在-1到1</span><br>        LinearConstraint[] commonConstraints = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>[]&#123;<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span> &#125;, Relationship.GEQ, -<span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>&#125;, Relationship.GEQ, -<span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span> &#125;, Relationship.GEQ, -<span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span> &#125;, Relationship.GEQ, -<span class="hljs-number">1</span>)<br>        &#125;;<br>        System.arraycopy(commonConstraints,<span class="hljs-number">0</span>,constraintsArr,constraints.size(),<span class="hljs-number">8</span>);<br>        <span class="hljs-type">LinearConstraintSet</span> <span class="hljs-variable">constraintsSet</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraintSet</span>(constraintsArr);<br>        <span class="hljs-type">SimplexSolver</span> <span class="hljs-variable">solver</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SimplexSolver</span>();<br>        <span class="hljs-type">PointValuePair</span> <span class="hljs-variable">solution</span> <span class="hljs-operator">=</span> solver.optimize(f,constraintsSet,GoalType.MINIMIZE);<br>        <span class="hljs-keyword">return</span> solution.getPoint();<br>    &#125;<br></code></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="约束一维搜索"><a href="#约束一维搜索" class="headerlink" title="约束一维搜索"></a>约束一维搜索</h3><blockquote>
+<p>所谓约束一维搜索，就是求解一元函数约束极小点的算法。在确定初始区间时，对产生的每一个探测点都必须进行可行性判断，如果违反了某个或者某些约束条件，就必须减少步长因子，以使新的探测点落在最近的一个约束边界上或约束边界的一个容许区间内。</p>
+</blockquote>
+<p><img src="/%E7%BA%A6%E6%9D%9F%E4%B8%80%E7%BB%B4%E6%90%9C%E7%B4%A2.png" alt="image-20230919115450610"></p>
+<p>针对a、b两种单调的情况，x3和x1为相应情况的极小值，在c中我们得到一个[x1,x3]的区间，然后通过黄金分割法查找出区间最小值。</p>
+<p>算法步骤如下：</p>
+<p><img src="/%E4%B8%80%E7%BB%B4%E6%90%9C%E7%B4%A2%E7%A8%8B%E5%BA%8F%E6%B5%81.png" alt="image-20230919140420388"></p>
+<p>在找到一个区间后，我们使用黄金分割法查找区间内的极小值。代码实现上使用递归逐步缩小范围，直到范围达到预定义的阈值，选取范围中心点作为极小点：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> BigDecimal[] findMinPoint(BigDecimal[] start, BigDecimal[] end,<br>                                      BigDecimal[] p1, BigDecimal[] p2,<br>                                      Map&lt;String, Object&gt; fixParamMap,Function&lt;Map&lt;String, Object&gt;, BigDecimal&gt; f)&#123;<br>        <span class="hljs-comment">//判断满足收敛精度</span><br>        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">threshold</span> <span class="hljs-operator">=</span> OptimizeUtils.calculateModulus(OptimizeUtils.gradientDiff(start,end));<br>        <span class="hljs-keyword">if</span>(threshold.compareTo(OptimizeUtils.GRATIO_THREASHOLD) &lt;<span class="hljs-number">0</span>)&#123;<br>            <span class="hljs-keyword">return</span> OptimizeUtils.gradientDiv(OptimizeUtils.gradientAdd(start,end), BigDecimal.valueOf(<span class="hljs-number">2</span>));<br>        &#125;<br>        BigDecimal f1,f2;<br>        <span class="hljs-comment">//初始化区间</span><br>        <span class="hljs-keyword">if</span>(p1 == <span class="hljs-literal">null</span>)<br>            p1 = calculateGoldRatio(start,end, OptimizeUtils.GRATIO_DOWN);<br>        f1 = f.apply(buildPointParam(p1,fixParamMap));<br>        <span class="hljs-keyword">if</span>(p2 == <span class="hljs-literal">null</span>)<br>            p2 = calculateGoldRatio(start,end, OptimizeUtils.GRATIO_UP);<br>        f2 = f.apply(buildPointParam(p2,fixParamMap));<br>        <span class="hljs-keyword">if</span>(f1.compareTo(f2) &lt;<span class="hljs-number">0</span>)&#123;<br>            <span class="hljs-keyword">return</span> findMinPoint(start,p2,<span class="hljs-literal">null</span>,p1,fixParamMap,f);<br>        &#125;<span class="hljs-keyword">else</span>&#123;<br>            <span class="hljs-keyword">return</span> findMinPoint(p1,end,p2,<span class="hljs-literal">null</span>,fixParamMap,f);<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="回顾总结"><a href="#回顾总结" class="headerlink" title="回顾总结"></a>回顾总结</h2><p>在这个案例中我们通过引入可行方向法对汽车制造工艺的涂装车间能耗进行优化。</p>
+<p>在可行方向的方向选择中我们结合了梯度下降法和单纯形法来应对是否存在约束的差异，明确了方向后我们采用了约束一维搜索获取下一次迭代的出发点，最终通过收敛条件得到一个相对最优解。</p>
+<p>为了解决局部最优的困境，我们引入随机多个初始出发点，进行多次求解，减少局部最优出现的可能性。</p>
+<p>最终经过验证的优化效果达到了15%的能耗节约。</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>数据技术</tag>
+        <tag>算法</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>如何监测配置数据的变化</title>
     <url>/2022/12/29/%E5%A6%82%E4%BD%95%E7%9B%91%E6%B5%8B%E9%85%8D%E7%BD%AE%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%98%E5%8C%96/</url>
     <content><![CDATA[<p>在工业互联网平台上存在多种业务应用，每个应用有自己的配置数据，当配置数据发生变更的时候需要及时的下发到边缘节点让配置生效。我们可以通过节点管理模块提供手动下发的功能，即操作人员修改完配置后通知系统管理员进行对应节点的配置下发。实际操作中发现由于引发配置变更的点过于分散，导致经常会忘记下发而无法使配置及时生效。再者业务操作人员自己并不清楚当前操作的配置是否需要下发，会引发很多无效的沟通，降低了生产效率。</p>
@@ -1327,6 +1421,108 @@
       <tags>
         <tag>解决方案</tag>
         <tag>开发技术</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>微信登录集成</title>
+    <url>/2017/09/01/%E5%BE%AE%E4%BF%A1%E7%99%BB%E5%BD%95%E9%9B%86%E6%88%90/</url>
+    <content><![CDATA[<p>平台上线快一年了，注册人数却始终不见起色，看着下面这注册走势可把大伙儿急的。一着急一上火就刷朋友圈，朋友圈，朋友圈？灵感来了有没有？ </p>
+<p>如果我们可以支持微信登录，那么微信日活5.7亿岂不都是我们的潜在客户了？不用多久升职加薪，当上总经理，出任CEO，迎娶白富美，走上人生巅峰。想想还有点小激动呢。</p>
+<span id="more"></span>
+
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>说干就干，程序员一般套路：<code>代码未动，文档先行</code>。先找到微信开放平台（<a href="https://open.weixin.qq.com)-&gt;/">https://open.weixin.qq.com）-&gt;</a> 资源中心-&gt; 网站应用，把开发文档刷一遍。不管看没看懂咱都是看过源代码，噢不原文档的人了。</p>
+<p>象征性的总结一下，主要分三步走：</p>
+<ol>
+<li>授权换code（开门）</li>
+<li>code换token（找钥匙）</li>
+<li>token获取用户消息（该干啥干啥）</li>
+</ol>
+<p>当然，如果你觉得找到了钥匙你就拥有了全世界那你就simple simple了。用着人家的文档，坐拥5.7亿的日活，不交点保护费合适吗？</p>
+<p>首先你要在开放平台注册一个账号，并通过开发者资质认证（300大洋一年）。然后到管理中心，创建一个网站应用并通过审核，这个不要钱。</p>
+<blockquote>
+<p>注:这里面有一个很重要的字段，叫授权回调域，最好和实际开发的回调域名保持一致。</p>
+<p>网上很多文章说可以配置成顶级域名，开发使用二级域名，反正我试过这样不通，</p>
+<p>错误信息：redirect_uri 参数错误。</p>
+</blockquote>
+<p>OK，到此为止，你才真正拥有了全世界。</p>
+<h2 id="集成设计"><a href="#集成设计" class="headerlink" title="集成设计"></a>集成设计</h2><p>既然是登录集成首先我们需要审视用户模型，我们原来的用户模型是简单的用户密码认证方式，简单来说就是一张主用户表，加一堆外延表。这无疑给我们用户的扩展提供了便利，本着KISS的原则，我们的用户模型最终修改如下：</p>
+<img src="user-diagram.png"/>
+
+<p>主要的改动点就是增加了一个t_wx_bind_info表，围绕这个数据模型，我们的逻辑可以如下展开：</p>
+<ol>
+<li>首次微信登录，获取用户信息后保存至t_wx_bind_info, 此时的微信注册信息处于<strong>游离态</strong>，用户通过后续选择a) 绑定到现有用户 b) 创建新用户 将微信注册用户转化为<strong>激活态</strong></li>
+<li>未绑定微信用户登录，用户授权后获取access token，通过token里面的unionId获取加载t_wx_bind_info中游离态的用户信息，用户同样需要通过选择来将<strong>游离态</strong>转化为<strong>激活态</strong></li>
+<li>已绑定微信用户登录，用户授权后获取access token，通过token里面的unionId获取t_wx_bind_info中激活态的用户并做正常登陆，之后用户可以通过用户管理模块进行微信解绑</li>
+<li>系统账号登录，普通账号可以通过账号管理模块进行账号绑定和解绑</li>
+</ol>
+<p>也许一张图来的更直观点，</p>
+<img src="flow.png"/>
+
+<blockquote>
+<p>关于用户解绑后t_wx_bind_info的思考<br>正常来说我们有两个选择，<br>	删除这条信息，每次绑定从头来过<br>	恢复至游离态，下次绑定的时候直接使用<br>至于取舍见仁见智，每个选择都是优劣并存的，其实只要明白各自的优劣使用哪种方案并不重要。</p>
+</blockquote>
+<h2 id="开发实现"><a href="#开发实现" class="headerlink" title="开发实现"></a>开发实现</h2><p>俗话说的好，talk is cheap, show me the code.</p>
+<p>那接下来就是coding show了，主要是记录一下开发的过程，方便以后用到的时候复制粘贴。</p>
+<h3 id="登录页面"><a href="#登录页面" class="headerlink" title="登录页面"></a>登录页面</h3><p>登录页面增加微信登录的按钮，至于背景图片可以到开放平台的资源中心下载相应尺寸的背景图片。</p>
+<p>给登录按钮添加事件，</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-keyword">var</span> dName = <span class="hljs-variable language_">document</span>.<span class="hljs-property">domain</span>;<br><span class="hljs-keyword">var</span> redirectUri = <br>	<span class="hljs-built_in">encodeURIComponent</span>(<span class="hljs-string">&quot;http://&quot;</span> +dName+<span class="hljs-string">&quot;&lt;%=request.getContextPath()%&gt;/wechat_callback.do?rout=fromLogin&quot;</span>);<br><span class="hljs-keyword">var</span> wechatLoginUrl = <br>	<span class="hljs-string">&quot;https://open.weixin.qq.com/connect/qrconnect?appid=wx62c35d8f6a203158&quot;</span><br>	+<span class="hljs-string">&quot;&amp;redirect_uri=&quot;</span>+redirectUri<br>	+<span class="hljs-string">&quot;&amp;response_type=code&amp;scope=snsapi_login&amp;state=123#wechat_redirect&quot;</span>;<br>location.<span class="hljs-property">href</span> = wechatLoginUrl;<br></code></pre></td></tr></table></figure>
+
+<p>实现的效果，是点击按钮后会跳到微信自己的二维码页面。</p>
+<img src="qr-code.png"/>
+
+<p>注意点：</p>
+<ul>
+<li>RedirectUrl需要经过urlEncode</li>
+<li>AppId需要通过微信开发者资质认证后获得</li>
+<li>其他参数按照文档填写即可</li>
+</ul>
+<h3 id="后台实现"><a href="#后台实现" class="headerlink" title="后台实现"></a>后台实现</h3><p>程序入口是redirectUrl指向的地址，一般是一个restful的资源。类图如下：</p>
+<img src="class-diagram.png"/>
+
+<p>在wechatCallback类中有两个分支分别处理扫码登录后的回调和账号登录后绑定微信的回调。主要的区别是重定向的页面和错误页面不同。</p>
+<ul>
+<li><p>扫码登录</p>
+<p>成功后跳转到信息补全页面，失败后跳转到登录页面并提示错误信息。</p>
+</li>
+<li><p>登录绑定</p>
+<p>成功后跳转到当前页面，失败后跳转到当前页面并提示错误信息。</p>
+</li>
+</ul>
+<p>BindService主要处理t_wx_bind_info表的CRUD操作，sync方法用于同步微信信息和账户信息。 </p>
+<p>WechatUtil类是连接微信API的工具类，主要逻辑是通过httpClient组装请求信息与微信服务器进行信息交换。</p>
+<h2 id="效果展示"><a href="#效果展示" class="headerlink" title="效果展示"></a>效果展示</h2><ol>
+<li><p>登录页面</p>
+<img src="step1.png"/>
+</li>
+<li><p>扫码成功</p>
+<img src="step2.png"/>
+</li>
+<li><p>跳转到信息补全，可以选择新创建账号还是绑定已有账号</p>
+<img src="step3.png"/>
+</li>
+<li><p>选择绑定到已有账户，输入用户密码后就直接完成登录并可以看到微信绑定状态是已绑定</p>
+<img src="step4.png"/></li>
+</ol>
+<h2 id="问题汇总"><a href="#问题汇总" class="headerlink" title="问题汇总"></a>问题汇总</h2><ul>
+<li><p>AppId参数不对</p>
+<p>这个问题主要是在开发者资质认证阶段，我随便编个参数遇到的问题，填写正确的appId就可以了</p>
+</li>
+<li><p>RedirectUrl参数不对</p>
+<p>这个问题前面也说过了，在网站申请的时候回调域名一定要和开发的redirectUrl一致。比如申请的回调域名是manulism.com, redirectUrl使用test.manulism.com则会出现这个问题。</p>
+</li>
+<li><p>本地测试的问题</p>
+<p>由于微信平台配置的时候只接受回调域名，所以在本地要测试需要修改hosts文件里的域名mapping，文件目录在C:\Windows\System32\drivers\etc</p>
+<p>新增一行：</p>
+<p>192.168.8.254  test.manulism.com</p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>应用技术</tag>
+        <tag>系统集成</tag>
       </tags>
   </entry>
   <entry>
@@ -1471,108 +1667,6 @@
       <tags>
         <tag>架构设计</tag>
         <tag>微服务</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>微信登录集成</title>
-    <url>/2017/09/01/%E5%BE%AE%E4%BF%A1%E7%99%BB%E5%BD%95%E9%9B%86%E6%88%90/</url>
-    <content><![CDATA[<p>平台上线快一年了，注册人数却始终不见起色，看着下面这注册走势可把大伙儿急的。一着急一上火就刷朋友圈，朋友圈，朋友圈？灵感来了有没有？ </p>
-<p>如果我们可以支持微信登录，那么微信日活5.7亿岂不都是我们的潜在客户了？不用多久升职加薪，当上总经理，出任CEO，迎娶白富美，走上人生巅峰。想想还有点小激动呢。</p>
-<span id="more"></span>
-
-<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>说干就干，程序员一般套路：<code>代码未动，文档先行</code>。先找到微信开放平台（<a href="https://open.weixin.qq.com)-&gt;/">https://open.weixin.qq.com）-&gt;</a> 资源中心-&gt; 网站应用，把开发文档刷一遍。不管看没看懂咱都是看过源代码，噢不原文档的人了。</p>
-<p>象征性的总结一下，主要分三步走：</p>
-<ol>
-<li>授权换code（开门）</li>
-<li>code换token（找钥匙）</li>
-<li>token获取用户消息（该干啥干啥）</li>
-</ol>
-<p>当然，如果你觉得找到了钥匙你就拥有了全世界那你就simple simple了。用着人家的文档，坐拥5.7亿的日活，不交点保护费合适吗？</p>
-<p>首先你要在开放平台注册一个账号，并通过开发者资质认证（300大洋一年）。然后到管理中心，创建一个网站应用并通过审核，这个不要钱。</p>
-<blockquote>
-<p>注:这里面有一个很重要的字段，叫授权回调域，最好和实际开发的回调域名保持一致。</p>
-<p>网上很多文章说可以配置成顶级域名，开发使用二级域名，反正我试过这样不通，</p>
-<p>错误信息：redirect_uri 参数错误。</p>
-</blockquote>
-<p>OK，到此为止，你才真正拥有了全世界。</p>
-<h2 id="集成设计"><a href="#集成设计" class="headerlink" title="集成设计"></a>集成设计</h2><p>既然是登录集成首先我们需要审视用户模型，我们原来的用户模型是简单的用户密码认证方式，简单来说就是一张主用户表，加一堆外延表。这无疑给我们用户的扩展提供了便利，本着KISS的原则，我们的用户模型最终修改如下：</p>
-<img src="user-diagram.png"/>
-
-<p>主要的改动点就是增加了一个t_wx_bind_info表，围绕这个数据模型，我们的逻辑可以如下展开：</p>
-<ol>
-<li>首次微信登录，获取用户信息后保存至t_wx_bind_info, 此时的微信注册信息处于<strong>游离态</strong>，用户通过后续选择a) 绑定到现有用户 b) 创建新用户 将微信注册用户转化为<strong>激活态</strong></li>
-<li>未绑定微信用户登录，用户授权后获取access token，通过token里面的unionId获取加载t_wx_bind_info中游离态的用户信息，用户同样需要通过选择来将<strong>游离态</strong>转化为<strong>激活态</strong></li>
-<li>已绑定微信用户登录，用户授权后获取access token，通过token里面的unionId获取t_wx_bind_info中激活态的用户并做正常登陆，之后用户可以通过用户管理模块进行微信解绑</li>
-<li>系统账号登录，普通账号可以通过账号管理模块进行账号绑定和解绑</li>
-</ol>
-<p>也许一张图来的更直观点，</p>
-<img src="flow.png"/>
-
-<blockquote>
-<p>关于用户解绑后t_wx_bind_info的思考<br>正常来说我们有两个选择，<br>	删除这条信息，每次绑定从头来过<br>	恢复至游离态，下次绑定的时候直接使用<br>至于取舍见仁见智，每个选择都是优劣并存的，其实只要明白各自的优劣使用哪种方案并不重要。</p>
-</blockquote>
-<h2 id="开发实现"><a href="#开发实现" class="headerlink" title="开发实现"></a>开发实现</h2><p>俗话说的好，talk is cheap, show me the code.</p>
-<p>那接下来就是coding show了，主要是记录一下开发的过程，方便以后用到的时候复制粘贴。</p>
-<h3 id="登录页面"><a href="#登录页面" class="headerlink" title="登录页面"></a>登录页面</h3><p>登录页面增加微信登录的按钮，至于背景图片可以到开放平台的资源中心下载相应尺寸的背景图片。</p>
-<p>给登录按钮添加事件，</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-keyword">var</span> dName = <span class="hljs-variable language_">document</span>.<span class="hljs-property">domain</span>;<br><span class="hljs-keyword">var</span> redirectUri = <br>	<span class="hljs-built_in">encodeURIComponent</span>(<span class="hljs-string">&quot;http://&quot;</span> +dName+<span class="hljs-string">&quot;&lt;%=request.getContextPath()%&gt;/wechat_callback.do?rout=fromLogin&quot;</span>);<br><span class="hljs-keyword">var</span> wechatLoginUrl = <br>	<span class="hljs-string">&quot;https://open.weixin.qq.com/connect/qrconnect?appid=wx62c35d8f6a203158&quot;</span><br>	+<span class="hljs-string">&quot;&amp;redirect_uri=&quot;</span>+redirectUri<br>	+<span class="hljs-string">&quot;&amp;response_type=code&amp;scope=snsapi_login&amp;state=123#wechat_redirect&quot;</span>;<br>location.<span class="hljs-property">href</span> = wechatLoginUrl;<br></code></pre></td></tr></table></figure>
-
-<p>实现的效果，是点击按钮后会跳到微信自己的二维码页面。</p>
-<img src="qr-code.png"/>
-
-<p>注意点：</p>
-<ul>
-<li>RedirectUrl需要经过urlEncode</li>
-<li>AppId需要通过微信开发者资质认证后获得</li>
-<li>其他参数按照文档填写即可</li>
-</ul>
-<h3 id="后台实现"><a href="#后台实现" class="headerlink" title="后台实现"></a>后台实现</h3><p>程序入口是redirectUrl指向的地址，一般是一个restful的资源。类图如下：</p>
-<img src="class-diagram.png"/>
-
-<p>在wechatCallback类中有两个分支分别处理扫码登录后的回调和账号登录后绑定微信的回调。主要的区别是重定向的页面和错误页面不同。</p>
-<ul>
-<li><p>扫码登录</p>
-<p>成功后跳转到信息补全页面，失败后跳转到登录页面并提示错误信息。</p>
-</li>
-<li><p>登录绑定</p>
-<p>成功后跳转到当前页面，失败后跳转到当前页面并提示错误信息。</p>
-</li>
-</ul>
-<p>BindService主要处理t_wx_bind_info表的CRUD操作，sync方法用于同步微信信息和账户信息。 </p>
-<p>WechatUtil类是连接微信API的工具类，主要逻辑是通过httpClient组装请求信息与微信服务器进行信息交换。</p>
-<h2 id="效果展示"><a href="#效果展示" class="headerlink" title="效果展示"></a>效果展示</h2><ol>
-<li><p>登录页面</p>
-<img src="step1.png"/>
-</li>
-<li><p>扫码成功</p>
-<img src="step2.png"/>
-</li>
-<li><p>跳转到信息补全，可以选择新创建账号还是绑定已有账号</p>
-<img src="step3.png"/>
-</li>
-<li><p>选择绑定到已有账户，输入用户密码后就直接完成登录并可以看到微信绑定状态是已绑定</p>
-<img src="step4.png"/></li>
-</ol>
-<h2 id="问题汇总"><a href="#问题汇总" class="headerlink" title="问题汇总"></a>问题汇总</h2><ul>
-<li><p>AppId参数不对</p>
-<p>这个问题主要是在开发者资质认证阶段，我随便编个参数遇到的问题，填写正确的appId就可以了</p>
-</li>
-<li><p>RedirectUrl参数不对</p>
-<p>这个问题前面也说过了，在网站申请的时候回调域名一定要和开发的redirectUrl一致。比如申请的回调域名是manulism.com, redirectUrl使用test.manulism.com则会出现这个问题。</p>
-</li>
-<li><p>本地测试的问题</p>
-<p>由于微信平台配置的时候只接受回调域名，所以在本地要测试需要修改hosts文件里的域名mapping，文件目录在C:\Windows\System32\drivers\etc</p>
-<p>新增一行：</p>
-<p>192.168.8.254  test.manulism.com</p>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>应用技术</tag>
-        <tag>系统集成</tag>
       </tags>
   </entry>
   <entry>
@@ -1880,6 +1974,55 @@
       </tags>
   </entry>
   <entry>
+    <title>设计模式实战之策略枚举</title>
+    <url>/2021/11/27/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%AD%96%E7%95%A5%E6%9E%9A%E4%B8%BE/</url>
+    <content><![CDATA[<p>在开发中经常会遇到一些语句拼接的问题，如用于数据库查询的where条件或者用于逻辑判断的表达式。我们在应对这类问题的时候，直觉是使用if-else或者switch条件判断，下面是一个常见的例子：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title function_">buildStatement</span><span class="hljs-params">(<span class="hljs-type">int</span> type, String[] value)</span>&#123;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">statement</span> <span class="hljs-operator">=</span><span class="hljs-string">&quot;&quot;</span>;<br>    <span class="hljs-keyword">if</span>(type == <span class="hljs-number">1</span>) statement =<span class="hljs-string">&quot;value &gt;= %s and value &lt;= %s&quot;</span>;<span class="hljs-comment">//介于</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(type == <span class="hljs-number">2</span>) statement = <span class="hljs-string">&quot;value &lt; %s or value &gt; %s&quot;</span>;<span class="hljs-comment">//不介于</span><br>    ……<br>    <span class="hljs-keyword">return</span> String.format(statement, value[<span class="hljs-number">0</span>], value[<span class="hljs-number">1</span>]);<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<h2 id="问题反思"><a href="#问题反思" class="headerlink" title="问题反思"></a>问题反思</h2><p>这段拼接字符串的代码功能上没什么问题，但是过多的if-else使得代码的阅读和维护都显得不是那么友好。在上面的例子中，我们还隐藏了一个关于type的枚举。考虑扩展性如果需要新增一个类型，我们需要做：</p>
+<ul>
+<li>Type枚举新增一个类型</li>
+<li>新增一个if-else 分支</li>
+</ul>
+<p>在枚举里面新增一个类型相当于增加了一个单例类，符合设计原则；但是新增if-else分支则涉及到具体类逻辑的修改，不符合开闭原则。</p>
+<p>让我们再来思考一下面临的问题：每个类型对应了一种字符串拼接的方法，要求根据高层次模块的需求可以自由切换，而不用关心拼接的细节。这正契合了策略模式的定义：</p>
+<blockquote>
+<p>策略模式通过定义一组算法将他们封装起来，使得算法之间可以相互替换</p>
+</blockquote>
+<h2 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h2><p>基于策略模式的定义，我们可以绘制出语句拼接场景下的类图。</p>
+<img src="class-diagram.png" alt="Image" />
+
+<p>首先定义了一个策略接口Statement，以及通用行为build。</p>
+<p>每一个策略都定义一个实现类，如介于（Between）。在实现类的代码实现如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//构造函数注入类型</span><br>Between()&#123;<br>  Super(<span class="hljs-number">1</span>);<br>&#125;<br><span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String[] params)</span>&#123;<br>  <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;value &gt;=%s and value &lt;=%s&quot;</span>,value[<span class="hljs-number">0</span>],value[<span class="hljs-number">1</span>]);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>环境类Context提供了切换拼接方式的入口，高层模块调用方式如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">Context</span> <span class="hljs-variable">context</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Context</span>();<br>String[] values = <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[]&#123;<span class="hljs-string">&quot;10&quot;</span>,<span class="hljs-string">&quot;20&quot;</span>&#125;;<br>context.setStatement(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Between</span>());<br><span class="hljs-type">String</span> <span class="hljs-variable">betweenStatement</span> <span class="hljs-operator">=</span> context.buildStatement(values);<br>Context.setStatement(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Equal</span>());<br><span class="hljs-type">String</span> <span class="hljs-variable">equlStatement</span> <span class="hljs-operator">=</span> context.buildStatement(values);<br></code></pre></td></tr></table></figure>
+
+<p>通过上面的设计，如果我们新增一个拼接类型只需要新增一个新的实现类即可，不需要涉及任何现有代码的改动，符合开闭原则。</p>
+<p>但是如此完美的设计还是逃避不了策略模式的通病：类爆炸。当拼接类型过多的时候，系统中会出现很多的实现类，而且每个类都只有几十行代码，这在无形之中也会增加系统的维护成本。针对这种情形，我们可以引入策略枚举。因为我们知道枚举的值其实就是对应一个单例的实现，我们通常使用的枚举只是定义了这个单例的属性，如下图所示。</p>
+<img src="type-enum.png" alt="Image" />
+
+<p>策略枚举可以同时定义属性和行为，看起来更加的物尽其用。具体实现就是在枚举中除了属性定义之外通过抽象方法来定义枚举的行为，而在每一个枚举值中进行实现。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">enum</span> <span class="hljs-title class_">LogicStatement</span>&#123;<br>        BETWEEN(<span class="hljs-number">1</span>,<span class="hljs-string">&quot;介于&quot;</span>)&#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span> &#123;<br>                <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;and value&gt;%s and value&lt;%s&quot;</span>,values[<span class="hljs-number">0</span>],values[<span class="hljs-number">1</span>]);<br>            &#125;<br>        &#125;,<br>        NOT_BETWEEN(<span class="hljs-number">2</span>,<span class="hljs-string">&quot;未介于&quot;</span>)&#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span> &#123;<br>                <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;and (value&gt;=%s or value&lt;=%s)&quot;</span>,values[<span class="hljs-number">1</span>],values[<span class="hljs-number">0</span>]);<br>            &#125;<br>        &#125;,<br>        EQUAL(<span class="hljs-number">3</span>,<span class="hljs-string">&quot;等于&quot;</span>)&#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span> &#123;<br>                <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;and value=%s&quot;</span>,values[<span class="hljs-number">0</span>]);<br>            &#125;<br>        &#125;;<br><br>        <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> value;<br>        <span class="hljs-keyword">private</span> String name;<br>        LogicStatement(<span class="hljs-type">int</span> _value, String _name)&#123;<br>            <span class="hljs-built_in">this</span>.value = _value;<br>            <span class="hljs-built_in">this</span>.name = _name;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getValue</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> value;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getName</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> name;<br>        &#125;<br><br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如上所示，LogicStatement定义了枚举的属性和行为，在每一个枚举中通过构造器注入属性，通过重写来定义行为。通过策略枚举的实现在策略模式的基础上有效的归集了策略模式的实现类，方便管理和维护。</p>
+<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>上面的例子中我们使用策略模式来实现字符串拼接的功能，主要原因是功能的封装和算法的切换符合策略模式的定义。通过策略模式的引进可以增强设计和实现的可维护性和可扩展性。对于简单策略可能带来的类爆炸问题，我们可以通过策略枚举解决。但是需要谨记使用策略枚举的前提：</p>
+<ol>
+<li>简单策略，即策略的实现代码较少，否则会造成枚举类过大</li>
+<li>策略类较多，如果策略类只有五个以内或者更少还是建议使用策略类的方式来实现，毕竟策略枚举的扩展还是要修改已有枚举类代码，并不是纯粹意义的扩展</li>
+</ol>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>设计模式</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>设计模式实战之装饰模式</title>
     <url>/2022/01/07/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%A3%85%E9%A5%B0%E6%A8%A1%E5%BC%8F/</url>
     <content><![CDATA[<p>装饰模式是指在不改变原类文件并且不使用继承结构的情况下，动态的扩展一个对象的功能。具体实现上是通过创建一个包装对象即一个装饰来包装真实对象，所以装饰模式又称为包装模式。</p>
@@ -1929,55 +2072,6 @@
 <p>我们在原始的实现中只是使用了模板方法，通过抽象类实现了功能的可复用，这种方式我们称之为静态增强。这时候如果需要新增新的增强方式，需要涉及抽象类的修改和模型实现类的修改，无法满足开闭原则，扩展性不好。</p>
 <p>如果引入装饰模式，使用包装类的方式对原始功能进行增强，理论上可以增加任意多的增强。装饰类的新增只需要高层模块的修改，不涉及已有功能的改动，符合了开闭原则。</p>
 <p>实际应用中可以结合模板方法，动静结合的对类进行增强。同时需要注意包装类的数量不宜过多，太多的增强可能引发代码复杂度的急剧增加带来维护的难度。</p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>设计模式</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>设计模式实战之策略枚举</title>
-    <url>/2021/11/27/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%AD%96%E7%95%A5%E6%9E%9A%E4%B8%BE/</url>
-    <content><![CDATA[<p>在开发中经常会遇到一些语句拼接的问题，如用于数据库查询的where条件或者用于逻辑判断的表达式。我们在应对这类问题的时候，直觉是使用if-else或者switch条件判断，下面是一个常见的例子：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title function_">buildStatement</span><span class="hljs-params">(<span class="hljs-type">int</span> type, String[] value)</span>&#123;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">statement</span> <span class="hljs-operator">=</span><span class="hljs-string">&quot;&quot;</span>;<br>    <span class="hljs-keyword">if</span>(type == <span class="hljs-number">1</span>) statement =<span class="hljs-string">&quot;value &gt;= %s and value &lt;= %s&quot;</span>;<span class="hljs-comment">//介于</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(type == <span class="hljs-number">2</span>) statement = <span class="hljs-string">&quot;value &lt; %s or value &gt; %s&quot;</span>;<span class="hljs-comment">//不介于</span><br>    ……<br>    <span class="hljs-keyword">return</span> String.format(statement, value[<span class="hljs-number">0</span>], value[<span class="hljs-number">1</span>]);<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<span id="more"></span>
-
-<h2 id="问题反思"><a href="#问题反思" class="headerlink" title="问题反思"></a>问题反思</h2><p>这段拼接字符串的代码功能上没什么问题，但是过多的if-else使得代码的阅读和维护都显得不是那么友好。在上面的例子中，我们还隐藏了一个关于type的枚举。考虑扩展性如果需要新增一个类型，我们需要做：</p>
-<ul>
-<li>Type枚举新增一个类型</li>
-<li>新增一个if-else 分支</li>
-</ul>
-<p>在枚举里面新增一个类型相当于增加了一个单例类，符合设计原则；但是新增if-else分支则涉及到具体类逻辑的修改，不符合开闭原则。</p>
-<p>让我们再来思考一下面临的问题：每个类型对应了一种字符串拼接的方法，要求根据高层次模块的需求可以自由切换，而不用关心拼接的细节。这正契合了策略模式的定义：</p>
-<blockquote>
-<p>策略模式通过定义一组算法将他们封装起来，使得算法之间可以相互替换</p>
-</blockquote>
-<h2 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h2><p>基于策略模式的定义，我们可以绘制出语句拼接场景下的类图。</p>
-<img src="class-diagram.png" alt="Image" />
-
-<p>首先定义了一个策略接口Statement，以及通用行为build。</p>
-<p>每一个策略都定义一个实现类，如介于（Between）。在实现类的代码实现如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//构造函数注入类型</span><br>Between()&#123;<br>  Super(<span class="hljs-number">1</span>);<br>&#125;<br><span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String[] params)</span>&#123;<br>  <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;value &gt;=%s and value &lt;=%s&quot;</span>,value[<span class="hljs-number">0</span>],value[<span class="hljs-number">1</span>]);<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>环境类Context提供了切换拼接方式的入口，高层模块调用方式如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">Context</span> <span class="hljs-variable">context</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Context</span>();<br>String[] values = <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[]&#123;<span class="hljs-string">&quot;10&quot;</span>,<span class="hljs-string">&quot;20&quot;</span>&#125;;<br>context.setStatement(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Between</span>());<br><span class="hljs-type">String</span> <span class="hljs-variable">betweenStatement</span> <span class="hljs-operator">=</span> context.buildStatement(values);<br>Context.setStatement(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Equal</span>());<br><span class="hljs-type">String</span> <span class="hljs-variable">equlStatement</span> <span class="hljs-operator">=</span> context.buildStatement(values);<br></code></pre></td></tr></table></figure>
-
-<p>通过上面的设计，如果我们新增一个拼接类型只需要新增一个新的实现类即可，不需要涉及任何现有代码的改动，符合开闭原则。</p>
-<p>但是如此完美的设计还是逃避不了策略模式的通病：类爆炸。当拼接类型过多的时候，系统中会出现很多的实现类，而且每个类都只有几十行代码，这在无形之中也会增加系统的维护成本。针对这种情形，我们可以引入策略枚举。因为我们知道枚举的值其实就是对应一个单例的实现，我们通常使用的枚举只是定义了这个单例的属性，如下图所示。</p>
-<img src="type-enum.png" alt="Image" />
-
-<p>策略枚举可以同时定义属性和行为，看起来更加的物尽其用。具体实现就是在枚举中除了属性定义之外通过抽象方法来定义枚举的行为，而在每一个枚举值中进行实现。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">enum</span> <span class="hljs-title class_">LogicStatement</span>&#123;<br>        BETWEEN(<span class="hljs-number">1</span>,<span class="hljs-string">&quot;介于&quot;</span>)&#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span> &#123;<br>                <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;and value&gt;%s and value&lt;%s&quot;</span>,values[<span class="hljs-number">0</span>],values[<span class="hljs-number">1</span>]);<br>            &#125;<br>        &#125;,<br>        NOT_BETWEEN(<span class="hljs-number">2</span>,<span class="hljs-string">&quot;未介于&quot;</span>)&#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span> &#123;<br>                <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;and (value&gt;=%s or value&lt;=%s)&quot;</span>,values[<span class="hljs-number">1</span>],values[<span class="hljs-number">0</span>]);<br>            &#125;<br>        &#125;,<br>        EQUAL(<span class="hljs-number">3</span>,<span class="hljs-string">&quot;等于&quot;</span>)&#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span> &#123;<br>                <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;and value=%s&quot;</span>,values[<span class="hljs-number">0</span>]);<br>            &#125;<br>        &#125;;<br><br>        <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> value;<br>        <span class="hljs-keyword">private</span> String name;<br>        LogicStatement(<span class="hljs-type">int</span> _value, String _name)&#123;<br>            <span class="hljs-built_in">this</span>.value = _value;<br>            <span class="hljs-built_in">this</span>.name = _name;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getValue</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> value;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getName</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> name;<br>        &#125;<br><br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>如上所示，LogicStatement定义了枚举的属性和行为，在每一个枚举中通过构造器注入属性，通过重写来定义行为。通过策略枚举的实现在策略模式的基础上有效的归集了策略模式的实现类，方便管理和维护。</p>
-<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>上面的例子中我们使用策略模式来实现字符串拼接的功能，主要原因是功能的封装和算法的切换符合策略模式的定义。通过策略模式的引进可以增强设计和实现的可维护性和可扩展性。对于简单策略可能带来的类爆炸问题，我们可以通过策略枚举解决。但是需要谨记使用策略枚举的前提：</p>
-<ol>
-<li>简单策略，即策略的实现代码较少，否则会造成枚举类过大</li>
-<li>策略类较多，如果策略类只有五个以内或者更少还是建议使用策略类的方式来实现，毕竟策略枚举的扩展还是要修改已有枚举类代码，并不是纯粹意义的扩展</li>
-</ol>
 ]]></content>
       <categories>
         <category>技术总结</category>
