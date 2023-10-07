@@ -173,28 +173,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2016/05/26/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo new <span class="hljs-string">&quot;My New Post&quot;</span><br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo server<br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo generate<br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo deploy<br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-<h2 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h2><h3 id="生成的文件目录错乱"><a href="#生成的文件目录错乱" class="headerlink" title="生成的文件目录错乱"></a>生成的文件目录错乱</h3><p>原因是Next主题解析机制是二级目录、三级目录的按级解析，如果文章中出现了跳级的情况就会出现文件目录错乱。修复办法就是使用层层递进的目录定义。</p>
-<h3 id="修改每页文章数量"><a href="#修改每页文章数量" class="headerlink" title="修改每页文章数量"></a>修改每页文章数量</h3><p>在hexo的_config.yml中修改per_page配置项：</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">index_generator:</span><br>  <span class="hljs-attr">path:</span> <span class="hljs-string">&#x27;&#x27;</span><br>  <span class="hljs-attr">per_page:</span> <span class="hljs-number">5</span><br>  <span class="hljs-attr">order_by:</span> <span class="hljs-string">-date</span><br></code></pre></td></tr></table></figure>
-
-]]></content>
-  </entry>
-  <entry>
     <title>Java中的锁机制</title>
     <url>/2020/05/25/Java%E4%B8%AD%E7%9A%84%E9%94%81%E6%9C%BA%E5%88%B6/</url>
     <content><![CDATA[<p>说起Java中的并发，有一个永恒的话题就是锁机制，而提及Java中的锁，我们一般认为有两种形式，</p>
@@ -280,6 +258,28 @@
         <tag>编程语言</tag>
         <tag>Java</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2016/05/26/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo new <span class="hljs-string">&quot;My New Post&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo server<br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo generate<br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo deploy<br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<h2 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h2><h3 id="生成的文件目录错乱"><a href="#生成的文件目录错乱" class="headerlink" title="生成的文件目录错乱"></a>生成的文件目录错乱</h3><p>原因是Next主题解析机制是二级目录、三级目录的按级解析，如果文章中出现了跳级的情况就会出现文件目录错乱。修复办法就是使用层层递进的目录定义。</p>
+<h3 id="修改每页文章数量"><a href="#修改每页文章数量" class="headerlink" title="修改每页文章数量"></a>修改每页文章数量</h3><p>在hexo的_config.yml中修改per_page配置项：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">index_generator:</span><br>  <span class="hljs-attr">path:</span> <span class="hljs-string">&#x27;&#x27;</span><br>  <span class="hljs-attr">per_page:</span> <span class="hljs-number">5</span><br>  <span class="hljs-attr">order_by:</span> <span class="hljs-string">-date</span><br></code></pre></td></tr></table></figure>
+
+]]></content>
   </entry>
   <entry>
     <title>一个Slash引发的ClassNotFound血案</title>
@@ -1322,7 +1322,7 @@
 <p>最终经过验证的优化效果达到了15%的能耗节约。</p>
 ]]></content>
       <categories>
-        <category>算法</category>
+        <category>工业算法</category>
       </categories>
       <tags>
         <tag>数据技术</tag>
@@ -1776,7 +1776,7 @@
 <img src="result.png" />
 ]]></content>
       <categories>
-        <category>算法</category>
+        <category>工业算法</category>
       </categories>
       <tags>
         <tag>数据技术</tag>
