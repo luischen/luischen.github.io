@@ -13,7 +13,7 @@
     
     <categories>
       
-      <category>技术总结</category>
+      <category>算法</category>
       
     </categories>
     
@@ -22,7 +22,7 @@
       
       <tag>数据技术</tag>
       
-      <tag>算法</tag>
+      <tag>最优化技术</tag>
       
     </tags>
     
@@ -67,7 +67,7 @@
     
     <categories>
       
-      <category>技术总结</category>
+      <category>解决方案</category>
       
     </categories>
     
@@ -96,14 +96,12 @@
     
     <categories>
       
-      <category>技术总结</category>
+      <category>解决方案</category>
       
     </categories>
     
     
     <tags>
-      
-      <tag>解决方案</tag>
       
       <tag>前端技术</tag>
       
@@ -123,16 +121,16 @@
     
     <categories>
       
-      <category>技术总结</category>
+      <category>解决方案</category>
       
     </categories>
     
     
     <tags>
       
-      <tag>解决方案</tag>
-      
       <tag>开发技术</tag>
+      
+      <tag>微服务</tag>
       
     </tags>
     
@@ -150,7 +148,7 @@
     
     <categories>
       
-      <category>技术总结</category>
+      <category>解决方案</category>
       
     </categories>
     
@@ -227,7 +225,7 @@
     
     <categories>
       
-      <category>技术总结</category>
+      <category>解决方案</category>
       
     </categories>
     
@@ -237,8 +235,6 @@
       <tag>InfluxDB</tag>
       
       <tag>数据技术</tag>
-      
-      <tag>解决方案</tag>
       
     </tags>
     
@@ -306,7 +302,7 @@
     
     <categories>
       
-      <category>技术总结</category>
+      <category>算法</category>
       
     </categories>
     
@@ -316,8 +312,6 @@
       <tag>数据技术</tag>
       
       <tag>可视化</tag>
-      
-      <tag>算法</tag>
       
     </tags>
     
@@ -362,7 +356,7 @@
     
     <categories>
       
-      <category>人生感悟</category>
+      <category>团队管理</category>
       
     </categories>
     
@@ -387,7 +381,7 @@
     
     <categories>
       
-      <category>技术总结</category>
+      <category>解决方案</category>
       
     </categories>
     
@@ -414,7 +408,7 @@
     
     <categories>
       
-      <category>技术总结</category>
+      <category>解决方案</category>
       
     </categories>
     
@@ -423,7 +417,7 @@
       
       <tag>性能优化</tag>
       
-      <tag>应用技术</tag>
+      <tag>微服务</tag>
       
     </tags>
     
@@ -475,6 +469,8 @@
     
     <tags>
       
+      <tag>微服务</tag>
+      
       <tag>应用技术</tag>
       
     </tags>
@@ -493,7 +489,7 @@
     
     <categories>
       
-      <category>技术总结</category>
+      <category>解决方案</category>
       
     </categories>
     
@@ -556,8 +552,6 @@
       
       <tag>开发技术</tag>
       
-      <tag>问题解决</tag>
-      
     </tags>
     
   </entry>
@@ -581,9 +575,9 @@
     
     <tags>
       
-      <tag>算法</tag>
-      
       <tag>Golang</tag>
+      
+      <tag>算法</tag>
       
     </tags>
     
@@ -607,8 +601,6 @@
     
     
     <tags>
-      
-      <tag>问题解决</tag>
       
       <tag>性能优化</tag>
       
@@ -655,7 +647,7 @@
     
     <categories>
       
-      <category>技术总结</category>
+      <category>解决方案</category>
       
     </categories>
     

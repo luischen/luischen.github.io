@@ -165,13 +165,34 @@
 <p>附源代码地址（版本更新后可能和原文实现有差异）：<a href="https://gitee.com/luischen/databridge">https://gitee.com/luischen/databridge</a></p>
 ]]></content>
       <categories>
-        <category>技术总结</category>
+        <category>解决方案</category>
       </categories>
       <tags>
         <tag>InfluxDB</tag>
         <tag>数据技术</tag>
-        <tag>解决方案</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2016/05/26/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo new <span class="hljs-string">&quot;My New Post&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo server<br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo generate<br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo deploy<br></code></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<h2 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h2><h3 id="生成的文件目录错乱"><a href="#生成的文件目录错乱" class="headerlink" title="生成的文件目录错乱"></a>生成的文件目录错乱</h3><p>原因是Next主题解析机制是二级目录、三级目录的按级解析，如果文章中出现了跳级的情况就会出现文件目录错乱。修复办法就是使用层层递进的目录定义。</p>
+<h3 id="修改每页文章数量"><a href="#修改每页文章数量" class="headerlink" title="修改每页文章数量"></a>修改每页文章数量</h3><p>在hexo的_config.yml中修改per_page配置项：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">index_generator:</span><br>  <span class="hljs-attr">path:</span> <span class="hljs-string">&#x27;&#x27;</span><br>  <span class="hljs-attr">per_page:</span> <span class="hljs-number">5</span><br>  <span class="hljs-attr">order_by:</span> <span class="hljs-string">-date</span><br></code></pre></td></tr></table></figure>
+
+]]></content>
   </entry>
   <entry>
     <title>Java中的锁机制</title>
@@ -259,28 +280,6 @@
         <tag>编程语言</tag>
         <tag>Java</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2016/05/26/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo new <span class="hljs-string">&quot;My New Post&quot;</span><br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo server<br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo generate<br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">$ hexo deploy<br></code></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-<h2 id="问题记录"><a href="#问题记录" class="headerlink" title="问题记录"></a>问题记录</h2><h3 id="生成的文件目录错乱"><a href="#生成的文件目录错乱" class="headerlink" title="生成的文件目录错乱"></a>生成的文件目录错乱</h3><p>原因是Next主题解析机制是二级目录、三级目录的按级解析，如果文章中出现了跳级的情况就会出现文件目录错乱。修复办法就是使用层层递进的目录定义。</p>
-<h3 id="修改每页文章数量"><a href="#修改每页文章数量" class="headerlink" title="修改每页文章数量"></a>修改每页文章数量</h3><p>在hexo的_config.yml中修改per_page配置项：</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">index_generator:</span><br>  <span class="hljs-attr">path:</span> <span class="hljs-string">&#x27;&#x27;</span><br>  <span class="hljs-attr">per_page:</span> <span class="hljs-number">5</span><br>  <span class="hljs-attr">order_by:</span> <span class="hljs-string">-date</span><br></code></pre></td></tr></table></figure>
-
-]]></content>
   </entry>
   <entry>
     <title>一个Slash引发的ClassNotFound血案</title>
@@ -390,7 +389,6 @@
       </categories>
       <tags>
         <tag>开发技术</tag>
-        <tag>问题解决</tag>
       </tags>
   </entry>
   <entry>
@@ -539,7 +537,6 @@
         <category>技术总结</category>
       </categories>
       <tags>
-        <tag>问题解决</tag>
         <tag>性能优化</tag>
       </tags>
   </entry>
@@ -762,11 +759,11 @@
 <p>下面罗列一下我们的优化路径，供后续参考借鉴。</p>
 <img src="path.png"/>]]></content>
       <categories>
-        <category>技术总结</category>
+        <category>解决方案</category>
       </categories>
       <tags>
         <tag>性能优化</tag>
-        <tag>应用技术</tag>
+        <tag>微服务</tag>
       </tags>
   </entry>
   <entry>
@@ -845,7 +842,7 @@
 <p>通过以上技术细节的实现，最终我们基于Netty搭建了一套符合FANUC机器人数采要求的边缘数采客户端。</p>
 ]]></content>
       <categories>
-        <category>技术总结</category>
+        <category>解决方案</category>
       </categories>
       <tags>
         <tag>数据采集</tag>
@@ -983,6 +980,7 @@
         <category>技术总结</category>
       </categories>
       <tags>
+        <tag>微服务</tag>
         <tag>应用技术</tag>
       </tags>
   </entry>
@@ -1227,10 +1225,9 @@
 </ol>
 ]]></content>
       <categories>
-        <category>技术总结</category>
+        <category>解决方案</category>
       </categories>
       <tags>
-        <tag>解决方案</tag>
         <tag>前端技术</tag>
       </tags>
   </entry>
@@ -1325,11 +1322,11 @@
 <p>最终经过验证的优化效果达到了15%的能耗节约。</p>
 ]]></content>
       <categories>
-        <category>技术总结</category>
+        <category>算法</category>
       </categories>
       <tags>
         <tag>数据技术</tag>
-        <tag>算法</tag>
+        <tag>最优化技术</tag>
       </tags>
   </entry>
   <entry>
@@ -1420,11 +1417,11 @@
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>在多应用的场景下如何集中管理配置变更是一个很重要的话题，我们通过基于注解的切面实现了一个灵活易用的监测机制，通过对方法添加注解可以快速埋点。在管理端我们通过应用和节点的版本记录实现了简单版本管理和版本变更的判断逻辑。两者结合之下一个可复用的配置数据监测方案基本成型，具体项目中可以结合实际需求进行扩展和使用。</p>
 ]]></content>
       <categories>
-        <category>技术总结</category>
+        <category>解决方案</category>
       </categories>
       <tags>
-        <tag>解决方案</tag>
         <tag>开发技术</tag>
+        <tag>微服务</tag>
       </tags>
   </entry>
   <entry>
@@ -1522,7 +1519,7 @@
 </ul>
 ]]></content>
       <categories>
-        <category>技术总结</category>
+        <category>解决方案</category>
       </categories>
       <tags>
         <tag>应用技术</tag>
@@ -1666,7 +1663,7 @@
 <p>对于JWT来说，Token的过期机制会直接影响到系统的安全性。鉴于目前服务都是在系统闭环内完成，暂时不考虑对于过期机制进行过多设计，仅考虑由于重新申请令牌的过期处理。后续如果接入了第三方系统，或者作为一个开放平台来说需要加强这方面的考虑。</p>
 ]]></content>
       <categories>
-        <category>技术总结</category>
+        <category>解决方案</category>
       </categories>
       <tags>
         <tag>架构设计</tag>
@@ -1705,7 +1702,7 @@
 <p>大制科技诞生于上海，基本没有明显的地域优势。在选择标杆客户方面选择上汽集团作为标杆，客户参与度不高，更多的是实验性质的合作，没有起到标杆背书的作用，反而消耗了大量的资源。</p>
 ]]></content>
       <categories>
-        <category>人生感悟</category>
+        <category>团队管理</category>
       </categories>
       <tags>
         <tag>工作反思</tag>
@@ -1779,12 +1776,11 @@
 <img src="result.png" />
 ]]></content>
       <categories>
-        <category>技术总结</category>
+        <category>算法</category>
       </categories>
       <tags>
         <tag>数据技术</tag>
         <tag>可视化</tag>
-        <tag>算法</tag>
       </tags>
   </entry>
   <entry>
@@ -1849,7 +1845,7 @@
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>通过<strong>连接验证</strong>，我们确认了可以通过边缘程序发送数据到MQTT队列并在平台进行展示的可行性。通过<strong>业务验证</strong>，我们将边缘端的设备结构和物模型进行匹配，实现了一个网关对应一台边缘智能机并通过复合物进行统一管理的实现路径。</p>
 <img src="path.png"/>]]></content>
       <categories>
-        <category>技术总结</category>
+        <category>解决方案</category>
       </categories>
       <tags>
         <tag>数据采集</tag>
@@ -1893,8 +1889,8 @@
         <category>技术总结</category>
       </categories>
       <tags>
-        <tag>算法</tag>
         <tag>Golang</tag>
+        <tag>算法</tag>
       </tags>
   </entry>
   <entry>
@@ -2216,7 +2212,7 @@
 
 ]]></content>
       <categories>
-        <category>技术总结</category>
+        <category>解决方案</category>
       </categories>
       <tags>
         <tag>Java</tag>
