@@ -1330,98 +1330,60 @@
       </tags>
   </entry>
   <entry>
-    <title>如何监测配置数据的变化</title>
-    <url>/2022/12/29/%E5%A6%82%E4%BD%95%E7%9B%91%E6%B5%8B%E9%85%8D%E7%BD%AE%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%98%E5%8C%96/</url>
-    <content><![CDATA[<p>在工业互联网平台上存在多种业务应用，每个应用有自己的配置数据，当配置数据发生变更的时候需要及时的下发到边缘节点让配置生效。我们可以通过节点管理模块提供手动下发的功能，即操作人员修改完配置后通知系统管理员进行对应节点的配置下发。实际操作中发现由于引发配置变更的点过于分散，导致经常会忘记下发而无法使配置及时生效。再者业务操作人员自己并不清楚当前操作的配置是否需要下发，会引发很多无效的沟通，降低了生产效率。</p>
-<p>如何在配置发生变化的时候及时监测到变更，由系统自动来引导配置变更流程是我们需要解决的问题，我们通过埋点通知的机制来应对。整体解决方案如下图：</p>
-<span id="more"></span>
+    <title>异常检测算法之孤立森林</title>
+    <url>/2023/10/09/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8B%E5%AD%A4%E7%AB%8B%E6%A3%AE%E6%9E%97/</url>
+    <content><![CDATA[<p>在工业时序数据的异常检测中，我们通常使用基于SPC（统计过程控制）的异常检测算法，通过训练的上下限判定异常点。但是随着工况复杂度上升，一维的数据无法满足数据分析和异常检测的需求，我们需要引入支持多纬度数据的算法，这时候孤立森林走入了我们的视野。</p>
+<blockquote>
+<p>隔离森林又名<strong>孤立森林</strong>，是一种从异常点出发，通过指定规则进行划分，根据划分次数进行判断的异常检测方法。 [1] 由<a href="https://gitee.com/link?target=https://baike.baidu.com/item/%E5%91%A8%E5%BF%97%E5%8D%8E/32542?fromModule=lemma_inlink">周志华</a>教授等人于2008年在第八届IEEE数据挖掘国际会议上提出。</p>
+</blockquote>
+<h2 id="算法思想"><a href="#算法思想" class="headerlink" title="算法思想"></a>算法思想</h2><p>孤立森林中的孤立，是通过多次划分将异常点孤立出来的意思。想象平面上的一堆点，对于很密集的点需要切很多次才有可能孤立开来，而相对比较离群的点可以很轻松的被孤立。算法认为这些离群点相对聚集点来说成为异常点的概率更高，这就是孤立森林算法的出发点。</p>
+<img src="原理.png"/>
 
-<img src="配置下发方案.png" alt="配置下发方案" style="zoom: 45%;" />
-
-<p>如图所示，对于每个App的配置变更点，我们抽象一个Point Cut，通过对Point Cut的监控，可以获取配置的变化信息。同时通过MQ通知到节点管理服务，节点管理服务处理节点的配置版本管理。</p>
-<p>在整个方案中主要的技术细节有两点：</p>
+<p>如上图所示，需要孤立出B点只需要切一次，而孤立出A点至少需要切两次。从算法解释上来看B点更容易被孤立出来，所以B点为异常点的概率更高。</p>
+<h2 id="算法步骤"><a href="#算法步骤" class="headerlink" title="算法步骤"></a>算法步骤</h2><p>总体来说孤立森林包含训练和判定两个步骤，通过训练可以得出一个包含一批决策树的森林，在判定过程中通过将判定点放入森林中的每一棵树得到表现分后综合判定一个异常得分。</p>
+<h3 id="算法训练"><a href="#算法训练" class="headerlink" title="算法训练"></a>算法训练</h3><p>算法训练包含如下过程：</p>
 <ol>
-<li>配置变更点的抽象</li>
-<li>配置版本管理</li>
+<li>将训练集划分为多个子数据集</li>
+<li>针对每一个子数据集构建子树</li>
+<li>将子树组合成森林</li>
+<li>训练完成</li>
 </ol>
-<p>接下来就针对这两点进行详细的实现。</p>
-<h3 id="配置变更点"><a href="#配置变更点" class="headerlink" title="配置变更点"></a>配置变更点</h3><p>APP基于SpringBoot开发，所以在配置变更点上我们选用Spring AOP结合注解的方式。</p>
-<h4 id="引入Spring-AOP"><a href="#引入Spring-AOP" class="headerlink" title="引入Spring AOP"></a>引入Spring AOP</h4><figure class="highlight xml"><table><tr><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-aop<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+<p>如下是训练过程的基本的代码实现：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">int</span> <span class="hljs-variable">baseSeed</span> <span class="hljs-operator">=</span> IFUtils.IF_SEED;<br><span class="hljs-type">Random</span> <span class="hljs-variable">random</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Random</span>(baseSeed);<br><span class="hljs-type">int</span>[] seeds = <span class="hljs-keyword">new</span> <span class="hljs-title class_">int</span>[subTreeNum];<br><span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; subTreeNum; i++) &#123;<br>    seeds[i] = random.nextInt(Integer.MAX_VALUE);<br>&#125;<br>	    <br><span class="hljs-type">Random</span> <span class="hljs-variable">treeRandom</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Random</span>(baseSeed);<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; subTreeNum; i++) &#123;<br>    <span class="hljs-comment">//二维数据</span><br>    subSample = <span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[subSampleSize][<span class="hljs-number">2</span>];<br>    random.setSeed(seeds[i]);<br>    <span class="hljs-comment">//生成子数据集对应的index</span><br>    Integer[] indexs = IFUtils.getUniqueIndex(random, subSampleSize, samples.length);<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">j</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; j &lt; subSampleSize; j++) &#123;<br>        subSample[j] = samples[indexs[j]];<br>    &#125;<br>    <span class="hljs-comment">//构建子树</span><br>    iTree = ITree.createITree(subSample, <span class="hljs-number">0</span>, limitHeight, treeRandom);<br>    <span class="hljs-comment">//组合成森林</span><br>    <span class="hljs-built_in">this</span>.iTreeList.add(iTree);<br>&#125;<br></code></pre></td></tr></table></figure>
 
-<h4 id="创建注解"><a href="#创建注解" class="headerlink" title="创建注解"></a>创建注解</h4><figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="hljs-meta">@Target(ElementType.METHOD)</span><br><span class="hljs-meta">@Inherited</span><br><span class="hljs-meta">@Documented</span><br><span class="hljs-keyword">public</span> <span class="hljs-meta">@interface</span> AppConfigureChange &#123;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>在训练集划分为子数据集的过程中，通过Java提供的Random类为每一个子数据集指定一个随机种子，然后通过随机种子生成对应的子数据集，确保了训练结果的稳定。</p>
+<p>构建子树的时候采用了递归构建的方法构建二叉树，划分的依据是从当前数据集的数据范围中取一个随机的切分点形成左子树和右子树。划分的步骤为：</p>
+<ol>
+<li>根据随机种子随机选取一个维度</li>
+<li>判断当前维度是否适合作为划分依据，如不满足，继续步骤1</li>
+<li>基于选中维度随机选取一个切分点，生成左子树和右子树</li>
+<li>判断子树是否满足退出条件，如不满足，进入步骤1进行子树划分，如满足则退出</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//Step 2，判断当前维度是否适合划分</span><br><span class="hljs-type">int</span> <span class="hljs-variable">attrIndex</span> <span class="hljs-operator">=</span> random.nextInt(cols);<br><br><span class="hljs-comment">// 计算被选维度的最大值和最小值</span><br><span class="hljs-type">double</span>[] maxAndMin = calMaxAndMinOfOneAttr(attrIndex, samples);<br><span class="hljs-type">double</span> <span class="hljs-variable">max</span> <span class="hljs-operator">=</span> maxAndMin[<span class="hljs-number">0</span>];<br><span class="hljs-type">double</span> <span class="hljs-variable">min</span> <span class="hljs-operator">=</span> maxAndMin[<span class="hljs-number">1</span>];<br>        <br><span class="hljs-comment">// 当最大值和最小值一样，说明样本中随机选择的这个属性的值是一样的，这时用属性来区分样本没有意义，要重新选择属性</span><br><span class="hljs-keyword">while</span>(min == max) &#123;<br>    attrIndex = (attrIndex + <span class="hljs-number">1</span>) % cols;<br>    maxAndMin = calMaxAndMinOfOneAttr(attrIndex, samples);<br>    max = maxAndMin[<span class="hljs-number">0</span>];<br>    min = maxAndMin[<span class="hljs-number">1</span>];<br>&#125;<br></code></pre></td></tr></table></figure>
 
-<h4 id="监控注解"><a href="#监控注解" class="headerlink" title="监控注解"></a>监控注解</h4><figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**App 配置发生变化的切面*/</span><br><span class="hljs-meta">@Pointcut(&quot;@annotation(com.manu.tbs.foundation.service.aop.AppConfigureChange)&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">appConfigureOnChange</span><span class="hljs-params">()</span> &#123;&#125;<br><br><span class="hljs-meta">@AfterReturning(value=&quot;appConfigureOnChange()&quot;,returning = &quot;retObject&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">appConfigurePostChange</span><span class="hljs-params">(Object retObject)</span>&#123;<br>    LOGGER.info(<span class="hljs-string">&quot;app configure post with return &#123;&#125;&quot;</span>,retObject);<br>    <span class="hljs-keyword">if</span>(retObject != <span class="hljs-literal">null</span> &amp;&amp; retObject <span class="hljs-keyword">instanceof</span> ResponseModel)&#123;<br>        <span class="hljs-type">ResponseModel</span> <span class="hljs-variable">responseModel</span> <span class="hljs-operator">=</span> (ResponseModel)retObject;<br>        <span class="hljs-keyword">if</span>(responseModel.isSuccess())&#123;<br>            mySender.sendMessage(SystemMqEnum.Q_UPDATE_APP_CONFIGURE.getQueueName(), <span class="hljs-string">&quot;1&quot;</span>);<br>        &#125;<span class="hljs-keyword">else</span>&#123;<br>            LOGGER.error(<span class="hljs-string">&quot;try to change configure fail.&quot;</span>);<br>        &#125;<br><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//Step 4, 判断是否满足退出条件</span><br><span class="hljs-keyword">if</span> (samples.length == <span class="hljs-number">0</span>) &#123;<br>    <span class="hljs-keyword">return</span> iTree;<br>&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (curHeight &gt;= limitHeight || samples.length == <span class="hljs-number">1</span>) &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">randomAttr</span> <span class="hljs-operator">=</span> random.nextInt(samples[<span class="hljs-number">0</span>].length);<br>    iTree = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ITree</span>(randomAttr, samples[<span class="hljs-number">0</span>][randomAttr]);<br>    iTree.leafNodes = samples.length;<br>    iTree.curHeight = curHeight;<br>    <span class="hljs-keyword">return</span> iTree;<br>&#125;<br><br><span class="hljs-type">int</span> <span class="hljs-variable">rows</span> <span class="hljs-operator">=</span> samples.length;<br><span class="hljs-type">int</span> <span class="hljs-variable">cols</span> <span class="hljs-operator">=</span> samples[<span class="hljs-number">0</span>].length;<br><br><span class="hljs-comment">// 判断是否所有样本都一样，如果都一样构建也终止</span><br><span class="hljs-type">boolean</span> <span class="hljs-variable">isAllSame</span> <span class="hljs-operator">=</span> IFUtils.isSampleAllSame(samples);<br><span class="hljs-keyword">if</span> (isAllSame) &#123;<br>    iTree = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ITree</span>(<span class="hljs-number">0</span>, samples[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>]);<br>    iTree.leafNodes = samples.length;<br>    iTree.curHeight = curHeight;<br>    <span class="hljs-keyword">return</span> iTree;<br>&#125;<br></code></pre></td></tr></table></figure>
 
-<p>通过创建一个切面方法appConfigureOnChange来进行注解监控，通过AfterReturning获得的返回值类型判断是否需要发送变更通知。</p>
-<h4 id="使用注解"><a href="#使用注解" class="headerlink" title="使用注解"></a>使用注解</h4><p>最后一步就是在可能引发配置变更的方法上加上@AppConfigureChange注解即可完成配置监测。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-meta">@Transactional</span><br><span class="hljs-meta">@AppConfigureChange</span><br><span class="hljs-keyword">public</span> ResponseModel <span class="hljs-title function_">importConfig</span><span class="hljs-params">(MultipartFile configFile)</span> &#123;<br>    <span class="hljs-comment">//导入逻辑实现</span><br>    <span class="hljs-keyword">return</span> ResponseModel.success();<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="结果判定"><a href="#结果判定" class="headerlink" title="结果判定"></a>结果判定</h3><p>给定一个待测试点，使用以下步骤进行结果判定：</p>
+<ol>
+<li>计算待测试点在每一棵树上的平均Path Length</li>
+<li>使用平均Path Length计算异常得分</li>
+<li>根据异常得分判定是否异常，阈值可以指定也可以通过分位数训练得到</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-type">double</span> <span class="hljs-title function_">computeAnomalyScore</span><span class="hljs-params">(<span class="hljs-type">double</span>[] sample)</span>&#123;<br>    <span class="hljs-keyword">if</span>(iTreeList.isEmpty()) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;iTreeList is empty&quot;</span>);<br>    &#125;<br>    <span class="hljs-keyword">if</span>(sample == <span class="hljs-literal">null</span> || sample.length == <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;Sample is null or empty&quot;</span>);<br>    &#125;<br>    <span class="hljs-comment">// 样本在所有iTree上的平均高度（改进后的）</span><br>    <span class="hljs-type">double</span> <span class="hljs-variable">ehx</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br>    <span class="hljs-type">double</span> <span class="hljs-variable">pathLength</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">for</span> (ITree iTree : iTreeList) &#123;<br>        pathLength = computePathLength(sample, iTree, <span class="hljs-number">0</span>);<br>        ehx += pathLength;<br>    &#125;<br>    ehx /= iTreeList.size();<br>    <span class="hljs-type">double</span> <span class="hljs-variable">index</span> <span class="hljs-operator">=</span> ehx / computeCn(subSampleSize);<br>    <span class="hljs-keyword">return</span> Math.pow(<span class="hljs-number">2</span>, -index);<br>&#125;<br></code></pre></td></tr></table></figure>
 
-<p>这样在每次配置导入成功的时候即可监测到配置变化，触发变更通知发送。</p>
-<h3 id="配置版本管理"><a href="#配置版本管理" class="headerlink" title="配置版本管理"></a>配置版本管理</h3><p>版本管理主要通过两张表来实现：</p>
-<ul>
-<li><p>应用配置表记录应用的配置历史记录，可以获取应用当前的最新配置</p>
-</li>
-<li><p>节点配置表记录节点的最新配置，配置下发成功后更新记录</p>
-</li>
-</ul>
-<img src="data-model.png" alt="image-20221229134322441" style="zoom:80%;" />
+<p>其中computePathLength 和 computeCn 都沿用论文中的计算公式，这里就不赘述了。</p>
+<h2 id="算法应用"><a href="#算法应用" class="headerlink" title="算法应用"></a>算法应用</h2><p>孤立森林算法可以应用于具备稳定工况的场景，如电机正常运行时的电流电压，升降机的扭矩和编码尺位置都可以作为算法的输入来判断设备的运行是否存在异常的可能。相对单因子的SPC分析，孤立森林的多因子组合分析在某些场景会更加贴近实际，因为异常的发生往往伴随着多个指标的异常表现。</p>
+<img src="应用.png"/>
 
-<p>节点管理服务接收到配置变更的通知后会更新应用配置表的版本信息。</p>
-<table>
-<thead>
-<tr>
-<th>history_id</th>
-<th>app_id</th>
-<th>version_no</th>
-<th>version_seq</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1</td>
-<td>1</td>
-<td>202212291010</td>
-<td>1</td>
-</tr>
-<tr>
-<td>2</td>
-<td>1</td>
-<td>202212291020</td>
-<td>2</td>
-</tr>
-</tbody></table>
-<p>如上表所示app&#x3D;1的的最新版本为2，页面定时任务通过比对节点的当前版本和应用的最新版本来判断是否需要配置下发。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">nodeVersionMatch</span><span class="hljs-params">(NodeConfigure nodeConfigure, AppConfigureDTO appConfigure)</span>&#123;<br>        <span class="hljs-type">return</span> <span class="hljs-variable">appConfigure</span> <span class="hljs-operator">=</span>= <span class="hljs-literal">null</span> <br>            ||(nodeConfigure != <span class="hljs-literal">null</span> <br>               &amp;&amp;appConfigure.getVersionSeq().equals(nodeConfigure.getVersionSeq()));<br>    &#125;<br></code></pre></td></tr></table></figure>
-
-<p>如果判断出节点需要进行配置下发，则在下发结束后更新节点配置，更新完成后节点配置表的数据如下：</p>
-<table>
-<thead>
-<tr>
-<th>configure_id</th>
-<th>node_id</th>
-<th>version_no</th>
-<th>version_seq</th>
-<th>configure_data</th>
-<th>bak_data</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1</td>
-<td>1</td>
-<td>202212291020</td>
-<td>2</td>
-<td>{json格式的配置数据}</td>
-<td>{上一次下发的配置数据}</td>
-</tr>
-</tbody></table>
-<p>如上表所示节点1的最新配置版本为2，配置数据和配置备份数据都可以被保留下来便于问题定位。</p>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>在多应用的场景下如何集中管理配置变更是一个很重要的话题，我们通过基于注解的切面实现了一个灵活易用的监测机制，通过对方法添加注解可以快速埋点。在管理端我们通过应用和节点的版本记录实现了简单版本管理和版本变更的判断逻辑。两者结合之下一个可复用的配置数据监测方案基本成型，具体项目中可以结合实际需求进行扩展和使用。</p>
+<p>上图是对某股票的走势运用孤立森林回测的结果，关注因子是涨幅和换手率，如果感兴趣可以加入更多指标。<br>通过观察发现超过0.6得分的交易日都出现了较大的涨跌幅或者在未来一周实现了较大的涨跌，可以使用这个分数来作为入场或者出局的辅助判断依据，同时可以根据一段时间内的得分方差判断股票的活跃程度。<br>当然股票毕竟不符合稳定工况的前提，所以辅助判断可以，真金白银还得三思而后行。</p>
+<p>最后附上完整代码的地址：<a href="https://gitee.com/luischen/toolbox">https://gitee.com/luischen/toolbox</a></p>
 ]]></content>
       <categories>
-        <category>解决方案</category>
+        <category>工业算法</category>
       </categories>
       <tags>
-        <tag>开发技术</tag>
-        <tag>微服务</tag>
+        <tag>数据技术</tag>
+        <tag>异常检测</tag>
       </tags>
   </entry>
   <entry>
@@ -1671,44 +1633,6 @@
       </tags>
   </entry>
   <entry>
-    <title>慧工云融资思考</title>
-    <url>/2021/03/10/%E6%85%A7%E5%B7%A5%E4%BA%91%E8%9E%8D%E8%B5%84%E6%80%9D%E8%80%83/</url>
-    <content><![CDATA[<p>有感于慧工云最新发布的融资新闻《慧工云完成亿元B轮融资，持续驱动中国高效制造》，同样诞生于智能制造元年（2016），同样立足离散制造行业，是什么样的选择导致了慧工云比大制科技走的更快更稳呢？下面从公司使命、产品、行业细分和地域四个方面进行深度剖析。</p>
-<span id="more"></span>
-
-<h2 id="公司使命"><a href="#公司使命" class="headerlink" title="公司使命"></a>公司使命</h2><p>慧工云主页的四个banner给我们传递了如下信息：</p>
-<ul>
-<li>融入现代工业体系的<span style="color:red">数字化解决方案</span>，聚焦离散制造业的运营挑战</li>
-<li>完整双核的IN3制造运营平台，全面帮助<span style="color:red">制造企业数字化转型</span></li>
-<li>工厂全面提效的定制化专家，持续为<span style="color:red">客户</span>创造最大价值</li>
-<li>精益数字化的人才交流圈，专注<span style="color:red">离散制造业数字化转型</span>的公益学习平台</li>
-</ul>
-<p>从以上信息我们可以总结出慧工云的主要战略方向是为离散制造企业数字化转型提供解决方案，持续为客户创造价值。</p>
-<p>企业的核心竞争力来源是数字化解决方案，愿景是持续为客户创造最大价值，同时通过公益学习平台培养并构建用户生态。</p>
-<p>大制科技的主页传递了以下信息：</p>
-<ul>
-<li>设备边缘大脑，感知、学习计算与执行三位一体</li>
-<li>大制荣获xxx百强称号</li>
-<li>大制科技深度参编首个预测性维护国际和国家标准</li>
-<li>顶级企业供应商和联合开发合作伙伴</li>
-</ul>
-<p>除了可以看出一点边缘计算产品的影子，其他的信息基本上是凑数的。从主页的展示上来看，大制科技的公司使命没有能够很直观的传递出来。</p>
-<h2 id="公司产品"><a href="#公司产品" class="headerlink" title="公司产品"></a>公司产品</h2><p>慧工云主打的是数字化运营平台，涵盖了营销管理、供应链管理、生产执行管理、精益数字化、数据决策和客户服务等模块。实现技术驱动业务运营与业务创新，塑造企业发展的第二引擎。大制科技主打的产品包括边缘智能机和工业智能技术平台，边缘智能机实现边缘数据采集，工业智能技术平台提供数据分析的手段。</p>
-<p>从以上分析来看，慧工云的产品注重<span style="color:red">连接和融合</span>，通过全过程的运营数字化实践解决数据孤岛和服务孤岛，发挥数据作用和整体作战能力，从而为企业持续创造价值。大制科技的产品关注数据从采集到分析到决策的切面，力求形成<span style="color:red">数据的闭环</span>，从而达到企业降本增效的目的。</p>
-<p>对比下来慧工云的产品更加接近于企业的认知范围，制造运营是很现实的内容同样面临比较具体的痛点，所以制造运营平台更加容易落地并产生效果。大制科技的产品关注点是企业可能从来没有触碰过的点，如果没有很强的背书或者成功案例，很难说服企业去采购一套超出认知范围的产品。同时大制科技在数据的选用上仅仅关注生产数据，而没有关注运营数据，相当于在数据决策的华山一条路上又选了一条很窄的缝，这种自我设限的做法必然会大大降低用户选择的可能性。</p>
-<h2 id="行业细分"><a href="#行业细分" class="headerlink" title="行业细分"></a>行业细分</h2><p>慧工云的客户定位是离散制造企业，从主页展示的成功案例也可以看出来，既包含了常熟开关厂这样的民族领军企业也有新能源领域的充电连接器工厂。大制科技的客户定位是汽车整车制造企业以及汽车设备零部件企业，从主页展示的成功案例也可以看出来基本都是汽车、机器人等设备的研究。</p>
-<p>一般的理解是公司的行业细分或者客户细分越细，表明公司的专注程度越高，在特定领域形成护城河的可能性越大。但是细分的同时也意味着放弃了其他可能的机会，将公司的命运牢牢的绑定在一棵树上。私以为对于初创公司而言，这种做法是不太妥帖的。在公司还没有完成A轮的情况下，产品也好商业模式也好都是处于验证阶段，过早的选定赛道意味着公司在通往A轮的道路上要么过关要么灭亡。更加稳妥的做法是参考金字塔理论，在公司初期选择一个大的赛道，如离散制造赛道，进行广撒网式的产品验证和模式验证，这个过程会消耗大量的人力、财力和物力<span style="color:red">所以创业公司的种子轮和PreA轮都是至关重要的，不能因为眼前的资金能够满足日常运营就不去融资</span>。在顺利通过市场验证后，公司成功完成A轮，这时候可以选择细分领域进行发力，如投入80%的研发运营成本用于汽车整车制造的产品研发和市场拓展，20%的研发运营成本投入到其他离散制造的产品研发和市场跟踪确保风口来了能马上起飞。</p>
-<h2 id="地域优势"><a href="#地域优势" class="headerlink" title="地域优势"></a>地域优势</h2><p>慧工云立足苏州，辐射全国，充分利用了苏州制造业的行业优势和政府资源，可以完成比较快的扩张和发展。在树立标杆客户上选择了地方的民族领军企业，通过客户的深入参与可以很快的达成效果，互相成就。</p>
-<p>大制科技诞生于上海，基本没有明显的地域优势。在选择标杆客户方面选择上汽集团作为标杆，客户参与度不高，更多的是实验性质的合作，没有起到标杆背书的作用，反而消耗了大量的资源。</p>
-]]></content>
-      <categories>
-        <category>团队管理</category>
-      </categories>
-      <tags>
-        <tag>工作反思</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>时序数据可视化的降采样算法</title>
     <url>/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/</url>
     <content><![CDATA[<p>工业场景中，时序数据的可视化是一个无法回避的话题。时序数据的超大数据量给图形的展示性能带来了挑战，而通过降采样的方式减少图形的展示点数来迎合性能的同时，又会带来算法复杂度、算法可伸缩以及正确性等多方面的权衡。</p>
@@ -1781,6 +1705,44 @@
       <tags>
         <tag>数据技术</tag>
         <tag>可视化</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>慧工云融资思考</title>
+    <url>/2021/03/10/%E6%85%A7%E5%B7%A5%E4%BA%91%E8%9E%8D%E8%B5%84%E6%80%9D%E8%80%83/</url>
+    <content><![CDATA[<p>有感于慧工云最新发布的融资新闻《慧工云完成亿元B轮融资，持续驱动中国高效制造》，同样诞生于智能制造元年（2016），同样立足离散制造行业，是什么样的选择导致了慧工云比大制科技走的更快更稳呢？下面从公司使命、产品、行业细分和地域四个方面进行深度剖析。</p>
+<span id="more"></span>
+
+<h2 id="公司使命"><a href="#公司使命" class="headerlink" title="公司使命"></a>公司使命</h2><p>慧工云主页的四个banner给我们传递了如下信息：</p>
+<ul>
+<li>融入现代工业体系的<span style="color:red">数字化解决方案</span>，聚焦离散制造业的运营挑战</li>
+<li>完整双核的IN3制造运营平台，全面帮助<span style="color:red">制造企业数字化转型</span></li>
+<li>工厂全面提效的定制化专家，持续为<span style="color:red">客户</span>创造最大价值</li>
+<li>精益数字化的人才交流圈，专注<span style="color:red">离散制造业数字化转型</span>的公益学习平台</li>
+</ul>
+<p>从以上信息我们可以总结出慧工云的主要战略方向是为离散制造企业数字化转型提供解决方案，持续为客户创造价值。</p>
+<p>企业的核心竞争力来源是数字化解决方案，愿景是持续为客户创造最大价值，同时通过公益学习平台培养并构建用户生态。</p>
+<p>大制科技的主页传递了以下信息：</p>
+<ul>
+<li>设备边缘大脑，感知、学习计算与执行三位一体</li>
+<li>大制荣获xxx百强称号</li>
+<li>大制科技深度参编首个预测性维护国际和国家标准</li>
+<li>顶级企业供应商和联合开发合作伙伴</li>
+</ul>
+<p>除了可以看出一点边缘计算产品的影子，其他的信息基本上是凑数的。从主页的展示上来看，大制科技的公司使命没有能够很直观的传递出来。</p>
+<h2 id="公司产品"><a href="#公司产品" class="headerlink" title="公司产品"></a>公司产品</h2><p>慧工云主打的是数字化运营平台，涵盖了营销管理、供应链管理、生产执行管理、精益数字化、数据决策和客户服务等模块。实现技术驱动业务运营与业务创新，塑造企业发展的第二引擎。大制科技主打的产品包括边缘智能机和工业智能技术平台，边缘智能机实现边缘数据采集，工业智能技术平台提供数据分析的手段。</p>
+<p>从以上分析来看，慧工云的产品注重<span style="color:red">连接和融合</span>，通过全过程的运营数字化实践解决数据孤岛和服务孤岛，发挥数据作用和整体作战能力，从而为企业持续创造价值。大制科技的产品关注数据从采集到分析到决策的切面，力求形成<span style="color:red">数据的闭环</span>，从而达到企业降本增效的目的。</p>
+<p>对比下来慧工云的产品更加接近于企业的认知范围，制造运营是很现实的内容同样面临比较具体的痛点，所以制造运营平台更加容易落地并产生效果。大制科技的产品关注点是企业可能从来没有触碰过的点，如果没有很强的背书或者成功案例，很难说服企业去采购一套超出认知范围的产品。同时大制科技在数据的选用上仅仅关注生产数据，而没有关注运营数据，相当于在数据决策的华山一条路上又选了一条很窄的缝，这种自我设限的做法必然会大大降低用户选择的可能性。</p>
+<h2 id="行业细分"><a href="#行业细分" class="headerlink" title="行业细分"></a>行业细分</h2><p>慧工云的客户定位是离散制造企业，从主页展示的成功案例也可以看出来，既包含了常熟开关厂这样的民族领军企业也有新能源领域的充电连接器工厂。大制科技的客户定位是汽车整车制造企业以及汽车设备零部件企业，从主页展示的成功案例也可以看出来基本都是汽车、机器人等设备的研究。</p>
+<p>一般的理解是公司的行业细分或者客户细分越细，表明公司的专注程度越高，在特定领域形成护城河的可能性越大。但是细分的同时也意味着放弃了其他可能的机会，将公司的命运牢牢的绑定在一棵树上。私以为对于初创公司而言，这种做法是不太妥帖的。在公司还没有完成A轮的情况下，产品也好商业模式也好都是处于验证阶段，过早的选定赛道意味着公司在通往A轮的道路上要么过关要么灭亡。更加稳妥的做法是参考金字塔理论，在公司初期选择一个大的赛道，如离散制造赛道，进行广撒网式的产品验证和模式验证，这个过程会消耗大量的人力、财力和物力<span style="color:red">所以创业公司的种子轮和PreA轮都是至关重要的，不能因为眼前的资金能够满足日常运营就不去融资</span>。在顺利通过市场验证后，公司成功完成A轮，这时候可以选择细分领域进行发力，如投入80%的研发运营成本用于汽车整车制造的产品研发和市场拓展，20%的研发运营成本投入到其他离散制造的产品研发和市场跟踪确保风口来了能马上起飞。</p>
+<h2 id="地域优势"><a href="#地域优势" class="headerlink" title="地域优势"></a>地域优势</h2><p>慧工云立足苏州，辐射全国，充分利用了苏州制造业的行业优势和政府资源，可以完成比较快的扩张和发展。在树立标杆客户上选择了地方的民族领军企业，通过客户的深入参与可以很快的达成效果，互相成就。</p>
+<p>大制科技诞生于上海，基本没有明显的地域优势。在选择标杆客户方面选择上汽集团作为标杆，客户参与度不高，更多的是实验性质的合作，没有起到标杆背书的作用，反而消耗了大量的资源。</p>
+]]></content>
+      <categories>
+        <category>团队管理</category>
+      </categories>
+      <tags>
+        <tag>工作反思</tag>
       </tags>
   </entry>
   <entry>
@@ -2139,6 +2101,101 @@
       </categories>
       <tags>
         <tag>设计模式</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>如何监测配置数据的变化</title>
+    <url>/2022/12/29/%E5%A6%82%E4%BD%95%E7%9B%91%E6%B5%8B%E9%85%8D%E7%BD%AE%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%98%E5%8C%96/</url>
+    <content><![CDATA[<p>在工业互联网平台上存在多种业务应用，每个应用有自己的配置数据，当配置数据发生变更的时候需要及时的下发到边缘节点让配置生效。我们可以通过节点管理模块提供手动下发的功能，即操作人员修改完配置后通知系统管理员进行对应节点的配置下发。实际操作中发现由于引发配置变更的点过于分散，导致经常会忘记下发而无法使配置及时生效。再者业务操作人员自己并不清楚当前操作的配置是否需要下发，会引发很多无效的沟通，降低了生产效率。</p>
+<p>如何在配置发生变化的时候及时监测到变更，由系统自动来引导配置变更流程是我们需要解决的问题，我们通过埋点通知的机制来应对。整体解决方案如下图：</p>
+<span id="more"></span>
+
+<img src="配置下发方案.png" alt="配置下发方案" style="zoom: 45%;" />
+
+<p>如图所示，对于每个App的配置变更点，我们抽象一个Point Cut，通过对Point Cut的监控，可以获取配置的变化信息。同时通过MQ通知到节点管理服务，节点管理服务处理节点的配置版本管理。</p>
+<p>在整个方案中主要的技术细节有两点：</p>
+<ol>
+<li>配置变更点的抽象</li>
+<li>配置版本管理</li>
+</ol>
+<p>接下来就针对这两点进行详细的实现。</p>
+<h3 id="配置变更点"><a href="#配置变更点" class="headerlink" title="配置变更点"></a>配置变更点</h3><p>APP基于SpringBoot开发，所以在配置变更点上我们选用Spring AOP结合注解的方式。</p>
+<h4 id="引入Spring-AOP"><a href="#引入Spring-AOP" class="headerlink" title="引入Spring AOP"></a>引入Spring AOP</h4><figure class="highlight xml"><table><tr><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-aop<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="创建注解"><a href="#创建注解" class="headerlink" title="创建注解"></a>创建注解</h4><figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="hljs-meta">@Target(ElementType.METHOD)</span><br><span class="hljs-meta">@Inherited</span><br><span class="hljs-meta">@Documented</span><br><span class="hljs-keyword">public</span> <span class="hljs-meta">@interface</span> AppConfigureChange &#123;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="监控注解"><a href="#监控注解" class="headerlink" title="监控注解"></a>监控注解</h4><figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**App 配置发生变化的切面*/</span><br><span class="hljs-meta">@Pointcut(&quot;@annotation(com.manu.tbs.foundation.service.aop.AppConfigureChange)&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">appConfigureOnChange</span><span class="hljs-params">()</span> &#123;&#125;<br><br><span class="hljs-meta">@AfterReturning(value=&quot;appConfigureOnChange()&quot;,returning = &quot;retObject&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">appConfigurePostChange</span><span class="hljs-params">(Object retObject)</span>&#123;<br>    LOGGER.info(<span class="hljs-string">&quot;app configure post with return &#123;&#125;&quot;</span>,retObject);<br>    <span class="hljs-keyword">if</span>(retObject != <span class="hljs-literal">null</span> &amp;&amp; retObject <span class="hljs-keyword">instanceof</span> ResponseModel)&#123;<br>        <span class="hljs-type">ResponseModel</span> <span class="hljs-variable">responseModel</span> <span class="hljs-operator">=</span> (ResponseModel)retObject;<br>        <span class="hljs-keyword">if</span>(responseModel.isSuccess())&#123;<br>            mySender.sendMessage(SystemMqEnum.Q_UPDATE_APP_CONFIGURE.getQueueName(), <span class="hljs-string">&quot;1&quot;</span>);<br>        &#125;<span class="hljs-keyword">else</span>&#123;<br>            LOGGER.error(<span class="hljs-string">&quot;try to change configure fail.&quot;</span>);<br>        &#125;<br><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>通过创建一个切面方法appConfigureOnChange来进行注解监控，通过AfterReturning获得的返回值类型判断是否需要发送变更通知。</p>
+<h4 id="使用注解"><a href="#使用注解" class="headerlink" title="使用注解"></a>使用注解</h4><p>最后一步就是在可能引发配置变更的方法上加上@AppConfigureChange注解即可完成配置监测。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-meta">@Transactional</span><br><span class="hljs-meta">@AppConfigureChange</span><br><span class="hljs-keyword">public</span> ResponseModel <span class="hljs-title function_">importConfig</span><span class="hljs-params">(MultipartFile configFile)</span> &#123;<br>    <span class="hljs-comment">//导入逻辑实现</span><br>    <span class="hljs-keyword">return</span> ResponseModel.success();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这样在每次配置导入成功的时候即可监测到配置变化，触发变更通知发送。</p>
+<h3 id="配置版本管理"><a href="#配置版本管理" class="headerlink" title="配置版本管理"></a>配置版本管理</h3><p>版本管理主要通过两张表来实现：</p>
+<ul>
+<li><p>应用配置表记录应用的配置历史记录，可以获取应用当前的最新配置</p>
+</li>
+<li><p>节点配置表记录节点的最新配置，配置下发成功后更新记录</p>
+</li>
+</ul>
+<img src="data-model.png" alt="image-20221229134322441" style="zoom:80%;" />
+
+<p>节点管理服务接收到配置变更的通知后会更新应用配置表的版本信息。</p>
+<table>
+<thead>
+<tr>
+<th>history_id</th>
+<th>app_id</th>
+<th>version_no</th>
+<th>version_seq</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1</td>
+<td>202212291010</td>
+<td>1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>202212291020</td>
+<td>2</td>
+</tr>
+</tbody></table>
+<p>如上表所示app&#x3D;1的的最新版本为2，页面定时任务通过比对节点的当前版本和应用的最新版本来判断是否需要配置下发。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">nodeVersionMatch</span><span class="hljs-params">(NodeConfigure nodeConfigure, AppConfigureDTO appConfigure)</span>&#123;<br>        <span class="hljs-type">return</span> <span class="hljs-variable">appConfigure</span> <span class="hljs-operator">=</span>= <span class="hljs-literal">null</span> <br>            ||(nodeConfigure != <span class="hljs-literal">null</span> <br>               &amp;&amp;appConfigure.getVersionSeq().equals(nodeConfigure.getVersionSeq()));<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果判断出节点需要进行配置下发，则在下发结束后更新节点配置，更新完成后节点配置表的数据如下：</p>
+<table>
+<thead>
+<tr>
+<th>configure_id</th>
+<th>node_id</th>
+<th>version_no</th>
+<th>version_seq</th>
+<th>configure_data</th>
+<th>bak_data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1</td>
+<td>202212291020</td>
+<td>2</td>
+<td>{json格式的配置数据}</td>
+<td>{上一次下发的配置数据}</td>
+</tr>
+</tbody></table>
+<p>如上表所示节点1的最新配置版本为2，配置数据和配置备份数据都可以被保留下来便于问题定位。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>在多应用的场景下如何集中管理配置变更是一个很重要的话题，我们通过基于注解的切面实现了一个灵活易用的监测机制，通过对方法添加注解可以快速埋点。在管理端我们通过应用和节点的版本记录实现了简单版本管理和版本变更的判断逻辑。两者结合之下一个可复用的配置数据监测方案基本成型，具体项目中可以结合实际需求进行扩展和使用。</p>
+]]></content>
+      <categories>
+        <category>解决方案</category>
+      </categories>
+      <tags>
+        <tag>开发技术</tag>
+        <tag>微服务</tag>
       </tags>
   </entry>
   <entry>
