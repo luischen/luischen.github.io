@@ -1330,6 +1330,101 @@
       </tags>
   </entry>
   <entry>
+    <title>如何监测配置数据的变化</title>
+    <url>/2022/12/29/%E5%A6%82%E4%BD%95%E7%9B%91%E6%B5%8B%E9%85%8D%E7%BD%AE%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%98%E5%8C%96/</url>
+    <content><![CDATA[<p>在工业互联网平台上存在多种业务应用，每个应用有自己的配置数据，当配置数据发生变更的时候需要及时的下发到边缘节点让配置生效。我们可以通过节点管理模块提供手动下发的功能，即操作人员修改完配置后通知系统管理员进行对应节点的配置下发。实际操作中发现由于引发配置变更的点过于分散，导致经常会忘记下发而无法使配置及时生效。再者业务操作人员自己并不清楚当前操作的配置是否需要下发，会引发很多无效的沟通，降低了生产效率。</p>
+<p>如何在配置发生变化的时候及时监测到变更，由系统自动来引导配置变更流程是我们需要解决的问题，我们通过埋点通知的机制来应对。整体解决方案如下图：</p>
+<span id="more"></span>
+
+<img src="配置下发方案.png" alt="配置下发方案" style="zoom: 45%;" />
+
+<p>如图所示，对于每个App的配置变更点，我们抽象一个Point Cut，通过对Point Cut的监控，可以获取配置的变化信息。同时通过MQ通知到节点管理服务，节点管理服务处理节点的配置版本管理。</p>
+<p>在整个方案中主要的技术细节有两点：</p>
+<ol>
+<li>配置变更点的抽象</li>
+<li>配置版本管理</li>
+</ol>
+<p>接下来就针对这两点进行详细的实现。</p>
+<h3 id="配置变更点"><a href="#配置变更点" class="headerlink" title="配置变更点"></a>配置变更点</h3><p>APP基于SpringBoot开发，所以在配置变更点上我们选用Spring AOP结合注解的方式。</p>
+<h4 id="引入Spring-AOP"><a href="#引入Spring-AOP" class="headerlink" title="引入Spring AOP"></a>引入Spring AOP</h4><figure class="highlight xml"><table><tr><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-aop<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="创建注解"><a href="#创建注解" class="headerlink" title="创建注解"></a>创建注解</h4><figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="hljs-meta">@Target(ElementType.METHOD)</span><br><span class="hljs-meta">@Inherited</span><br><span class="hljs-meta">@Documented</span><br><span class="hljs-keyword">public</span> <span class="hljs-meta">@interface</span> AppConfigureChange &#123;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="监控注解"><a href="#监控注解" class="headerlink" title="监控注解"></a>监控注解</h4><figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**App 配置发生变化的切面*/</span><br><span class="hljs-meta">@Pointcut(&quot;@annotation(com.manu.tbs.foundation.service.aop.AppConfigureChange)&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">appConfigureOnChange</span><span class="hljs-params">()</span> &#123;&#125;<br><br><span class="hljs-meta">@AfterReturning(value=&quot;appConfigureOnChange()&quot;,returning = &quot;retObject&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">appConfigurePostChange</span><span class="hljs-params">(Object retObject)</span>&#123;<br>    LOGGER.info(<span class="hljs-string">&quot;app configure post with return &#123;&#125;&quot;</span>,retObject);<br>    <span class="hljs-keyword">if</span>(retObject != <span class="hljs-literal">null</span> &amp;&amp; retObject <span class="hljs-keyword">instanceof</span> ResponseModel)&#123;<br>        <span class="hljs-type">ResponseModel</span> <span class="hljs-variable">responseModel</span> <span class="hljs-operator">=</span> (ResponseModel)retObject;<br>        <span class="hljs-keyword">if</span>(responseModel.isSuccess())&#123;<br>            mySender.sendMessage(SystemMqEnum.Q_UPDATE_APP_CONFIGURE.getQueueName(), <span class="hljs-string">&quot;1&quot;</span>);<br>        &#125;<span class="hljs-keyword">else</span>&#123;<br>            LOGGER.error(<span class="hljs-string">&quot;try to change configure fail.&quot;</span>);<br>        &#125;<br><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>通过创建一个切面方法appConfigureOnChange来进行注解监控，通过AfterReturning获得的返回值类型判断是否需要发送变更通知。</p>
+<h4 id="使用注解"><a href="#使用注解" class="headerlink" title="使用注解"></a>使用注解</h4><p>最后一步就是在可能引发配置变更的方法上加上@AppConfigureChange注解即可完成配置监测。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-meta">@Transactional</span><br><span class="hljs-meta">@AppConfigureChange</span><br><span class="hljs-keyword">public</span> ResponseModel <span class="hljs-title function_">importConfig</span><span class="hljs-params">(MultipartFile configFile)</span> &#123;<br>    <span class="hljs-comment">//导入逻辑实现</span><br>    <span class="hljs-keyword">return</span> ResponseModel.success();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这样在每次配置导入成功的时候即可监测到配置变化，触发变更通知发送。</p>
+<h3 id="配置版本管理"><a href="#配置版本管理" class="headerlink" title="配置版本管理"></a>配置版本管理</h3><p>版本管理主要通过两张表来实现：</p>
+<ul>
+<li><p>应用配置表记录应用的配置历史记录，可以获取应用当前的最新配置</p>
+</li>
+<li><p>节点配置表记录节点的最新配置，配置下发成功后更新记录</p>
+</li>
+</ul>
+<img src="data-model.png" alt="image-20221229134322441" style="zoom:80%;" />
+
+<p>节点管理服务接收到配置变更的通知后会更新应用配置表的版本信息。</p>
+<table>
+<thead>
+<tr>
+<th>history_id</th>
+<th>app_id</th>
+<th>version_no</th>
+<th>version_seq</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1</td>
+<td>202212291010</td>
+<td>1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>202212291020</td>
+<td>2</td>
+</tr>
+</tbody></table>
+<p>如上表所示app&#x3D;1的的最新版本为2，页面定时任务通过比对节点的当前版本和应用的最新版本来判断是否需要配置下发。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">nodeVersionMatch</span><span class="hljs-params">(NodeConfigure nodeConfigure, AppConfigureDTO appConfigure)</span>&#123;<br>        <span class="hljs-type">return</span> <span class="hljs-variable">appConfigure</span> <span class="hljs-operator">=</span>= <span class="hljs-literal">null</span> <br>            ||(nodeConfigure != <span class="hljs-literal">null</span> <br>               &amp;&amp;appConfigure.getVersionSeq().equals(nodeConfigure.getVersionSeq()));<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果判断出节点需要进行配置下发，则在下发结束后更新节点配置，更新完成后节点配置表的数据如下：</p>
+<table>
+<thead>
+<tr>
+<th>configure_id</th>
+<th>node_id</th>
+<th>version_no</th>
+<th>version_seq</th>
+<th>configure_data</th>
+<th>bak_data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1</td>
+<td>202212291020</td>
+<td>2</td>
+<td>{json格式的配置数据}</td>
+<td>{上一次下发的配置数据}</td>
+</tr>
+</tbody></table>
+<p>如上表所示节点1的最新配置版本为2，配置数据和配置备份数据都可以被保留下来便于问题定位。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>在多应用的场景下如何集中管理配置变更是一个很重要的话题，我们通过基于注解的切面实现了一个灵活易用的监测机制，通过对方法添加注解可以快速埋点。在管理端我们通过应用和节点的版本记录实现了简单版本管理和版本变更的判断逻辑。两者结合之下一个可复用的配置数据监测方案基本成型，具体项目中可以结合实际需求进行扩展和使用。</p>
+]]></content>
+      <categories>
+        <category>解决方案</category>
+      </categories>
+      <tags>
+        <tag>开发技术</tag>
+        <tag>微服务</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>异常检测算法之孤立森林</title>
     <url>/2023/10/09/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8B%E5%AD%A4%E7%AB%8B%E6%A3%AE%E6%9E%97/</url>
     <content><![CDATA[<p>在工业时序数据的异常检测中，我们通常使用基于SPC（统计过程控制）的异常检测算法，通过训练的上下限判定异常点。但是随着工况复杂度上升，一维的数据无法满足数据分析和异常检测的需求，我们需要引入支持多纬度数据的算法，这时候孤立森林走入了我们的视野。</p>
@@ -1633,6 +1728,44 @@
       </tags>
   </entry>
   <entry>
+    <title>慧工云融资思考</title>
+    <url>/2021/03/10/%E6%85%A7%E5%B7%A5%E4%BA%91%E8%9E%8D%E8%B5%84%E6%80%9D%E8%80%83/</url>
+    <content><![CDATA[<p>有感于慧工云最新发布的融资新闻《慧工云完成亿元B轮融资，持续驱动中国高效制造》，同样诞生于智能制造元年（2016），同样立足离散制造行业，是什么样的选择导致了慧工云比大制科技走的更快更稳呢？下面从公司使命、产品、行业细分和地域四个方面进行深度剖析。</p>
+<span id="more"></span>
+
+<h2 id="公司使命"><a href="#公司使命" class="headerlink" title="公司使命"></a>公司使命</h2><p>慧工云主页的四个banner给我们传递了如下信息：</p>
+<ul>
+<li>融入现代工业体系的<span style="color:red">数字化解决方案</span>，聚焦离散制造业的运营挑战</li>
+<li>完整双核的IN3制造运营平台，全面帮助<span style="color:red">制造企业数字化转型</span></li>
+<li>工厂全面提效的定制化专家，持续为<span style="color:red">客户</span>创造最大价值</li>
+<li>精益数字化的人才交流圈，专注<span style="color:red">离散制造业数字化转型</span>的公益学习平台</li>
+</ul>
+<p>从以上信息我们可以总结出慧工云的主要战略方向是为离散制造企业数字化转型提供解决方案，持续为客户创造价值。</p>
+<p>企业的核心竞争力来源是数字化解决方案，愿景是持续为客户创造最大价值，同时通过公益学习平台培养并构建用户生态。</p>
+<p>大制科技的主页传递了以下信息：</p>
+<ul>
+<li>设备边缘大脑，感知、学习计算与执行三位一体</li>
+<li>大制荣获xxx百强称号</li>
+<li>大制科技深度参编首个预测性维护国际和国家标准</li>
+<li>顶级企业供应商和联合开发合作伙伴</li>
+</ul>
+<p>除了可以看出一点边缘计算产品的影子，其他的信息基本上是凑数的。从主页的展示上来看，大制科技的公司使命没有能够很直观的传递出来。</p>
+<h2 id="公司产品"><a href="#公司产品" class="headerlink" title="公司产品"></a>公司产品</h2><p>慧工云主打的是数字化运营平台，涵盖了营销管理、供应链管理、生产执行管理、精益数字化、数据决策和客户服务等模块。实现技术驱动业务运营与业务创新，塑造企业发展的第二引擎。大制科技主打的产品包括边缘智能机和工业智能技术平台，边缘智能机实现边缘数据采集，工业智能技术平台提供数据分析的手段。</p>
+<p>从以上分析来看，慧工云的产品注重<span style="color:red">连接和融合</span>，通过全过程的运营数字化实践解决数据孤岛和服务孤岛，发挥数据作用和整体作战能力，从而为企业持续创造价值。大制科技的产品关注数据从采集到分析到决策的切面，力求形成<span style="color:red">数据的闭环</span>，从而达到企业降本增效的目的。</p>
+<p>对比下来慧工云的产品更加接近于企业的认知范围，制造运营是很现实的内容同样面临比较具体的痛点，所以制造运营平台更加容易落地并产生效果。大制科技的产品关注点是企业可能从来没有触碰过的点，如果没有很强的背书或者成功案例，很难说服企业去采购一套超出认知范围的产品。同时大制科技在数据的选用上仅仅关注生产数据，而没有关注运营数据，相当于在数据决策的华山一条路上又选了一条很窄的缝，这种自我设限的做法必然会大大降低用户选择的可能性。</p>
+<h2 id="行业细分"><a href="#行业细分" class="headerlink" title="行业细分"></a>行业细分</h2><p>慧工云的客户定位是离散制造企业，从主页展示的成功案例也可以看出来，既包含了常熟开关厂这样的民族领军企业也有新能源领域的充电连接器工厂。大制科技的客户定位是汽车整车制造企业以及汽车设备零部件企业，从主页展示的成功案例也可以看出来基本都是汽车、机器人等设备的研究。</p>
+<p>一般的理解是公司的行业细分或者客户细分越细，表明公司的专注程度越高，在特定领域形成护城河的可能性越大。但是细分的同时也意味着放弃了其他可能的机会，将公司的命运牢牢的绑定在一棵树上。私以为对于初创公司而言，这种做法是不太妥帖的。在公司还没有完成A轮的情况下，产品也好商业模式也好都是处于验证阶段，过早的选定赛道意味着公司在通往A轮的道路上要么过关要么灭亡。更加稳妥的做法是参考金字塔理论，在公司初期选择一个大的赛道，如离散制造赛道，进行广撒网式的产品验证和模式验证，这个过程会消耗大量的人力、财力和物力<span style="color:red">所以创业公司的种子轮和PreA轮都是至关重要的，不能因为眼前的资金能够满足日常运营就不去融资</span>。在顺利通过市场验证后，公司成功完成A轮，这时候可以选择细分领域进行发力，如投入80%的研发运营成本用于汽车整车制造的产品研发和市场拓展，20%的研发运营成本投入到其他离散制造的产品研发和市场跟踪确保风口来了能马上起飞。</p>
+<h2 id="地域优势"><a href="#地域优势" class="headerlink" title="地域优势"></a>地域优势</h2><p>慧工云立足苏州，辐射全国，充分利用了苏州制造业的行业优势和政府资源，可以完成比较快的扩张和发展。在树立标杆客户上选择了地方的民族领军企业，通过客户的深入参与可以很快的达成效果，互相成就。</p>
+<p>大制科技诞生于上海，基本没有明显的地域优势。在选择标杆客户方面选择上汽集团作为标杆，客户参与度不高，更多的是实验性质的合作，没有起到标杆背书的作用，反而消耗了大量的资源。</p>
+]]></content>
+      <categories>
+        <category>团队管理</category>
+      </categories>
+      <tags>
+        <tag>工作反思</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>时序数据可视化的降采样算法</title>
     <url>/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/</url>
     <content><![CDATA[<p>工业场景中，时序数据的可视化是一个无法回避的话题。时序数据的超大数据量给图形的展示性能带来了挑战，而通过降采样的方式减少图形的展示点数来迎合性能的同时，又会带来算法复杂度、算法可伸缩以及正确性等多方面的权衡。</p>
@@ -1705,44 +1838,6 @@
       <tags>
         <tag>数据技术</tag>
         <tag>可视化</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>慧工云融资思考</title>
-    <url>/2021/03/10/%E6%85%A7%E5%B7%A5%E4%BA%91%E8%9E%8D%E8%B5%84%E6%80%9D%E8%80%83/</url>
-    <content><![CDATA[<p>有感于慧工云最新发布的融资新闻《慧工云完成亿元B轮融资，持续驱动中国高效制造》，同样诞生于智能制造元年（2016），同样立足离散制造行业，是什么样的选择导致了慧工云比大制科技走的更快更稳呢？下面从公司使命、产品、行业细分和地域四个方面进行深度剖析。</p>
-<span id="more"></span>
-
-<h2 id="公司使命"><a href="#公司使命" class="headerlink" title="公司使命"></a>公司使命</h2><p>慧工云主页的四个banner给我们传递了如下信息：</p>
-<ul>
-<li>融入现代工业体系的<span style="color:red">数字化解决方案</span>，聚焦离散制造业的运营挑战</li>
-<li>完整双核的IN3制造运营平台，全面帮助<span style="color:red">制造企业数字化转型</span></li>
-<li>工厂全面提效的定制化专家，持续为<span style="color:red">客户</span>创造最大价值</li>
-<li>精益数字化的人才交流圈，专注<span style="color:red">离散制造业数字化转型</span>的公益学习平台</li>
-</ul>
-<p>从以上信息我们可以总结出慧工云的主要战略方向是为离散制造企业数字化转型提供解决方案，持续为客户创造价值。</p>
-<p>企业的核心竞争力来源是数字化解决方案，愿景是持续为客户创造最大价值，同时通过公益学习平台培养并构建用户生态。</p>
-<p>大制科技的主页传递了以下信息：</p>
-<ul>
-<li>设备边缘大脑，感知、学习计算与执行三位一体</li>
-<li>大制荣获xxx百强称号</li>
-<li>大制科技深度参编首个预测性维护国际和国家标准</li>
-<li>顶级企业供应商和联合开发合作伙伴</li>
-</ul>
-<p>除了可以看出一点边缘计算产品的影子，其他的信息基本上是凑数的。从主页的展示上来看，大制科技的公司使命没有能够很直观的传递出来。</p>
-<h2 id="公司产品"><a href="#公司产品" class="headerlink" title="公司产品"></a>公司产品</h2><p>慧工云主打的是数字化运营平台，涵盖了营销管理、供应链管理、生产执行管理、精益数字化、数据决策和客户服务等模块。实现技术驱动业务运营与业务创新，塑造企业发展的第二引擎。大制科技主打的产品包括边缘智能机和工业智能技术平台，边缘智能机实现边缘数据采集，工业智能技术平台提供数据分析的手段。</p>
-<p>从以上分析来看，慧工云的产品注重<span style="color:red">连接和融合</span>，通过全过程的运营数字化实践解决数据孤岛和服务孤岛，发挥数据作用和整体作战能力，从而为企业持续创造价值。大制科技的产品关注数据从采集到分析到决策的切面，力求形成<span style="color:red">数据的闭环</span>，从而达到企业降本增效的目的。</p>
-<p>对比下来慧工云的产品更加接近于企业的认知范围，制造运营是很现实的内容同样面临比较具体的痛点，所以制造运营平台更加容易落地并产生效果。大制科技的产品关注点是企业可能从来没有触碰过的点，如果没有很强的背书或者成功案例，很难说服企业去采购一套超出认知范围的产品。同时大制科技在数据的选用上仅仅关注生产数据，而没有关注运营数据，相当于在数据决策的华山一条路上又选了一条很窄的缝，这种自我设限的做法必然会大大降低用户选择的可能性。</p>
-<h2 id="行业细分"><a href="#行业细分" class="headerlink" title="行业细分"></a>行业细分</h2><p>慧工云的客户定位是离散制造企业，从主页展示的成功案例也可以看出来，既包含了常熟开关厂这样的民族领军企业也有新能源领域的充电连接器工厂。大制科技的客户定位是汽车整车制造企业以及汽车设备零部件企业，从主页展示的成功案例也可以看出来基本都是汽车、机器人等设备的研究。</p>
-<p>一般的理解是公司的行业细分或者客户细分越细，表明公司的专注程度越高，在特定领域形成护城河的可能性越大。但是细分的同时也意味着放弃了其他可能的机会，将公司的命运牢牢的绑定在一棵树上。私以为对于初创公司而言，这种做法是不太妥帖的。在公司还没有完成A轮的情况下，产品也好商业模式也好都是处于验证阶段，过早的选定赛道意味着公司在通往A轮的道路上要么过关要么灭亡。更加稳妥的做法是参考金字塔理论，在公司初期选择一个大的赛道，如离散制造赛道，进行广撒网式的产品验证和模式验证，这个过程会消耗大量的人力、财力和物力<span style="color:red">所以创业公司的种子轮和PreA轮都是至关重要的，不能因为眼前的资金能够满足日常运营就不去融资</span>。在顺利通过市场验证后，公司成功完成A轮，这时候可以选择细分领域进行发力，如投入80%的研发运营成本用于汽车整车制造的产品研发和市场拓展，20%的研发运营成本投入到其他离散制造的产品研发和市场跟踪确保风口来了能马上起飞。</p>
-<h2 id="地域优势"><a href="#地域优势" class="headerlink" title="地域优势"></a>地域优势</h2><p>慧工云立足苏州，辐射全国，充分利用了苏州制造业的行业优势和政府资源，可以完成比较快的扩张和发展。在树立标杆客户上选择了地方的民族领军企业，通过客户的深入参与可以很快的达成效果，互相成就。</p>
-<p>大制科技诞生于上海，基本没有明显的地域优势。在选择标杆客户方面选择上汽集团作为标杆，客户参与度不高，更多的是实验性质的合作，没有起到标杆背书的作用，反而消耗了大量的资源。</p>
-]]></content>
-      <categories>
-        <category>团队管理</category>
-      </categories>
-      <tags>
-        <tag>工作反思</tag>
       </tags>
   </entry>
   <entry>
@@ -1853,6 +1948,77 @@
       <tags>
         <tag>Golang</tag>
         <tag>算法</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>设备认证中的x.509证书使用</title>
+    <url>/2023/10/24/%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x-509%E8%AF%81%E4%B9%A6%E4%BD%BF%E7%94%A8/</url>
+    <content><![CDATA[<p>从信息安全角度考虑，物联网设备在接入工业网络和IOT平台的时候需要通过身份认证体系对外证明其可信度。x.509证书是使用较广泛的一种认证方式，本文展现了一个工业设备通过x.509证书接入IOT平台的认证过程。</p>
+<span id="more"></span>
+
+<h2 id="背景知识"><a href="#背景知识" class="headerlink" title="背景知识"></a>背景知识</h2><h3 id="x-509证书"><a href="#x-509证书" class="headerlink" title="x.509证书"></a>x.509证书</h3><p>x.509 证书是由ITU(International Telecommunication Union)制定的一个安全标准，用于保障网络应用安全，最广为人知的应用是HTTPS。第一版标准发布于1988年，目前最新的版本是v9，版本的升级主要出于网络应用安全的需求变化，常见的升级方式就是增加证书字段。</p>
+<p>x.509 证书包含了一个身份信息和一个公钥，通过电子签名将身份信息和公钥进行绑定，证书内容通常包含如下字段：</p>
+<figure class="highlight fortran"><table><tr><td class="code"><pre><code class="hljs fortran">Version.                             X<span class="hljs-number">.509</span>的版本<br>Serial <span class="hljs-keyword">number</span>.                       CA 创建证书的时候分配的唯一序列号<br>Algorithm information.               签名算法<br>Issuer distinguished <span class="hljs-keyword">name</span>.           证书签发机构，通常是CA<br>Validity period of the certificate.  证书有效期<br>Subject distinguished <span class="hljs-keyword">name</span>.          证书认证主体<br>Subject <span class="hljs-keyword">public</span> key information.      证书主体信息<br>Extensions (<span class="hljs-keyword">optional</span>).               证书扩展信息<br></code></pre></td></tr></table></figure>
+
+<p>以下是百度网站的证书内容：</p>
+<img src="设备认证中的x-509证书使用\百度证书.png" alt="百度证书" style="zoom:60%;" />
+
+<p>常见的证书应用有电子身份、浏览器安全、电子签名和文档签名、邮件证书、SSH和代码签名等。设备认证属于电子身份的应用范畴。</p>
+<h3 id="CA分级"><a href="#CA分级" class="headerlink" title="CA分级"></a>CA分级</h3><p>证书用于证明设备身份，所以证书的签发机构应该是一个可信的第三方机构。国内CA行业由国家根CA和第三方CA组成的多根认证中心提供认证服务，互联网应用使用的证书一般由第三方CA颁发，如上海CA。在企业内部的IOT应用中，通常是由IOT平台担任企业根CA的角色，再通过分配的中间CA协助企业根CA进行证书的签发和生命周期管理。</p>
+<img src="设备认证中的x-509证书使用\CA分级.png" alt="CA分级" style="zoom:48%;" />
+
+<p>如上图所示，企业内部按照证书用途划分形成了企业根CA、车间CA和供应商CA的多根认证结构。</p>
+<h2 id="设备认证"><a href="#设备认证" class="headerlink" title="设备认证"></a>设备认证</h2><p>设备认证包含两个过程：</p>
+<ol>
+<li><p>证书生成</p>
+<p>证书生成发生在设备接入前置阶段，通过在IOT平台注册设备信息后可以为设备生成证书，用于设备连接的身份验证。</p>
+</li>
+<li><p>证书验证</p>
+<p>证书验证过程发生在设备和平台建立连接的阶段，通过证书证明身份可信后才能连接成功。</p>
+</li>
+</ol>
+<p>下面以某供应商A需要接入一台数采设备E01为例，具体描述设备认证过程。设备认证的前置条件是企业内部CA分级已经构建完成，并且供应商A成功作为中间CA接入。</p>
+<h3 id="证书生成"><a href="#证书生成" class="headerlink" title="证书生成"></a>证书生成</h3><ol>
+<li><p>生成密钥对</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><code class="hljs shell">openssl genrsa -out e01.key 2048<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>为证书创建CSR（证书签名请求）</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><code class="hljs shell">openssl req -new -key e01.key -out e01.csr<br></code></pre></td></tr></table></figure>
+
+<p>证书签名请求是提交给CA的申请材料，里面包含证书内容，所以在创建证书签名请求的时候需要用户输入申请者信息，按照提示输入即可。</p>
+</li>
+<li><p>从CSR创建客户端证书</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><code class="hljs shell">openssl x509 -req \<br>    -in e01.csr \<br>    -CA CA01.pem \<br>    -CAkey CA01_key.key \<br>    -CAcreateserial \<br>    -out e01.pem \<br>    -days 500 -sha256<br></code></pre></td></tr></table></figure>
+
+<p>基于签名请求和CA持有的证书生成客户端签名证书。其中CA和CAkey指定了用于签署设备证书的中间CA证书和对应的私钥。</p>
+</li>
+</ol>
+<p>至此应用于数采设备E01的证书e01.pem就成功生成了，对应的私钥为e01.key，放置于设备目录下即可进行证书验证。</p>
+<h3 id="证书验证"><a href="#证书验证" class="headerlink" title="证书验证"></a>证书验证</h3><p>证书验证采用两段式验证，首先是IOT平台验证设备持有的证书链是否可信，其次确认建立通信的设备是证书的主体。</p>
+<h4 id="证书可信验证"><a href="#证书可信验证" class="headerlink" title="证书可信验证"></a>证书可信验证</h4><p>客户端发送证书到IOT平台，平台通过如下步骤验证证书链是否可信。</p>
+<ol>
+<li>IOT平台从证书颁发者信息中得知证书是由CA01签发</li>
+<li>通过CA01注册的信息获取CA01的公钥对证书中的证书签名值进行解密得到e01_hash</li>
+<li>对证书中的主体信息附上CA01的信息进行散列计算得到e01_hash_temp</li>
+<li>如果两者相等则证明证书确实是CA01签发</li>
+</ol>
+<p>由于CA01已经通过了平台根CA认证，这就形成了 平台根CA–&gt;CA01–&gt;设备证书的可信证书链，设备证书有效。</p>
+<h4 id="实体可信验证"><a href="#实体可信验证" class="headerlink" title="实体可信验证"></a>实体可信验证</h4><p>平台需要验证连接请求是从设备e01发出，即所有权确认。</p>
+<ol>
+<li>平台生成一个随机数密钥key01并用设备证书的公钥进行加密后发送给设备</li>
+<li>如果设备持有证书的私钥即可解开密文获取密钥key01，如果设备不能证明所有权则无法获取通信密钥</li>
+<li>设备和平台之间连接和内容传输基于key01进行对称加密通信</li>
+</ol>
+<p>通过实体可信验证的筛选，只有设备证书的持有主体才可以和平台建立连接进行通信。</p>
+<h2 id="总结展望"><a href="#总结展望" class="headerlink" title="总结展望"></a>总结展望</h2><p>企业对于工业互联网的安全问题越来越重视，而接入工业互联网的设备安全必然会成为重要的考量。作为工业互联网设备服务供应商只有充分考虑企业的安全架构，并未雨绸缪的做好应对措施才可以在激烈的竞争中脱颖而出。本文从设备认证的角度出发，结合云服务商的最佳实践，展示了公司对于设备接入阶段安全认证的全局认知，为设备接入认证的技术实现打下了良好的基础。</p>
+<p>我们可以看出x.509证书总体是基于公私钥体系，所以设备的私钥保护显得异常重要，对于设备供应商来说如果能通过设备内置安全模块来对私钥进行保护，这对于安全设备无疑是一个很大的加分项，这也可以作为技术实现的一个方向。</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>信息安全</tag>
+        <tag>IOT</tag>
       </tags>
   </entry>
   <entry>
@@ -2101,101 +2267,6 @@
       </categories>
       <tags>
         <tag>设计模式</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>如何监测配置数据的变化</title>
-    <url>/2022/12/29/%E5%A6%82%E4%BD%95%E7%9B%91%E6%B5%8B%E9%85%8D%E7%BD%AE%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%98%E5%8C%96/</url>
-    <content><![CDATA[<p>在工业互联网平台上存在多种业务应用，每个应用有自己的配置数据，当配置数据发生变更的时候需要及时的下发到边缘节点让配置生效。我们可以通过节点管理模块提供手动下发的功能，即操作人员修改完配置后通知系统管理员进行对应节点的配置下发。实际操作中发现由于引发配置变更的点过于分散，导致经常会忘记下发而无法使配置及时生效。再者业务操作人员自己并不清楚当前操作的配置是否需要下发，会引发很多无效的沟通，降低了生产效率。</p>
-<p>如何在配置发生变化的时候及时监测到变更，由系统自动来引导配置变更流程是我们需要解决的问题，我们通过埋点通知的机制来应对。整体解决方案如下图：</p>
-<span id="more"></span>
-
-<img src="配置下发方案.png" alt="配置下发方案" style="zoom: 45%;" />
-
-<p>如图所示，对于每个App的配置变更点，我们抽象一个Point Cut，通过对Point Cut的监控，可以获取配置的变化信息。同时通过MQ通知到节点管理服务，节点管理服务处理节点的配置版本管理。</p>
-<p>在整个方案中主要的技术细节有两点：</p>
-<ol>
-<li>配置变更点的抽象</li>
-<li>配置版本管理</li>
-</ol>
-<p>接下来就针对这两点进行详细的实现。</p>
-<h3 id="配置变更点"><a href="#配置变更点" class="headerlink" title="配置变更点"></a>配置变更点</h3><p>APP基于SpringBoot开发，所以在配置变更点上我们选用Spring AOP结合注解的方式。</p>
-<h4 id="引入Spring-AOP"><a href="#引入Spring-AOP" class="headerlink" title="引入Spring AOP"></a>引入Spring AOP</h4><figure class="highlight xml"><table><tr><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-aop<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
-
-<h4 id="创建注解"><a href="#创建注解" class="headerlink" title="创建注解"></a>创建注解</h4><figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="hljs-meta">@Target(ElementType.METHOD)</span><br><span class="hljs-meta">@Inherited</span><br><span class="hljs-meta">@Documented</span><br><span class="hljs-keyword">public</span> <span class="hljs-meta">@interface</span> AppConfigureChange &#123;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h4 id="监控注解"><a href="#监控注解" class="headerlink" title="监控注解"></a>监控注解</h4><figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**App 配置发生变化的切面*/</span><br><span class="hljs-meta">@Pointcut(&quot;@annotation(com.manu.tbs.foundation.service.aop.AppConfigureChange)&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">appConfigureOnChange</span><span class="hljs-params">()</span> &#123;&#125;<br><br><span class="hljs-meta">@AfterReturning(value=&quot;appConfigureOnChange()&quot;,returning = &quot;retObject&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">appConfigurePostChange</span><span class="hljs-params">(Object retObject)</span>&#123;<br>    LOGGER.info(<span class="hljs-string">&quot;app configure post with return &#123;&#125;&quot;</span>,retObject);<br>    <span class="hljs-keyword">if</span>(retObject != <span class="hljs-literal">null</span> &amp;&amp; retObject <span class="hljs-keyword">instanceof</span> ResponseModel)&#123;<br>        <span class="hljs-type">ResponseModel</span> <span class="hljs-variable">responseModel</span> <span class="hljs-operator">=</span> (ResponseModel)retObject;<br>        <span class="hljs-keyword">if</span>(responseModel.isSuccess())&#123;<br>            mySender.sendMessage(SystemMqEnum.Q_UPDATE_APP_CONFIGURE.getQueueName(), <span class="hljs-string">&quot;1&quot;</span>);<br>        &#125;<span class="hljs-keyword">else</span>&#123;<br>            LOGGER.error(<span class="hljs-string">&quot;try to change configure fail.&quot;</span>);<br>        &#125;<br><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>通过创建一个切面方法appConfigureOnChange来进行注解监控，通过AfterReturning获得的返回值类型判断是否需要发送变更通知。</p>
-<h4 id="使用注解"><a href="#使用注解" class="headerlink" title="使用注解"></a>使用注解</h4><p>最后一步就是在可能引发配置变更的方法上加上@AppConfigureChange注解即可完成配置监测。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-meta">@Transactional</span><br><span class="hljs-meta">@AppConfigureChange</span><br><span class="hljs-keyword">public</span> ResponseModel <span class="hljs-title function_">importConfig</span><span class="hljs-params">(MultipartFile configFile)</span> &#123;<br>    <span class="hljs-comment">//导入逻辑实现</span><br>    <span class="hljs-keyword">return</span> ResponseModel.success();<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>这样在每次配置导入成功的时候即可监测到配置变化，触发变更通知发送。</p>
-<h3 id="配置版本管理"><a href="#配置版本管理" class="headerlink" title="配置版本管理"></a>配置版本管理</h3><p>版本管理主要通过两张表来实现：</p>
-<ul>
-<li><p>应用配置表记录应用的配置历史记录，可以获取应用当前的最新配置</p>
-</li>
-<li><p>节点配置表记录节点的最新配置，配置下发成功后更新记录</p>
-</li>
-</ul>
-<img src="data-model.png" alt="image-20221229134322441" style="zoom:80%;" />
-
-<p>节点管理服务接收到配置变更的通知后会更新应用配置表的版本信息。</p>
-<table>
-<thead>
-<tr>
-<th>history_id</th>
-<th>app_id</th>
-<th>version_no</th>
-<th>version_seq</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1</td>
-<td>1</td>
-<td>202212291010</td>
-<td>1</td>
-</tr>
-<tr>
-<td>2</td>
-<td>1</td>
-<td>202212291020</td>
-<td>2</td>
-</tr>
-</tbody></table>
-<p>如上表所示app&#x3D;1的的最新版本为2，页面定时任务通过比对节点的当前版本和应用的最新版本来判断是否需要配置下发。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">nodeVersionMatch</span><span class="hljs-params">(NodeConfigure nodeConfigure, AppConfigureDTO appConfigure)</span>&#123;<br>        <span class="hljs-type">return</span> <span class="hljs-variable">appConfigure</span> <span class="hljs-operator">=</span>= <span class="hljs-literal">null</span> <br>            ||(nodeConfigure != <span class="hljs-literal">null</span> <br>               &amp;&amp;appConfigure.getVersionSeq().equals(nodeConfigure.getVersionSeq()));<br>    &#125;<br></code></pre></td></tr></table></figure>
-
-<p>如果判断出节点需要进行配置下发，则在下发结束后更新节点配置，更新完成后节点配置表的数据如下：</p>
-<table>
-<thead>
-<tr>
-<th>configure_id</th>
-<th>node_id</th>
-<th>version_no</th>
-<th>version_seq</th>
-<th>configure_data</th>
-<th>bak_data</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1</td>
-<td>1</td>
-<td>202212291020</td>
-<td>2</td>
-<td>{json格式的配置数据}</td>
-<td>{上一次下发的配置数据}</td>
-</tr>
-</tbody></table>
-<p>如上表所示节点1的最新配置版本为2，配置数据和配置备份数据都可以被保留下来便于问题定位。</p>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>在多应用的场景下如何集中管理配置变更是一个很重要的话题，我们通过基于注解的切面实现了一个灵活易用的监测机制，通过对方法添加注解可以快速埋点。在管理端我们通过应用和节点的版本记录实现了简单版本管理和版本变更的判断逻辑。两者结合之下一个可复用的配置数据监测方案基本成型，具体项目中可以结合实际需求进行扩展和使用。</p>
-]]></content>
-      <categories>
-        <category>解决方案</category>
-      </categories>
-      <tags>
-        <tag>开发技术</tag>
-        <tag>微服务</tag>
       </tags>
   </entry>
   <entry>
