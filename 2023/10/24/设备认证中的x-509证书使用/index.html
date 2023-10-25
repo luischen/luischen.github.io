@@ -23,15 +23,15 @@
 <meta property="og:site_name" content="Next Station">
 <meta property="og:description" content="从信息安全角度考虑，物联网设备在接入工业网络和IOT平台的时候需要通过身份认证体系对外证明其可信度。x.509证书是使用较广泛的一种认证方式，本文展现了一个工业设备通过x.509证书接入IOT平台的认证过程。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://luischen.github.io/2023/10/24/%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x-509%E8%AF%81%E4%B9%A6%E4%BD%BF%E7%94%A8/设备认证中的x-509证书使用/百度证书.png">
-<meta property="og:image" content="https://luischen.github.io/2023/10/24/%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x-509%E8%AF%81%E4%B9%A6%E4%BD%BF%E7%94%A8/设备认证中的x-509证书使用/CA分级.png">
+<meta property="og:image" content="https://luischen.github.io/2023/10/24/%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x-509%E8%AF%81%E4%B9%A6%E4%BD%BF%E7%94%A8/百度证书.png">
+<meta property="og:image" content="https://luischen.github.io/2023/10/24/%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x-509%E8%AF%81%E4%B9%A6%E4%BD%BF%E7%94%A8/CA分级.png">
 <meta property="article:published_time" content="2023-10-24T08:22:33.000Z">
-<meta property="article:modified_time" content="2023-10-25T03:34:27.280Z">
+<meta property="article:modified_time" content="2023-10-25T03:43:25.809Z">
 <meta property="article:author" content="Luis Chen">
 <meta property="article:tag" content="信息安全">
 <meta property="article:tag" content="IOT">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://luischen.github.io/2023/10/24/%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x-509%E8%AF%81%E4%B9%A6%E4%BD%BF%E7%94%A8/设备认证中的x-509证书使用/百度证书.png">
+<meta name="twitter:image" content="https://luischen.github.io/2023/10/24/%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x-509%E8%AF%81%E4%B9%A6%E4%BD%BF%E7%94%A8/百度证书.png">
   
   
   
@@ -286,11 +286,11 @@
 <figure class="highlight fortran"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs fortran">Version.                             X<span class="hljs-number">.509</span>的版本<br>Serial <span class="hljs-keyword">number</span>.                       CA 创建证书的时候分配的唯一序列号<br>Algorithm information.               签名算法<br>Issuer distinguished <span class="hljs-keyword">name</span>.           证书签发机构，通常是CA<br>Validity period of the certificate.  证书有效期<br>Subject distinguished <span class="hljs-keyword">name</span>.          证书认证主体<br>Subject <span class="hljs-keyword">public</span> key information.      证书主体信息<br>Extensions (<span class="hljs-keyword">optional</span>).               证书扩展信息<br></code></pre></td></tr></table></figure>
 
 <p>以下是百度网站的证书内容：</p>
-<img src="设备认证中的x-509证书使用\百度证书.png" srcset="/img/loading.gif" lazyload alt="百度证书" style="zoom:60%;" />
+<img src="百度证书.png" srcset="/img/loading.gif" lazyload alt="百度证书" style="zoom:60%;" />
 
 <p>常见的证书应用有电子身份、浏览器安全、电子签名和文档签名、邮件证书、SSH和代码签名等。设备认证属于电子身份的应用范畴。</p>
 <h3 id="CA分级"><a href="#CA分级" class="headerlink" title="CA分级"></a>CA分级</h3><p>证书用于证明设备身份，所以证书的签发机构应该是一个可信的第三方机构。国内CA行业由国家根CA和第三方CA组成的多根认证中心提供认证服务，互联网应用使用的证书一般由第三方CA颁发，如上海CA。在企业内部的IOT应用中，通常是由IOT平台担任企业根CA的角色，再通过分配的中间CA协助企业根CA进行证书的签发和生命周期管理。</p>
-<img src="设备认证中的x-509证书使用\CA分级.png" srcset="/img/loading.gif" lazyload alt="CA分级" style="zoom:48%;" />
+<img src="CA分级.png" srcset="/img/loading.gif" lazyload alt="CA分级" style="zoom:48%;" />
 
 <p>如上图所示，企业内部按照证书用途划分形成了企业根CA、车间CA和供应商CA的多根认证结构。</p>
 <h2 id="设备认证"><a href="#设备认证" class="headerlink" title="设备认证"></a>设备认证</h2><p>设备认证包含两个过程：</p>
