@@ -26,7 +26,7 @@
 <meta property="og:image" content="https://luischen.github.io/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/Figure_1.png">
 <meta property="og:image" content="https://luischen.github.io/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/Figure_2.png">
 <meta property="article:published_time" content="2023-12-25T03:09:30.000Z">
-<meta property="article:modified_time" content="2023-12-25T07:58:23.266Z">
+<meta property="article:modified_time" content="2023-12-25T08:06:08.016Z">
 <meta property="article:author" content="Luis Chen">
 <meta property="article:tag" content="数据技术">
 <meta property="article:tag" content="异常检测">
@@ -302,7 +302,7 @@
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> statsmodels.tsa.seasonal <span class="hljs-keyword">import</span> STL<br><span class="hljs-keyword">import</span> pandas <span class="hljs-keyword">as</span> pd<br><span class="hljs-keyword">import</span> matplotlib.pyplot <span class="hljs-keyword">as</span> plt<br><br>pd.plotting.register_matplotlib_converters()<br>df = pd.read_csv(constant.APP_PATH + <span class="hljs-string">&#x27;/data/data.csv&#x27;</span>)<br>df = df.tail(<span class="hljs-number">1000</span>)<br>data = df[[<span class="hljs-string">&#x27;f1&#x27;</span>]]<br>stl = STL(data, period=<span class="hljs-number">30</span>, seasonal=<span class="hljs-number">99</span>)<br>res = stl.fit()<br>res.plot()<br>plt.show()<br></code></pre></td></tr></table></figure>
 
 <p>首先选取数据源data.csv中的f1列作为研究对象，使用STL方法进行分析，指定参数period和seasonal。通过fit方法返回的分析结果中包含了我们需要的结果数据：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">@property</span><br>   <span class="hljs-keyword">def</span> <span class="hljs-title function_">observed</span>(<span class="hljs-params">self</span>):<br>       <span class="hljs-string">&quot;&quot;&quot;Observed data&quot;&quot;&quot;</span><br>       <span class="hljs-keyword">return</span> self._observed<br><br><span class="hljs-meta">   @property</span><br>   <span class="hljs-keyword">def</span> <span class="hljs-title function_">seasonal</span>(<span class="hljs-params">self</span>):<br>       <span class="hljs-string">&quot;&quot;&quot;The estimated seasonal component&quot;&quot;&quot;</span><br>       <span class="hljs-keyword">return</span> self._seasonal<br><br><span class="hljs-meta">   @property</span><br>   <span class="hljs-keyword">def</span> <span class="hljs-title function_">trend</span>(<span class="hljs-params">self</span>):<br>       <span class="hljs-string">&quot;&quot;&quot;The estimated trend component&quot;&quot;&quot;</span><br>       <span class="hljs-keyword">return</span> self._trend<br><br><span class="hljs-meta">   @property</span><br>   <span class="hljs-keyword">def</span> <span class="hljs-title function_">resid</span>(<span class="hljs-params">self</span>):<br>       <span class="hljs-string">&quot;&quot;&quot;The estimated residuals&quot;&quot;&quot;</span><br>       <span class="hljs-keyword">return</span> self._resid<br></code></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">@property</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">observed</span>(<span class="hljs-params">self</span>):<br>    <span class="hljs-string">&quot;&quot;&quot;Observed data&quot;&quot;&quot;</span><br>    <span class="hljs-keyword">return</span> self._observed<br><br><span class="hljs-meta">@property</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">seasonal</span>(<span class="hljs-params">self</span>):<br>    <span class="hljs-string">&quot;&quot;&quot;The estimated seasonal component&quot;&quot;&quot;</span><br>    <span class="hljs-keyword">return</span> self._seasonal<br><br><span class="hljs-meta">@property</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">trend</span>(<span class="hljs-params">self</span>):<br>    <span class="hljs-string">&quot;&quot;&quot;The estimated trend component&quot;&quot;&quot;</span><br>    <span class="hljs-keyword">return</span> self._trend<br><br><span class="hljs-meta">@property</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">resid</span>(<span class="hljs-params">self</span>):<br>    <span class="hljs-string">&quot;&quot;&quot;The estimated residuals&quot;&quot;&quot;</span><br>    <span class="hljs-keyword">return</span> self._resid<br></code></pre></td></tr></table></figure>
 
 <p>调用res.plot() 方法可以将以上四个数据集在一张图中呈现出来。</p>
 <img src="Figure_1.png" srcset="/img/loading.gif" lazyload alt="Figure_1" style="zoom:60%;" />
@@ -322,7 +322,7 @@
 </ol>
 <h3 id="判定异常"><a href="#判定异常" class="headerlink" title="判定异常"></a>判定异常</h3><p>从STL算法的一般形式可以看出，如果每个点都符合周期成分和趋势成分的累加，那么对应的残值就应该等于0或者接近0。<br>$$<br>Y_v &#x3D; T_v + S_v + R_v<br>$$</p>
 <p>所以在实际数据的诊断中可以使用残值来进行异常诊断，具体来说就是针对拟合后的残值数据计算上下限，根据预设或者训练的异常比例判定异常。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">low = stats.scoreatpercentile(res.resid, <span class="hljs-number">0.2</span>)<br>   high = stats.scoreatpercentile(res.resid, <span class="hljs-number">99.8</span>)<br></code></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">low = stats.scoreatpercentile(res.resid, <span class="hljs-number">0.2</span>)<br>high = stats.scoreatpercentile(res.resid, <span class="hljs-number">99.8</span>)<br></code></pre></td></tr></table></figure>
 
 <p>按照以上异常比例得到的异常点图示如图：</p>
 <img src="Figure_2.png" srcset="/img/loading.gif" lazyload alt="Figure_2" style="zoom:72%;" />
@@ -488,6 +488,12 @@
 
 
   
+
+
+  
+  
+
+
 
 
 
@@ -681,6 +687,49 @@
 
 
   <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
 
   <script  src="/js/local-search.js" ></script>
 
