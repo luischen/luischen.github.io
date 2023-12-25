@@ -16,26 +16,26 @@
   <meta name="author" content="Luis Chen">
   <meta name="keywords" content="">
   
-    <meta name="description" content="从信息安全角度考虑，物联网设备在接入工业网络和IOT平台的时候需要通过身份认证体系对外证明其可信度。x.509证书是使用较广泛的一种认证方式，本文展现了一个工业设备通过x.509证书接入IOT平台的认证过程。">
+    <meta name="description" content="在工业时序数据的异常判定中，我们提供了基于SPC的单特征判定和孤立森林的多维特征判定。但是这两种异常判定对于趋势数据的判定表现得并不是很尽如人意。对于符合趋势的时序数据我们认定正常工况主要有两种：  某个特定值或者在其周围进行波动 沿着特定的趋势进行变化或者在趋势周围进行波动  对于第一种情况的趋势，SPC或者孤立森林都可以很好的应付，到了第二种情况则要求随着趋势的变化动态的调整阈值，这大大增加了">
 <meta property="og:type" content="article">
-<meta property="og:title" content="设备认证中的x.509证书使用">
-<meta property="og:url" content="https://luischen.github.io/2023/10/24/%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x-509%E8%AF%81%E4%B9%A6%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:title" content="异常检测算法之STL">
+<meta property="og:url" content="https://luischen.github.io/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/index.html">
 <meta property="og:site_name" content="Next Station">
-<meta property="og:description" content="从信息安全角度考虑，物联网设备在接入工业网络和IOT平台的时候需要通过身份认证体系对外证明其可信度。x.509证书是使用较广泛的一种认证方式，本文展现了一个工业设备通过x.509证书接入IOT平台的认证过程。">
+<meta property="og:description" content="在工业时序数据的异常判定中，我们提供了基于SPC的单特征判定和孤立森林的多维特征判定。但是这两种异常判定对于趋势数据的判定表现得并不是很尽如人意。对于符合趋势的时序数据我们认定正常工况主要有两种：  某个特定值或者在其周围进行波动 沿着特定的趋势进行变化或者在趋势周围进行波动  对于第一种情况的趋势，SPC或者孤立森林都可以很好的应付，到了第二种情况则要求随着趋势的变化动态的调整阈值，这大大增加了">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://luischen.github.io/2023/10/24/%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x-509%E8%AF%81%E4%B9%A6%E4%BD%BF%E7%94%A8/百度证书.png">
-<meta property="og:image" content="https://luischen.github.io/2023/10/24/%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x-509%E8%AF%81%E4%B9%A6%E4%BD%BF%E7%94%A8/CA分级.png">
-<meta property="article:published_time" content="2023-10-24T08:22:33.000Z">
-<meta property="article:modified_time" content="2023-10-25T03:43:25.809Z">
+<meta property="og:image" content="https://luischen.github.io/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/Figure_1.png">
+<meta property="og:image" content="https://luischen.github.io/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/Figure_2.png">
+<meta property="article:published_time" content="2023-12-25T03:09:30.000Z">
+<meta property="article:modified_time" content="2023-12-25T07:58:23.266Z">
 <meta property="article:author" content="Luis Chen">
-<meta property="article:tag" content="信息安全">
-<meta property="article:tag" content="IOT">
+<meta property="article:tag" content="数据技术">
+<meta property="article:tag" content="异常检测">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://luischen.github.io/2023/10/24/%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x-509%E8%AF%81%E4%B9%A6%E4%BD%BF%E7%94%A8/百度证书.png">
+<meta name="twitter:image" content="https://luischen.github.io/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/Figure_1.png">
   
   
   
-  <title>设备认证中的x.509证书使用 - Next Station</title>
+  <title>异常检测算法之STL - Next Station</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -201,7 +201,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="设备认证中的x.509证书使用"></span>
+            <span id="subtitle" data-typed-text="异常检测算法之STL"></span>
           
         </div>
 
@@ -212,8 +212,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2023-10-24 16:22" pubdate>
-          2023年10月24日 下午
+        <time datetime="2023-12-25 11:09" pubdate>
+          2023年12月25日 上午
         </time>
       </span>
     
@@ -224,7 +224,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.2k 字
+          2.4k 字
         
       </span>
     
@@ -235,7 +235,7 @@
         
         
         
-          19 分钟
+          21 分钟
         
       </span>
     
@@ -273,70 +273,67 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">设备认证中的x.509证书使用</h1>
+            <h1 style="display: none">异常检测算法之STL</h1>
             
             
               <div class="markdown-body">
                 
-                <p>从信息安全角度考虑，物联网设备在接入工业网络和IOT平台的时候需要通过身份认证体系对外证明其可信度。x.509证书是使用较广泛的一种认证方式，本文展现了一个工业设备通过x.509证书接入IOT平台的认证过程。</p>
-<span id="more"></span>
-
-<h2 id="背景知识"><a href="#背景知识" class="headerlink" title="背景知识"></a>背景知识</h2><h3 id="x-509证书"><a href="#x-509证书" class="headerlink" title="x.509证书"></a>x.509证书</h3><p>x.509 证书是由ITU(International Telecommunication Union)制定的一个安全标准，用于保障网络应用安全，最广为人知的应用是HTTPS。第一版标准发布于1988年，目前最新的版本是v9，版本的升级主要出于网络应用安全的需求变化，常见的升级方式就是增加证书字段。</p>
-<p>x.509 证书包含了一个身份信息和一个公钥，通过电子签名将身份信息和公钥进行绑定，证书内容通常包含如下字段：</p>
-<figure class="highlight fortran"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs fortran">Version.                             X<span class="hljs-number">.509</span>的版本<br>Serial <span class="hljs-keyword">number</span>.                       CA 创建证书的时候分配的唯一序列号<br>Algorithm information.               签名算法<br>Issuer distinguished <span class="hljs-keyword">name</span>.           证书签发机构，通常是CA<br>Validity period of the certificate.  证书有效期<br>Subject distinguished <span class="hljs-keyword">name</span>.          证书认证主体<br>Subject <span class="hljs-keyword">public</span> key information.      证书主体信息<br>Extensions (<span class="hljs-keyword">optional</span>).               证书扩展信息<br></code></pre></td></tr></table></figure>
-
-<p>以下是百度网站的证书内容：</p>
-<img src="百度证书.png" srcset="/img/loading.gif" lazyload alt="百度证书" style="zoom:60%;" />
-
-<p>常见的证书应用有电子身份、浏览器安全、电子签名和文档签名、邮件证书、SSH和代码签名等。设备认证属于电子身份的应用范畴。</p>
-<h3 id="CA分级"><a href="#CA分级" class="headerlink" title="CA分级"></a>CA分级</h3><p>证书用于证明设备身份，所以证书的签发机构应该是一个可信的第三方机构。国内CA行业由国家根CA和第三方CA组成的多根认证中心提供认证服务，互联网应用使用的证书一般由第三方CA颁发，如上海CA。在企业内部的IOT应用中，通常是由IOT平台担任企业根CA的角色，再通过分配的中间CA协助企业根CA进行证书的签发和生命周期管理。</p>
-<img src="CA分级.png" srcset="/img/loading.gif" lazyload alt="CA分级" style="zoom:48%;" />
-
-<p>如上图所示，企业内部按照证书用途划分形成了企业根CA、车间CA和供应商CA的多根认证结构。</p>
-<h2 id="设备认证"><a href="#设备认证" class="headerlink" title="设备认证"></a>设备认证</h2><p>设备认证包含两个过程：</p>
+                <p>在工业时序数据的异常判定中，我们提供了基于SPC的单特征判定和孤立森林的多维特征判定。但是这两种异常判定对于趋势数据的判定表现得并不是很尽如人意。对于符合趋势的时序数据我们认定正常工况主要有两种：</p>
 <ol>
-<li><p>证书生成</p>
-<p>证书生成发生在设备接入前置阶段，通过在IOT平台注册设备信息后可以为设备生成证书，用于设备连接的身份验证。</p>
-</li>
-<li><p>证书验证</p>
-<p>证书验证过程发生在设备和平台建立连接的阶段，通过证书证明身份可信后才能连接成功。</p>
-</li>
+<li>某个特定值或者在其周围进行波动</li>
+<li>沿着特定的趋势进行变化或者在趋势周围进行波动</li>
 </ol>
-<p>下面以某供应商A需要接入一台数采设备E01为例，具体描述设备认证过程。设备认证的前置条件是企业内部CA分级已经构建完成，并且供应商A成功作为中间CA接入。</p>
-<h3 id="证书生成"><a href="#证书生成" class="headerlink" title="证书生成"></a>证书生成</h3><ol>
-<li><p>生成密钥对</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">openssl genrsa -out e01.key 2048<br></code></pre></td></tr></table></figure>
-</li>
-<li><p>为证书创建CSR（证书签名请求）</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">openssl req -new -key e01.key -out e01.csr<br></code></pre></td></tr></table></figure>
-
-<p>证书签名请求是提交给CA的申请材料，里面包含证书内容，所以在创建证书签名请求的时候需要用户输入申请者信息，按照提示输入即可。</p>
-</li>
-<li><p>从CSR创建客户端证书</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs shell">openssl x509 -req \<br>    -in e01.csr \<br>    -CA CA01.pem \<br>    -CAkey CA01_key.key \<br>    -CAcreateserial \<br>    -out e01.pem \<br>    -days 500 -sha256<br></code></pre></td></tr></table></figure>
-
-<p>基于签名请求和CA持有的证书生成客户端签名证书。其中CA和CAkey指定了用于签署设备证书的中间CA证书和对应的私钥。</p>
-</li>
-</ol>
-<p>至此应用于数采设备E01的证书e01.pem就成功生成了，对应的私钥为e01.key，放置于设备目录下即可进行证书验证。</p>
-<h3 id="证书验证"><a href="#证书验证" class="headerlink" title="证书验证"></a>证书验证</h3><p>证书验证采用两段式验证，首先是IOT平台验证设备持有的证书链是否可信，其次确认建立通信的设备是证书的主体。</p>
-<h4 id="证书可信验证"><a href="#证书可信验证" class="headerlink" title="证书可信验证"></a>证书可信验证</h4><p>客户端发送证书到IOT平台，平台通过如下步骤验证证书链是否可信。</p>
+<p>对于第一种情况的趋势，SPC或者孤立森林都可以很好的应付，到了第二种情况则要求随着趋势的变化动态的调整阈值，这大大增加了算法实现的复杂度。通过调研发现，基于时序数据分解的STL算法可以满足我们的要求。</p>
+<h2 id="算法介绍"><a href="#算法介绍" class="headerlink" title="算法介绍"></a>算法介绍</h2><p>STL的全称是 Seasonal and Trend decomposition using Loess， 其中Loess是进行非线性关系求解的方法，ST代表数据分解的两种主要成分，因此时序数据最终被分解为三个部分：</p>
 <ol>
-<li>IOT平台从证书颁发者信息中得知证书是由CA01签发</li>
-<li>通过CA01注册的信息获取CA01的公钥对证书中的证书签名值进行解密得到e01_hash</li>
-<li>对证书中的主体信息附上CA01的信息进行散列计算得到e01_hash_temp</li>
-<li>如果两者相等则证明证书确实是CA01签发</li>
+<li><p>Seasonal Component</p>
+<p>周期性成分，代表数据按照周期性波动的行为</p>
+</li>
+<li><p>Trend Component</p>
+<p>趋势性成分，代表数据按照特定趋势发展的行为</p>
+</li>
+<li><p>Residue Component</p>
+<p>残值成分，代表数据去除周期性和趋势性之后的剩余部分</p>
+</li>
 </ol>
-<p>由于CA01已经通过了平台根CA认证，这就形成了 平台根CA–&gt;CA01–&gt;设备证书的可信证书链，设备证书有效。</p>
-<h4 id="实体可信验证"><a href="#实体可信验证" class="headerlink" title="实体可信验证"></a>实体可信验证</h4><p>平台需要验证连接请求是从设备e01发出，即所有权确认。</p>
+<p>$$<br>Y_v &#x3D; T_v + S_v + R_v<br>$$</p>
+<p>如公式所示，针对每一个时序数据值都可以表示为三种成分之和。</p>
+<h2 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h2><p>STL算法在Python中通过 statsmodels.tsa.seasonal 包提供的STL库进行实现，如下是一个简单的实现示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> statsmodels.tsa.seasonal <span class="hljs-keyword">import</span> STL<br><span class="hljs-keyword">import</span> pandas <span class="hljs-keyword">as</span> pd<br><span class="hljs-keyword">import</span> matplotlib.pyplot <span class="hljs-keyword">as</span> plt<br><br>pd.plotting.register_matplotlib_converters()<br>df = pd.read_csv(constant.APP_PATH + <span class="hljs-string">&#x27;/data/data.csv&#x27;</span>)<br>df = df.tail(<span class="hljs-number">1000</span>)<br>data = df[[<span class="hljs-string">&#x27;f1&#x27;</span>]]<br>stl = STL(data, period=<span class="hljs-number">30</span>, seasonal=<span class="hljs-number">99</span>)<br>res = stl.fit()<br>res.plot()<br>plt.show()<br></code></pre></td></tr></table></figure>
+
+<p>首先选取数据源data.csv中的f1列作为研究对象，使用STL方法进行分析，指定参数period和seasonal。通过fit方法返回的分析结果中包含了我们需要的结果数据：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">@property</span><br>   <span class="hljs-keyword">def</span> <span class="hljs-title function_">observed</span>(<span class="hljs-params">self</span>):<br>       <span class="hljs-string">&quot;&quot;&quot;Observed data&quot;&quot;&quot;</span><br>       <span class="hljs-keyword">return</span> self._observed<br><br><span class="hljs-meta">   @property</span><br>   <span class="hljs-keyword">def</span> <span class="hljs-title function_">seasonal</span>(<span class="hljs-params">self</span>):<br>       <span class="hljs-string">&quot;&quot;&quot;The estimated seasonal component&quot;&quot;&quot;</span><br>       <span class="hljs-keyword">return</span> self._seasonal<br><br><span class="hljs-meta">   @property</span><br>   <span class="hljs-keyword">def</span> <span class="hljs-title function_">trend</span>(<span class="hljs-params">self</span>):<br>       <span class="hljs-string">&quot;&quot;&quot;The estimated trend component&quot;&quot;&quot;</span><br>       <span class="hljs-keyword">return</span> self._trend<br><br><span class="hljs-meta">   @property</span><br>   <span class="hljs-keyword">def</span> <span class="hljs-title function_">resid</span>(<span class="hljs-params">self</span>):<br>       <span class="hljs-string">&quot;&quot;&quot;The estimated residuals&quot;&quot;&quot;</span><br>       <span class="hljs-keyword">return</span> self._resid<br></code></pre></td></tr></table></figure>
+
+<p>调用res.plot() 方法可以将以上四个数据集在一张图中呈现出来。</p>
+<img src="Figure_1.png" srcset="/img/loading.gif" lazyload alt="Figure_1" style="zoom:60%;" />
+
+<h2 id="场景应用"><a href="#场景应用" class="headerlink" title="场景应用"></a>场景应用</h2><p>在实际应用中我们通常需要考虑两个工程性的问题，即如何选取参数和如何进行异常判定。</p>
+<h3 id="参数选取"><a href="#参数选取" class="headerlink" title="参数选取"></a>参数选取</h3><p>在原论文中提供了6个参数，到Python的实现中变成了13个参数分布在STL构造方法和fit方法中。</p>
+<p>正如论文中提到的一样大多数参数的设值都是相当直接的，通过字面意思可以很容易的判断应该设置的值，如period参数根据数据的特性，如果是月度数据则设置为12。在我们上面的例子中，每天的数据量为30我们把period设置为30即可。</p>
+<p>难点在于如何合理地设置seasonal参数，seasonal参数通常设置为大于7的奇数，值越大则周期性成分中的子序列越平滑。这时候就面临着一个抉择：</p>
+<ul>
+<li>如果设置过大，则异常点对于周期的影响无法体现，容易造成漏报</li>
+<li>如果设置过小，周期内部噪音过多，容易造成误报</li>
+</ul>
+<p>所以在seasonal参数设置的时候需要数据分析人员针对数据进行反复测算，最终达到以下效果：</p>
 <ol>
-<li>平台生成一个随机数密钥key01并用设备证书的公钥进行加密后发送给设备</li>
-<li>如果设备持有证书的私钥即可解开密文获取密钥key01，如果设备不能证明所有权则无法获取通信密钥</li>
-<li>设备和平台之间连接和内容传输基于key01进行对称加密通信</li>
+<li>对于存在异常的周期需要体现异常点对周期的影响</li>
+<li>对于不存在异常的周期经过平滑之后需要遵循同样的可视化模式</li>
 </ol>
-<p>通过实体可信验证的筛选，只有设备证书的持有主体才可以和平台建立连接进行通信。</p>
-<h2 id="总结展望"><a href="#总结展望" class="headerlink" title="总结展望"></a>总结展望</h2><p>企业对于工业互联网的安全问题越来越重视，而接入工业互联网的设备安全必然会成为重要的考量。作为工业互联网设备服务供应商只有充分考虑企业的安全架构，并未雨绸缪的做好应对措施才可以在激烈的竞争中脱颖而出。本文从设备认证的角度出发，结合云服务商的最佳实践，展示了公司对于设备接入阶段安全认证的全局认知，为设备接入认证的技术实现打下了良好的基础。</p>
-<p>我们可以看出x.509证书总体是基于公私钥体系，所以设备的私钥保护显得异常重要，对于设备供应商来说如果能通过设备内置安全模块来对私钥进行保护，这对于安全设备无疑是一个很大的加分项，这也可以作为技术实现的一个方向。</p>
+<h3 id="判定异常"><a href="#判定异常" class="headerlink" title="判定异常"></a>判定异常</h3><p>从STL算法的一般形式可以看出，如果每个点都符合周期成分和趋势成分的累加，那么对应的残值就应该等于0或者接近0。<br>$$<br>Y_v &#x3D; T_v + S_v + R_v<br>$$</p>
+<p>所以在实际数据的诊断中可以使用残值来进行异常诊断，具体来说就是针对拟合后的残值数据计算上下限，根据预设或者训练的异常比例判定异常。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">low = stats.scoreatpercentile(res.resid, <span class="hljs-number">0.2</span>)<br>   high = stats.scoreatpercentile(res.resid, <span class="hljs-number">99.8</span>)<br></code></pre></td></tr></table></figure>
+
+<p>按照以上异常比例得到的异常点图示如图：</p>
+<img src="Figure_2.png" srcset="/img/loading.gif" lazyload alt="Figure_2" style="zoom:72%;" />
+
+<p>异常的实际含义为，在异常点数据趋势发生了变化或者数据周期性行为出现了偏差。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我们通过引入STL算法来应对趋势性数据的异常检测，通过将数据分解为周期性和趋势性成分，得到数据残值作为诊断因子。</p>
+<p>实际工程应用中再结合阈值分析或者SPC的方法可以对趋势性数据进行超差或者异常判断。STL作为分解类算法的一种，提供了简单有效的实现以及灵活的参数配置，可以应对大部分的趋势性数据检测场景。</p>
+<p>同时由于只支持加法类型的分解，带来了一定局限性，如果需要乘法类型的分解可以考虑X11 decomposition等算法。</p>
+<p>参考：</p>
+<p><a target="_blank" rel="noopener" href="https://www.wessa.net/download/stl.pdf">STL论文</a></p>
+<p><a target="_blank" rel="noopener" href="https://otexts.com/fpp2/stl.html">STL decomposition</a></p>
 
                 
               </div>
@@ -355,7 +352,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" class="category-chain-item">技术总结</a>
+  <a href="/categories/%E5%B7%A5%E4%B8%9A%E7%AE%97%E6%B3%95/" class="category-chain-item">工业算法</a>
   
   
 
@@ -370,9 +367,9 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8/">#信息安全</a>
+        <a href="/tags/%E6%95%B0%E6%8D%AE%E6%8A%80%E6%9C%AF/">#数据技术</a>
       
-        <a href="/tags/IOT/">#IOT</a>
+        <a href="/tags/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B/">#异常检测</a>
       
     </div>
   
@@ -384,8 +381,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>设备认证中的x.509证书使用</div>
-      <div>https://luischen.github.io/2023/10/24/设备认证中的x-509证书使用/</div>
+      <div>异常检测算法之STL</div>
+      <div>https://luischen.github.io/2023/12/25/异常检测算法之STL/</div>
     </div>
     <div class="license-meta">
       
@@ -397,7 +394,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2023年10月24日</div>
+          <div>2023年12月25日</div>
         </div>
       
       
@@ -429,18 +426,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/" title="异常检测算法之STL">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">异常检测算法之STL</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2023/10/09/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8B%E5%AD%A4%E7%AB%8B%E6%A3%AE%E6%9E%97/" title="异常检测算法之孤立森林">
-                        <span class="hidden-mobile">异常检测算法之孤立森林</span>
+                      <a href="/2023/10/24/%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x-509%E8%AF%81%E4%B9%A6%E4%BD%BF%E7%94%A8/" title="设备认证中的x.509证书使用">
+                        <span class="hidden-mobile">设备认证中的x.509证书使用</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

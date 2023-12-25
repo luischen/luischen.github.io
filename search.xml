@@ -282,6 +282,116 @@
 ]]></content>
   </entry>
   <entry>
+    <title>一个Slash引发的ClassNotFound血案</title>
+    <url>/2019/08/27/%E4%B8%80%E4%B8%AASlash%E5%BC%95%E5%8F%91%E7%9A%84ClassNotFound%E8%A1%80%E6%A1%88/</url>
+    <content><![CDATA[<p>公司开发了一款Web应用，开发架构基于Spring Boot，通过jar包的方式发布到服务器并通过命令行运行在内置的Tomcat上。上线将近一年，一切都是那么的风平浪静，然而一切的平静被上周的一次现场算法回访打破。</p>
+<p>我们的数据分析人员本意只是想查看一下历史数据来确认算法的表现符合预期，结果发现历史数据查询页面怎么点都没有反应，而其他页面都是正常的，服务重启后一切恢复正常。</p>
+<h2 id="问题重现"><a href="#问题重现" class="headerlink" title="问题重现"></a>问题重现</h2><p>虽然问题通过服务重启后成功解决，但是出错的原因没有定位到也就意味着再次出错的可能性依然存在。</p>
+<span id="more"></span>
+
+<p>分析问题最直观的方式就是从错误出发，通过错误信息来反向推导错误发生的场景。在这个案例中我们查看了浏览器控制台和后台错误日志，最终获取了准确的错误信息：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-number">2019</span>-08-<span class="hljs-number">23</span> <span class="hljs-number">14</span>:<span class="hljs-number">40</span>:<span class="hljs-number">47</span>,<span class="hljs-number">835</span> [http-nio-<span class="hljs-number">9090</span>-exec-<span class="hljs-number">8</span>] ERROR o.a.catalina.core.ContainerBase.[Tomcat].[localhost].[/].[dispatcherServlet] - Servlet.service() <span class="hljs-keyword">for</span> servlet [dispatcherServlet] in context with path [] threw exception [java.lang.ClassNotFoundException: org.apache.jsp.WEB_002dINF.views.report.report_005fmain_jsp] with root cause<br>java.lang.ClassNotFoundException: org.apache.jsp.WEB_002dINF.views.report.report_005fmain_jsp<br>	at java.net.URLClassLoader.findClass(URLClassLoader.java:<span class="hljs-number">381</span>)<br>	at org.apache.jasper.servlet.JasperLoader.loadClass(JasperLoader.java:<span class="hljs-number">129</span>)<br>	at org.apache.jasper.servlet.JasperLoader.loadClass(JasperLoader.java:<span class="hljs-number">60</span>)<br>	at org.apache.catalina.core.DefaultInstanceManager.newInstance(DefaultInstanceManager.java:<span class="hljs-number">159</span>)<br>	at org.apache.jasper.servlet.JspServletWrapper.getServlet(JspServletWrapper.java:<span class="hljs-number">171</span>)<br>	at org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:<span class="hljs-number">380</span>)<br>	at org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:<span class="hljs-number">386</span>)<br>	at org.apache.jasper.servlet.JspServlet.service(JspServlet.java:<span class="hljs-number">330</span>)<br>	at javax.servlet.http.HttpServlet.service(HttpServlet.java:<span class="hljs-number">742</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:<span class="hljs-number">231</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:<span class="hljs-number">166</span>)<br>	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:<span class="hljs-number">52</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:<span class="hljs-number">193</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:<span class="hljs-number">166</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.invoke(ApplicationDispatcher.java:<span class="hljs-number">728</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.processRequest(ApplicationDispatcher.java:<span class="hljs-number">470</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.doForward(ApplicationDispatcher.java:<br><br></code></pre></td></tr></table></figure>
+
+<p>这是一个ClassNotFoundException，通过错误信息我们可以在搜索引擎上找到一堆解答，甚至在Spring Boot的Github上都有类似的情况(<a href="https://github.com/spring-projects/spring-boot/issues/5009)%E3%80%82">https://github.com/spring-projects/spring-boot/issues/5009)。</a></p>
+<p>结果总结下来就是：</p>
+<blockquote>
+<p>Spring Boot内置的Tomcat会在系统根目录的&#x2F;tmp下创建Tomcat开头的临时目录，tmp目录的定时清理会导致部分文件的class文件找不到，解决办法是指定一个work目录不要使用默认的tmp目录。</p>
+</blockquote>
+<p>听起来很有道理，官方都这么说了那照着做就行了呗。</p>
+<p>然而作为一个好奇心爆棚的程序员，这样的解释显得苍白而无力，但是这个解释倒是给我们的重现提供了很好的便利，毕竟只有充分重现了这个问题才能更好的去探究深层次的原因。 </p>
+<p>于是在官方解释的指导下，我们进行了多次重现的尝试，最终将问题范围缩小如下：</p>
+<p><span style="color:red">在Tomcat启动后将tmp下的ROOT目录删除，访问的第一个页面会出现无法访问的情况，后台出现ClassNotFoundException，之后再访问其他页面都是正常。</span></p>
+<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><p>在进行问题分析的时候，我们一般会使用三种方式</p>
+<ul>
+<li><p>经验法</p>
+<p>结合自身的经验来猜测问题发生的可能原因，然后通过验证来定位问题具体原因</p>
+</li>
+<li><p>推导法</p>
+<p>从问题的发生点开始倒推，沿着问题发生的路径逐步接近问题的根源</p>
+</li>
+<li><p>分析法</p>
+<p>分析整个流程中的每一个节点，找到和问题可能相关的节点逐个验证从而找到导致问题的节点</p>
+</li>
+</ul>
+<hr>
+<p>经验法往往是遇到问题时第一个使用的方法，因为面对问题时冲在前面的往往是我们的直觉。在这个问题中我做了以下猜测，并逐一验证。</p>
+<ol>
+<li><p>class文件损坏</p>
+<p>做出这个假设的依据是，在同一个目录下存在两个页面的Class文件，一个可以访问一个不可以访问。</p>
+<p>验证方法也很简单，首先重启服务正常访问页面A获取到正常状态下的A.java和A.class文件；重启服务器后删除ROOT目录，再访问页面A触发错误，将目录下的java和class文件替换成正常状态的问题；再次访问页面，依然报错。</p>
+<p>至此我们推翻了我们关于Class文件损坏的假设。</p>
+</li>
+<li><p>dev-tool导致classloader不一致</p>
+<p>做出这个假设的依据是我们之前遇到的一个dev-tool的问题，Spring Boot在引入了dev-tool后会进行热加载，这时候由于jar包加载和class加载使用了不同的ClassLoader会出现ClassNotFoundException。</p>
+<p>我们之前解决这个问题的方法是去掉dev-tool，同样在这里我们也可以去掉dev-tool再走一遍重现步骤，发现问题依然存在。</p>
+<p>至此我们排除了Dev-tool导致ClassLoader不一致的假设。</p>
+</li>
+<li><p>class文件时间戳</p>
+<p>在我们查看正常文件和异常文件差异的时候发现，正常文件的时间戳和jar包中的jsp时间戳一致，而异常文件的时间戳是当前时间，那会不会是因为时间戳不一致导致的呢。</p>
+<p>为了验证这个假设我们从两方面入手a) 调整正常文件的时间戳到当前时间，结果正常文件依然正常 b) 调整异常文件的时间戳为jsp的时间，结果异常文件依然无法访问。</p>
+<p>于是我们也排除了Class文件时间戳的假设。</p>
+</li>
+</ol>
+<hr>
+<p>推导法是比较直观也是可以比较快速的发现问题的方法，但是在我们这个案例中我们发现错误堆栈中的URLClassLoader并不是问题发生的第一现场，真正的第一现场在java自己的包中，对我们逐步跟踪问题造成了困难。</p>
+<img src="classloader.png"/>
+
+<hr>
+<p>鉴于此我们选择分析法作为我们解决问题的突破口。当然还有一个重要条件支持我们采用分析法解决问题，那就是在我们这个案例中我们存在OK和NOK两种情况，在每一个分析的节点我们都可以引入两种情况进行对比。</p>
+<p>在开始之前，由于要每一步比较差异，我们需要配置Eclipse的远程调试。传送门：(<a href="https://www.cnblogs.com/east7/p/10285955.html">https://www.cnblogs.com/east7/p/10285955.html</a>)</p>
+<p>首先我们梳理一下Tomcat解析JSP的流程，由于我们基于类来描述流程，所以先罗列一下涉及的类以及主要的方法：</p>
+<img src="jsp-class.png"/>
+
+<p>JspServlet类是主入口，接收jsp请求；</p>
+<p>JspRuntimeContext通过add和get方法来维持一个ServletWrapper的缓存；</p>
+<p>从JspServlet往后是加载的主要类，而从Compiler往后的类是编译用到的类。</p>
+<p>在大致了解了内部类结构后我们可以来看看Jsp加载的流程了，</p>
+<img src="jsp-flow.png"/>
+
+<p>从图中可以看出我们的报错点在获取Servlet的class这一步，那么我们从页面访问的步骤一步步比较OK和NOK表现的差异。</p>
+<ol>
+<li><p>获取ServletWrapper</p>
+<p>这一步的作用是为每一个Jsp页面构建一个代理并缓存在JspRuntimeContext中，这样每次访问页面直接获取代理即可。从调试的结果看，构建wrapper的每个参数都是一样，而构建的wrapper结果也是一致的。</p>
+</li>
+<li><p>编译java文件</p>
+<p>我们注意到在Complier.class的generateJava这个方法中有一步是：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">ctxt.checkOutputDir();<br></code></pre></td></tr></table></figure>
+
+<p>我们的重现恰恰是删除了ROOT目录，继续进去看代码</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">checkOutputDir</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">if</span> (outputDir != <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-keyword">if</span> (!(<span class="hljs-keyword">new</span> <span class="hljs-title class_">File</span>(outputDir)).exists()) &#123;<br>                makeOutputDir();<br>            &#125;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            createOutputDir();<br>        &#125;<br>&#125;<br><span class="hljs-comment">//由于一开始的outputDir为空会进入createOutputDir方法</span><br><span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">File</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> options.getScratchDir();<br>            baseUrl = base.toURI().toURL();<br>            outputDir = base.getAbsolutePath() + File.separator + path +<br>                    File.separator;<br>            <span class="hljs-keyword">if</span> (!makeOutputDir()) &#123;<br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(Localizer.getMessage(<span class="hljs-string">&quot;jsp.error.outputfolder&quot;</span>));<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (MalformedURLException e) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(Localizer.getMessage(<span class="hljs-string">&quot;jsp.error.outputfolder&quot;</span>), e);<br>        &#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>这里对baseUrl进行赋值，联想到之前看到一个关于UrlClassPath加载资源的解读，ucp类会根据baseUrl来加载不同的loader进行资源加载。通过debug我们发现这个地方的baseUrl在OK和NOK两种情况下确实存在差异。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><code class="hljs shell">NOK：<br>baseURL = file:/tmp/tomcat.2612162063177545213.9090/work/Tomcat/localhost/ROOT<br>OK：<br>baseURL = file:/tmp/tomcat.2612162063177545213.9090/work/Tomcat/localhost/ROOT/<br><br></code></pre></td></tr></table></figure>
+
+<p>对照ucp的代码</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> Loader <span class="hljs-title function_">getLoader</span><span class="hljs-params">(<span class="hljs-keyword">final</span> URL url)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">return</span> java.security.AccessController.doPrivileged(<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">java</span>.security.PrivilegedExceptionAction&lt;Loader&gt;() &#123;<br>                <span class="hljs-keyword">public</span> Loader <span class="hljs-title function_">run</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>                    <span class="hljs-type">String</span> <span class="hljs-variable">file</span> <span class="hljs-operator">=</span> url.getFile();<br>                    <span class="hljs-keyword">if</span> (file != <span class="hljs-literal">null</span> &amp;&amp; file.endsWith(<span class="hljs-string">&quot;/&quot;</span>)) &#123;<br>                        <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;file&quot;</span>.equals(url.getProtocol())) &#123;<br>                            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileLoader</span>(url);<br>                        &#125; <span class="hljs-keyword">else</span> &#123;<br>                            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Loader</span>(url);<br>                        &#125;<br>                    &#125; <span class="hljs-keyword">else</span> &#123;<br>                        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JarLoader</span>(url, jarHandler, lmap, acc);<br>                    &#125;<br>                &#125;<br>            &#125;, acc);<br>        &#125; <span class="hljs-keyword">catch</span> (java.security.PrivilegedActionException pae) &#123;<br>            <span class="hljs-keyword">throw</span> (IOException)pae.getException();<br>        &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>我们发现当出现”&#x2F;”的时候我们是通过fileLoader来加载资源，而没有”&#x2F;”的情况我们默认到jarLoader，用jarLoader去加载一个文件路径当然会返回ClassNotFound了。</p>
+</li>
+</ol>
+<hr>
+<p>至此我们终于将这个问题的来龙去脉理清楚了，那这一个“&#x2F;”的差异是怎么来的呢，回到那段代码片段：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">baseUrl = base.toURI().toURL();<br>         outputDir = base.getAbsolutePath() + File.separator + path +<br>                 File.separator;<br>         <span class="hljs-keyword">if</span> (!makeOutputDir()) &#123;<br></code></pre></td></tr></table></figure>
+
+<p>OK和NOK的情况base是一样的，唯一的区别就是OK的情况文件目录都是存在的，而NOK的时候文件夹是没有的，是不是这种差异导致了一个”&#x2F;”的差异呢，还是看代码吧：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//base.toURI():</span><br><span class="hljs-keyword">public</span> URI <span class="hljs-title function_">toURI</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">File</span> <span class="hljs-variable">f</span> <span class="hljs-operator">=</span> getAbsoluteFile();<br>            <span class="hljs-type">String</span> <span class="hljs-variable">sp</span> <span class="hljs-operator">=</span> slashify(f.getPath(), f.isDirectory());<br>            <span class="hljs-keyword">if</span> (sp.startsWith(<span class="hljs-string">&quot;//&quot;</span>))<br>                sp = <span class="hljs-string">&quot;//&quot;</span> + sp;<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">URI</span>(<span class="hljs-string">&quot;file&quot;</span>, <span class="hljs-literal">null</span>, sp, <span class="hljs-literal">null</span>);<br>        &#125; <span class="hljs-keyword">catch</span> (URISyntaxException x) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(x);         <span class="hljs-comment">// Can&#x27;t happen</span><br>        &#125;<br>    &#125;<br><span class="hljs-comment">//Slashify():</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> String <span class="hljs-title function_">slashify</span><span class="hljs-params">(String path, <span class="hljs-type">boolean</span> isDirectory)</span> &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> path;<br>        <span class="hljs-keyword">if</span> (File.separatorChar != <span class="hljs-string">&#x27;/&#x27;</span>)<br>            p = p.replace(File.separatorChar, <span class="hljs-string">&#x27;/&#x27;</span>);<br>        <span class="hljs-keyword">if</span> (!p.startsWith(<span class="hljs-string">&quot;/&quot;</span>))<br>            p = <span class="hljs-string">&quot;/&quot;</span> + p;<br>        <span class="hljs-keyword">if</span> (!p.endsWith(<span class="hljs-string">&quot;/&quot;</span>) &amp;&amp; isDirectory)<br>            p = p + <span class="hljs-string">&quot;/&quot;</span>;<br>        <span class="hljs-keyword">return</span> p;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>从上面的代码可以看出只有满足isDirectory的判断才会给URI加上”&#x2F;”，在我们NOK的情况下由于文件夹不存在isDirectory返回false不会加上结尾的”&#x2F;”，导致了baseURI的差异，并最终导致了ClassNotFoundException的生产血案。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在这个案例中我们主要使用了经验法和分析法来定位问题，查找本源。</p>
+<p>在经验分析的过程中我们遇到了阻碍，转而通过分析法分解了Tomcat对于Jsp请求的处理流程，在分析Jsp编译过程时发现会对baseURI进行赋值，结合我们已有的对URLClassLoader的加载过程的理解，于是我们对于baseURI的处理进行了着重分析。最终发现由于baseURI赋值时系统环境的差异导致了生成的baseURI产生了一个”&#x2F;”的差异，而这一个差异又导致资源加载的加载器选择差异，最终导致不合适的加载器加载不到资源的错误。</p>
+<p>在问题的解决上我们还是沿用官方的说法，指定一个tmp url用来存放tomcat的临时文件，避免被删除。</p>
+<p>参考材料：</p>
+<p><a href="http://www.docjar.com/html/api/sun/misc/URLClassPath.java.html">http://www.docjar.com/html/api/sun/misc/URLClassPath.java.html</a></p>
+<p><a href="https://www.jianshu.com/p/b8e331840961">https://www.jianshu.com/p/b8e331840961</a></p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>开发技术</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>一次性能事故的处理和总结</title>
     <url>/2019/07/12/%E4%B8%80%E6%AC%A1%E6%80%A7%E8%83%BD%E4%BA%8B%E6%95%85%E7%9A%84%E5%A4%84%E7%90%86%E5%92%8C%E6%80%BB%E7%BB%93/</url>
     <content><![CDATA[<p>前几天做了一个工况统计的功能，查询最近7天的数据然后分析数据的分布。</p>
@@ -431,116 +541,6 @@
       </tags>
   </entry>
   <entry>
-    <title>一个Slash引发的ClassNotFound血案</title>
-    <url>/2019/08/27/%E4%B8%80%E4%B8%AASlash%E5%BC%95%E5%8F%91%E7%9A%84ClassNotFound%E8%A1%80%E6%A1%88/</url>
-    <content><![CDATA[<p>公司开发了一款Web应用，开发架构基于Spring Boot，通过jar包的方式发布到服务器并通过命令行运行在内置的Tomcat上。上线将近一年，一切都是那么的风平浪静，然而一切的平静被上周的一次现场算法回访打破。</p>
-<p>我们的数据分析人员本意只是想查看一下历史数据来确认算法的表现符合预期，结果发现历史数据查询页面怎么点都没有反应，而其他页面都是正常的，服务重启后一切恢复正常。</p>
-<h2 id="问题重现"><a href="#问题重现" class="headerlink" title="问题重现"></a>问题重现</h2><p>虽然问题通过服务重启后成功解决，但是出错的原因没有定位到也就意味着再次出错的可能性依然存在。</p>
-<span id="more"></span>
-
-<p>分析问题最直观的方式就是从错误出发，通过错误信息来反向推导错误发生的场景。在这个案例中我们查看了浏览器控制台和后台错误日志，最终获取了准确的错误信息：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-number">2019</span>-08-<span class="hljs-number">23</span> <span class="hljs-number">14</span>:<span class="hljs-number">40</span>:<span class="hljs-number">47</span>,<span class="hljs-number">835</span> [http-nio-<span class="hljs-number">9090</span>-exec-<span class="hljs-number">8</span>] ERROR o.a.catalina.core.ContainerBase.[Tomcat].[localhost].[/].[dispatcherServlet] - Servlet.service() <span class="hljs-keyword">for</span> servlet [dispatcherServlet] in context with path [] threw exception [java.lang.ClassNotFoundException: org.apache.jsp.WEB_002dINF.views.report.report_005fmain_jsp] with root cause<br>java.lang.ClassNotFoundException: org.apache.jsp.WEB_002dINF.views.report.report_005fmain_jsp<br>	at java.net.URLClassLoader.findClass(URLClassLoader.java:<span class="hljs-number">381</span>)<br>	at org.apache.jasper.servlet.JasperLoader.loadClass(JasperLoader.java:<span class="hljs-number">129</span>)<br>	at org.apache.jasper.servlet.JasperLoader.loadClass(JasperLoader.java:<span class="hljs-number">60</span>)<br>	at org.apache.catalina.core.DefaultInstanceManager.newInstance(DefaultInstanceManager.java:<span class="hljs-number">159</span>)<br>	at org.apache.jasper.servlet.JspServletWrapper.getServlet(JspServletWrapper.java:<span class="hljs-number">171</span>)<br>	at org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:<span class="hljs-number">380</span>)<br>	at org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:<span class="hljs-number">386</span>)<br>	at org.apache.jasper.servlet.JspServlet.service(JspServlet.java:<span class="hljs-number">330</span>)<br>	at javax.servlet.http.HttpServlet.service(HttpServlet.java:<span class="hljs-number">742</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:<span class="hljs-number">231</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:<span class="hljs-number">166</span>)<br>	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:<span class="hljs-number">52</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:<span class="hljs-number">193</span>)<br>	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:<span class="hljs-number">166</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.invoke(ApplicationDispatcher.java:<span class="hljs-number">728</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.processRequest(ApplicationDispatcher.java:<span class="hljs-number">470</span>)<br>	at org.apache.catalina.core.ApplicationDispatcher.doForward(ApplicationDispatcher.java:<br><br></code></pre></td></tr></table></figure>
-
-<p>这是一个ClassNotFoundException，通过错误信息我们可以在搜索引擎上找到一堆解答，甚至在Spring Boot的Github上都有类似的情况(<a href="https://github.com/spring-projects/spring-boot/issues/5009)%E3%80%82">https://github.com/spring-projects/spring-boot/issues/5009)。</a></p>
-<p>结果总结下来就是：</p>
-<blockquote>
-<p>Spring Boot内置的Tomcat会在系统根目录的&#x2F;tmp下创建Tomcat开头的临时目录，tmp目录的定时清理会导致部分文件的class文件找不到，解决办法是指定一个work目录不要使用默认的tmp目录。</p>
-</blockquote>
-<p>听起来很有道理，官方都这么说了那照着做就行了呗。</p>
-<p>然而作为一个好奇心爆棚的程序员，这样的解释显得苍白而无力，但是这个解释倒是给我们的重现提供了很好的便利，毕竟只有充分重现了这个问题才能更好的去探究深层次的原因。 </p>
-<p>于是在官方解释的指导下，我们进行了多次重现的尝试，最终将问题范围缩小如下：</p>
-<p><span style="color:red">在Tomcat启动后将tmp下的ROOT目录删除，访问的第一个页面会出现无法访问的情况，后台出现ClassNotFoundException，之后再访问其他页面都是正常。</span></p>
-<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><p>在进行问题分析的时候，我们一般会使用三种方式</p>
-<ul>
-<li><p>经验法</p>
-<p>结合自身的经验来猜测问题发生的可能原因，然后通过验证来定位问题具体原因</p>
-</li>
-<li><p>推导法</p>
-<p>从问题的发生点开始倒推，沿着问题发生的路径逐步接近问题的根源</p>
-</li>
-<li><p>分析法</p>
-<p>分析整个流程中的每一个节点，找到和问题可能相关的节点逐个验证从而找到导致问题的节点</p>
-</li>
-</ul>
-<hr>
-<p>经验法往往是遇到问题时第一个使用的方法，因为面对问题时冲在前面的往往是我们的直觉。在这个问题中我做了以下猜测，并逐一验证。</p>
-<ol>
-<li><p>class文件损坏</p>
-<p>做出这个假设的依据是，在同一个目录下存在两个页面的Class文件，一个可以访问一个不可以访问。</p>
-<p>验证方法也很简单，首先重启服务正常访问页面A获取到正常状态下的A.java和A.class文件；重启服务器后删除ROOT目录，再访问页面A触发错误，将目录下的java和class文件替换成正常状态的问题；再次访问页面，依然报错。</p>
-<p>至此我们推翻了我们关于Class文件损坏的假设。</p>
-</li>
-<li><p>dev-tool导致classloader不一致</p>
-<p>做出这个假设的依据是我们之前遇到的一个dev-tool的问题，Spring Boot在引入了dev-tool后会进行热加载，这时候由于jar包加载和class加载使用了不同的ClassLoader会出现ClassNotFoundException。</p>
-<p>我们之前解决这个问题的方法是去掉dev-tool，同样在这里我们也可以去掉dev-tool再走一遍重现步骤，发现问题依然存在。</p>
-<p>至此我们排除了Dev-tool导致ClassLoader不一致的假设。</p>
-</li>
-<li><p>class文件时间戳</p>
-<p>在我们查看正常文件和异常文件差异的时候发现，正常文件的时间戳和jar包中的jsp时间戳一致，而异常文件的时间戳是当前时间，那会不会是因为时间戳不一致导致的呢。</p>
-<p>为了验证这个假设我们从两方面入手a) 调整正常文件的时间戳到当前时间，结果正常文件依然正常 b) 调整异常文件的时间戳为jsp的时间，结果异常文件依然无法访问。</p>
-<p>于是我们也排除了Class文件时间戳的假设。</p>
-</li>
-</ol>
-<hr>
-<p>推导法是比较直观也是可以比较快速的发现问题的方法，但是在我们这个案例中我们发现错误堆栈中的URLClassLoader并不是问题发生的第一现场，真正的第一现场在java自己的包中，对我们逐步跟踪问题造成了困难。</p>
-<img src="classloader.png"/>
-
-<hr>
-<p>鉴于此我们选择分析法作为我们解决问题的突破口。当然还有一个重要条件支持我们采用分析法解决问题，那就是在我们这个案例中我们存在OK和NOK两种情况，在每一个分析的节点我们都可以引入两种情况进行对比。</p>
-<p>在开始之前，由于要每一步比较差异，我们需要配置Eclipse的远程调试。传送门：(<a href="https://www.cnblogs.com/east7/p/10285955.html">https://www.cnblogs.com/east7/p/10285955.html</a>)</p>
-<p>首先我们梳理一下Tomcat解析JSP的流程，由于我们基于类来描述流程，所以先罗列一下涉及的类以及主要的方法：</p>
-<img src="jsp-class.png"/>
-
-<p>JspServlet类是主入口，接收jsp请求；</p>
-<p>JspRuntimeContext通过add和get方法来维持一个ServletWrapper的缓存；</p>
-<p>从JspServlet往后是加载的主要类，而从Compiler往后的类是编译用到的类。</p>
-<p>在大致了解了内部类结构后我们可以来看看Jsp加载的流程了，</p>
-<img src="jsp-flow.png"/>
-
-<p>从图中可以看出我们的报错点在获取Servlet的class这一步，那么我们从页面访问的步骤一步步比较OK和NOK表现的差异。</p>
-<ol>
-<li><p>获取ServletWrapper</p>
-<p>这一步的作用是为每一个Jsp页面构建一个代理并缓存在JspRuntimeContext中，这样每次访问页面直接获取代理即可。从调试的结果看，构建wrapper的每个参数都是一样，而构建的wrapper结果也是一致的。</p>
-</li>
-<li><p>编译java文件</p>
-<p>我们注意到在Complier.class的generateJava这个方法中有一步是：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">ctxt.checkOutputDir();<br></code></pre></td></tr></table></figure>
-
-<p>我们的重现恰恰是删除了ROOT目录，继续进去看代码</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">checkOutputDir</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">if</span> (outputDir != <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-keyword">if</span> (!(<span class="hljs-keyword">new</span> <span class="hljs-title class_">File</span>(outputDir)).exists()) &#123;<br>                makeOutputDir();<br>            &#125;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            createOutputDir();<br>        &#125;<br>&#125;<br><span class="hljs-comment">//由于一开始的outputDir为空会进入createOutputDir方法</span><br><span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">File</span> <span class="hljs-variable">base</span> <span class="hljs-operator">=</span> options.getScratchDir();<br>            baseUrl = base.toURI().toURL();<br>            outputDir = base.getAbsolutePath() + File.separator + path +<br>                    File.separator;<br>            <span class="hljs-keyword">if</span> (!makeOutputDir()) &#123;<br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(Localizer.getMessage(<span class="hljs-string">&quot;jsp.error.outputfolder&quot;</span>));<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (MalformedURLException e) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(Localizer.getMessage(<span class="hljs-string">&quot;jsp.error.outputfolder&quot;</span>), e);<br>        &#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>这里对baseUrl进行赋值，联想到之前看到一个关于UrlClassPath加载资源的解读，ucp类会根据baseUrl来加载不同的loader进行资源加载。通过debug我们发现这个地方的baseUrl在OK和NOK两种情况下确实存在差异。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><code class="hljs shell">NOK：<br>baseURL = file:/tmp/tomcat.2612162063177545213.9090/work/Tomcat/localhost/ROOT<br>OK：<br>baseURL = file:/tmp/tomcat.2612162063177545213.9090/work/Tomcat/localhost/ROOT/<br><br></code></pre></td></tr></table></figure>
-
-<p>对照ucp的代码</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> Loader <span class="hljs-title function_">getLoader</span><span class="hljs-params">(<span class="hljs-keyword">final</span> URL url)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">return</span> java.security.AccessController.doPrivileged(<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">java</span>.security.PrivilegedExceptionAction&lt;Loader&gt;() &#123;<br>                <span class="hljs-keyword">public</span> Loader <span class="hljs-title function_">run</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>                    <span class="hljs-type">String</span> <span class="hljs-variable">file</span> <span class="hljs-operator">=</span> url.getFile();<br>                    <span class="hljs-keyword">if</span> (file != <span class="hljs-literal">null</span> &amp;&amp; file.endsWith(<span class="hljs-string">&quot;/&quot;</span>)) &#123;<br>                        <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;file&quot;</span>.equals(url.getProtocol())) &#123;<br>                            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileLoader</span>(url);<br>                        &#125; <span class="hljs-keyword">else</span> &#123;<br>                            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Loader</span>(url);<br>                        &#125;<br>                    &#125; <span class="hljs-keyword">else</span> &#123;<br>                        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JarLoader</span>(url, jarHandler, lmap, acc);<br>                    &#125;<br>                &#125;<br>            &#125;, acc);<br>        &#125; <span class="hljs-keyword">catch</span> (java.security.PrivilegedActionException pae) &#123;<br>            <span class="hljs-keyword">throw</span> (IOException)pae.getException();<br>        &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>我们发现当出现”&#x2F;”的时候我们是通过fileLoader来加载资源，而没有”&#x2F;”的情况我们默认到jarLoader，用jarLoader去加载一个文件路径当然会返回ClassNotFound了。</p>
-</li>
-</ol>
-<hr>
-<p>至此我们终于将这个问题的来龙去脉理清楚了，那这一个“&#x2F;”的差异是怎么来的呢，回到那段代码片段：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">baseUrl = base.toURI().toURL();<br>         outputDir = base.getAbsolutePath() + File.separator + path +<br>                 File.separator;<br>         <span class="hljs-keyword">if</span> (!makeOutputDir()) &#123;<br></code></pre></td></tr></table></figure>
-
-<p>OK和NOK的情况base是一样的，唯一的区别就是OK的情况文件目录都是存在的，而NOK的时候文件夹是没有的，是不是这种差异导致了一个”&#x2F;”的差异呢，还是看代码吧：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//base.toURI():</span><br><span class="hljs-keyword">public</span> URI <span class="hljs-title function_">toURI</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">File</span> <span class="hljs-variable">f</span> <span class="hljs-operator">=</span> getAbsoluteFile();<br>            <span class="hljs-type">String</span> <span class="hljs-variable">sp</span> <span class="hljs-operator">=</span> slashify(f.getPath(), f.isDirectory());<br>            <span class="hljs-keyword">if</span> (sp.startsWith(<span class="hljs-string">&quot;//&quot;</span>))<br>                sp = <span class="hljs-string">&quot;//&quot;</span> + sp;<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">URI</span>(<span class="hljs-string">&quot;file&quot;</span>, <span class="hljs-literal">null</span>, sp, <span class="hljs-literal">null</span>);<br>        &#125; <span class="hljs-keyword">catch</span> (URISyntaxException x) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(x);         <span class="hljs-comment">// Can&#x27;t happen</span><br>        &#125;<br>    &#125;<br><span class="hljs-comment">//Slashify():</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> String <span class="hljs-title function_">slashify</span><span class="hljs-params">(String path, <span class="hljs-type">boolean</span> isDirectory)</span> &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">p</span> <span class="hljs-operator">=</span> path;<br>        <span class="hljs-keyword">if</span> (File.separatorChar != <span class="hljs-string">&#x27;/&#x27;</span>)<br>            p = p.replace(File.separatorChar, <span class="hljs-string">&#x27;/&#x27;</span>);<br>        <span class="hljs-keyword">if</span> (!p.startsWith(<span class="hljs-string">&quot;/&quot;</span>))<br>            p = <span class="hljs-string">&quot;/&quot;</span> + p;<br>        <span class="hljs-keyword">if</span> (!p.endsWith(<span class="hljs-string">&quot;/&quot;</span>) &amp;&amp; isDirectory)<br>            p = p + <span class="hljs-string">&quot;/&quot;</span>;<br>        <span class="hljs-keyword">return</span> p;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>从上面的代码可以看出只有满足isDirectory的判断才会给URI加上”&#x2F;”，在我们NOK的情况下由于文件夹不存在isDirectory返回false不会加上结尾的”&#x2F;”，导致了baseURI的差异，并最终导致了ClassNotFoundException的生产血案。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在这个案例中我们主要使用了经验法和分析法来定位问题，查找本源。</p>
-<p>在经验分析的过程中我们遇到了阻碍，转而通过分析法分解了Tomcat对于Jsp请求的处理流程，在分析Jsp编译过程时发现会对baseURI进行赋值，结合我们已有的对URLClassLoader的加载过程的理解，于是我们对于baseURI的处理进行了着重分析。最终发现由于baseURI赋值时系统环境的差异导致了生成的baseURI产生了一个”&#x2F;”的差异，而这一个差异又导致资源加载的加载器选择差异，最终导致不合适的加载器加载不到资源的错误。</p>
-<p>在问题的解决上我们还是沿用官方的说法，指定一个tmp url用来存放tomcat的临时文件，避免被删除。</p>
-<p>参考材料：</p>
-<p><a href="http://www.docjar.com/html/api/sun/misc/URLClassPath.java.html">http://www.docjar.com/html/api/sun/misc/URLClassPath.java.html</a></p>
-<p><a href="https://www.jianshu.com/p/b8e331840961">https://www.jianshu.com/p/b8e331840961</a></p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>开发技术</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>为什么Java中的String设计成不可变的</title>
     <url>/2020/03/13/%E4%B8%BA%E4%BB%80%E4%B9%88Java%E4%B8%AD%E7%9A%84String%E8%AE%BE%E8%AE%A1%E6%88%90%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%9A%84/</url>
     <content><![CDATA[<p>原文出处：<a href="https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/">https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/</a></p>
@@ -571,6 +571,99 @@
       <tags>
         <tag>编程语言</tag>
         <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>从数采到平台，你可能差一个Airbyte</title>
+    <url>/2023/06/13/%E4%BB%8E%E6%95%B0%E9%87%87%E5%88%B0%E5%B9%B3%E5%8F%B0%EF%BC%8C%E4%BD%A0%E5%8F%AF%E8%83%BD%E5%B7%AE%E4%B8%80%E4%B8%AAAirbyte/</url>
+    <content><![CDATA[<p>随着工业互联网规模日渐增长，工业互联网应用对于数据的要求也越来越高。</p>
+<p>面对来自现场设备的运行数据、来自控制器的环境数据以及来自上位机的各种应用数据，如何进行快速的整合归集高效的应用成为工业互联网平台的当务之急。考虑到多种数据的采集需求和采集方式都存在差异，如果有一个平台可以实现高层次抽象、可扩展实现，那无疑可以解决我们的问题，Airbyte带着ELT的理念应运而生。</p>
+<p><a href="https://airbyte.com/">Airbyte</a>是一个开源的数据集成平台，提供了数据迁移的基本骨架，通过用户定制可以完美支持几乎所有的数据迁移需求。</p>
+<span id="more"></span>
+
+<h2 id="架构介绍"><a href="#架构介绍" class="headerlink" title="架构介绍"></a>架构介绍</h2><p>从架构上来看，Airbyte由平台和连接器组成。</p>
+<img src="architecture.png" alt="architecture" style="zoom:24%;" />
+
+<p>平台由一组微服务构建，实现了数据平台的基础设施，包含了UI、配置服务、调度服务、日志和告警等基础功能。</p>
+<p>连接器提供了Source到Destination的连接，使用docker提供了连接的可扩展。</p>
+<h2 id="主要概念"><a href="#主要概念" class="headerlink" title="主要概念"></a>主要概念</h2><h3 id="Connections"><a href="#Connections" class="headerlink" title="Connections"></a>Connections</h3><p>实现一次数据迁移的主要载体是一个连接，我们从连接开始。一个连接通常包含了 1）Source Catelog 2）Destination 3）Sync Schedule 4）Sync Mode 5）Transformation</p>
+<ol>
+<li><p>Source Catelog</p>
+<p>Source Catelog解决了数据从哪儿来的问题，通过Catelog定义了一组Stream（表），以及Stream中包含的Field（列）。Source可以是一个数据库，也可以是API或者文件。</p>
+</li>
+<li><p>Destination</p>
+<p>Destination解决了数据到哪儿去的问题，可以是数据库、数据仓库、数据湖或者任何想要使用数据的目的地。</p>
+</li>
+<li><p>Sync Schedule</p>
+<p>同步周期可以设置为手动同步、基于时间同步或者基于Cron表达式同步。</p>
+<p>这里需要注意基于时间同步的情况，如果定义时间同步周期为“Every 12 Hours”，那么触发同步操作的决定是基于最近一次同步的，考虑如下场景：</p>
+<figure class="highlight basic"><table><tr><td class="code"><pre><code class="hljs basic"><span class="hljs-symbol">1 </span><span class="hljs-number">1</span>月<span class="hljs-number">1</span>日<span class="hljs-number">10</span>:<span class="hljs-number">00</span> 完成首次自动同步<br><span class="hljs-symbol">2 </span><span class="hljs-number">1</span>月<span class="hljs-number">1</span>日<span class="hljs-number">12</span>:<span class="hljs-number">00</span> 完成手动同步<br><span class="hljs-symbol">3 </span><span class="hljs-number">1</span>月<span class="hljs-number">1</span>日<span class="hljs-number">22</span>:<span class="hljs-number">00</span> 判断距离上次同步未满<span class="hljs-number">12</span>小时，不会进行数据同步<br><span class="hljs-symbol">4 </span><span class="hljs-number">1</span>月<span class="hljs-number">2</span>日<span class="hljs-number">0</span>:<span class="hljs-number">00</span>  完成第二次自动同步<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>Sync Mode</p>
+<p>同步模式主要包含四种，从名称可以很清楚的理解他们的行为：</p>
+<figure class="highlight basic"><table><tr><td class="code"><pre><code class="hljs basic"><span class="hljs-number">1</span>， Full Refresh - Overwrite<br><span class="hljs-number">2</span>， Full Refresh - Append<br><span class="hljs-number">3</span>， Inc<span class="hljs-comment">remental Sync - Append</span><br><span class="hljs-number">4</span>， Inc<span class="hljs-comment">remental Sync - Dedupted History</span><br></code></pre></td></tr></table></figure>
+</li>
+<li><p>Transformation</p>
+<p>数据转换属于可选项，针对某些特定的数据库可以选用Basic Normalize进行数据转换。</p>
+</li>
+</ol>
+<h3 id="Normalization"><a href="#Normalization" class="headerlink" title="Normalization"></a>Normalization</h3><p>Airbyte的Normalization从功能上来说属于ELT中的T，基于开源项目实现。</p>
+<p>在Airbyte的Source和Destination中传递的原始数据是以json格式组织，如果不做任何处理那么在目标数据库会以一个json列存储所有的数据。数据使用方要么实现自己的transformer进行格式转换，或者使用支持json的API，这在大数据集中无疑又带来了性能问题。</p>
+<p>为了解决数据使用方的使用痛点，Airbyte针对常用的几种数据库提供了Normalization的支持，实现方式是提供了一个Raw Table和一个Destination Table。</p>
+<p>假设源表名为Cars，表定义如下：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>  <span class="hljs-attr">&quot;make&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;alfa romeo&quot;</span><span class="hljs-punctuation">,</span><br>  <span class="hljs-attr">&quot;model&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;4C coupe&quot;</span><span class="hljs-punctuation">,</span><br>  <span class="hljs-attr">&quot;horsepower&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;247&quot;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>经过Airbyte传输到目标数据库后生成的Raw Table的表结构如下：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> &quot;_airbyte_raw_cars&quot; (<br>    <span class="hljs-comment">-- metadata added by airbyte</span><br>    &quot;_airbyte_ab_id&quot; <span class="hljs-type">VARCHAR</span>, <span class="hljs-comment">-- uuid value assigned by connectors to each row of the data written in the destination.</span><br>    &quot;_airbyte_emitted_at&quot; TIMESTAMP_WITH_TIMEZONE, <span class="hljs-comment">-- time at which the record was emitted.</span><br>    &quot;_airbyte_data&quot; JSONB <span class="hljs-comment">-- data stored as a Json Blob.</span><br>);<br></code></pre></td></tr></table></figure>
+
+<p>经过Normalization之后的目标表结构如下：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> &quot;cars&quot; (<br>    &quot;_airbyte_ab_id&quot; <span class="hljs-type">VARCHAR</span>,<br>    &quot;_airbyte_emitted_at&quot; TIMESTAMP_WITH_TIMEZONE,<br>    &quot;_airbyte_cars_hashid&quot; <span class="hljs-type">VARCHAR</span>,<br>    &quot;_airbyte_normalized_at&quot; TIMESTAMP_WITH_TIMEZONE,<br><br>    <span class="hljs-comment">-- data from source</span><br>    &quot;make&quot; <span class="hljs-type">VARCHAR</span>,<br>    &quot;model&quot; <span class="hljs-type">VARCHAR</span>,<br>    &quot;horsepower&quot; <span class="hljs-type">INTEGER</span><br>);<br></code></pre></td></tr></table></figure>
+
+<p><em>支持Basic Normalization的数据库</em></p>
+<p>BigQuery，MSSQL Server，MySQL 8+，Postgres，Redshift，Snowflake。</p>
+<h2 id="生产应用"><a href="#生产应用" class="headerlink" title="生产应用"></a>生产应用</h2><p>基于本次的数据集成需求：从客户现场上位机的Oracle数据库同步数据到工业互联网平台的Clickhouse，我们制定了如下的数据同步方案：</p>
+<ul>
+<li>主要骨架基于Airbyte实现，实现Oracle数据库抽取数据并发送到RabbitMQ的功能</li>
+<li>编码实现消息消费者，完成数据转换和Clickhouse数据库的写入</li>
+</ul>
+<h3 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h3><p>操作系统方面，通过测试的操作系统有Ubuntu 22.04和Window 10 with Docker Desktop，而测试不通过的操作系统为Centos 7。</p>
+<p>Airbyte需要在Docker环境下运行，所以在方案实施之前需要准备Docker的运行环境，需要特别注意的是Docker Compose需要V2版本以上。</p>
+<p>Airbyte的本地安装只需要下载一个run_ab_platform.sh，并执行 <code>run run_ab_platform.sh -b</code>命令即可，不要按照官方文档下载整个源码库。</p>
+<p>如果需要使用Oracle Source需要首先下载airbyte&#x2F;source-oracle的镜像，使用docker pull命令拉取。</p>
+<h3 id="建立连接"><a href="#建立连接" class="headerlink" title="建立连接"></a>建立连接</h3><p>建立连接的第一步是选择Source，根据需求我们选择了Oracle Source并填入数据库相关信息；</p>
+<p>第二步选择Destination，我们选择了RabbitMQ并填入了相关配置信息；</p>
+<p>最后一步选择同步的表，同步方式和同步周期。</p>
+<img src="connection.png" alt="connection" style="zoom:60%;" />
+
+<p>通过连接配置，Airbyte会连接Oracle数据库抽取到数据，以json的格式发送到RabbitMQ的消息队列中。接下来就是实现一个消费者实现数据转换和存储。</p>
+<h3 id="消息消费"><a href="#消息消费" class="headerlink" title="消息消费"></a>消息消费</h3><p>我们通过SpringBoot实现的RabbitListener来进行消息的消费。</p>
+<p>消息格式参考Airbyte的文档定义：</p>
+<blockquote>
+<p>Each stream will be output a RabbitMQ message with properties. The message properties will be</p>
+<ul>
+<li><code>content_type</code>: set as <code>application/json</code></li>
+<li>headers：message headers, which include:<ul>
+<li><code>stream</code>: the name of stream where the data is coming from</li>
+<li><code>namespace</code>: namespace if available from the stream</li>
+<li><code>emitted_at</code>: timestamp the <code>AirbyteRecord</code> was emitted at.</li>
+</ul>
+</li>
+</ul>
+<p>The <code>AirbyteRecord</code> data will be serialized as JSON and set as the RabbitMQ message body.</p>
+</blockquote>
+<p>所以在Consumer中关注headers中的stream字段和Message body的 payload。</p>
+<p>通过Stream对应的表名决定目标表，同时将payload解析成Map格式对应表中的字段和值。实现代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@RabbitListener(queuesToDeclare = &#123;@Queue(name = &quot;airbyte.oracle-source&quot;)&#125;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">dataSync</span><span class="hljs-params">(Message&lt;String&gt; message)</span>&#123;<br>        LOG.info(message.getHeaders().get(<span class="hljs-string">&quot;stream&quot;</span>).toString());<br>        LOG.info(message.getPayload());<br>		<span class="hljs-comment">//根据Stream确定表名称</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">tableName</span> <span class="hljs-operator">=</span> message.getHeaders().get(<span class="hljs-string">&quot;stream&quot;</span>).toString().toUpperCase();<br>        TypeToken&lt;Map&lt;String, String&gt;&gt; type = <span class="hljs-keyword">new</span> <span class="hljs-title class_">TypeToken</span>&lt;Map&lt;String, String&gt;&gt;()&#123;&#125;;<br>        <span class="hljs-comment">//解析payload得到数据</span><br>        Map&lt;String, String&gt; data = gson.fromJson(message.getPayload(), type.getType());<br>        List&lt;String&gt; columns = clickHouseUtilService.showColumns(tableName);<br>        data.keySet().removeIf(key -&gt; !columns.contains(key.toUpperCase()));<br>        <span class="hljs-keyword">try</span> &#123;<br>            clickHouseUtilService.batchInsert(tableName,columns, Collections.singletonList(data));<br>        &#125; <span class="hljs-keyword">catch</span> (Exception ex) &#123;<br>            LOG.error(<span class="hljs-string">&quot;error when insert data to clickhouse, &quot;</span>, ex);<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>通过上面的研究我们不难发现，Airbyte的基本思想还是基于传统数据迁移的流程化处理，创新点在于将可能成为数据集成瓶颈的数据转换进行了概念弱化和位置后移，从而大大提升了数据移动的速度。擅长的事情做到极致，不擅长的事情交给别人。</p>
+<p>通过引入Airbyte的解决方案作为边缘数据集成平台的骨架，借助已有的source和destination我们可以快速形成边缘数据集成平台的雏形。结合Airbyte开源的特点和基于Docker的连接器架构，我们可以自定义工业限定的连接器来扩展平台的能力并构建平台技术壁垒。</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>数据采集</tag>
+        <tag>架构设计</tag>
       </tags>
   </entry>
   <entry>
@@ -674,99 +767,6 @@
       </tags>
   </entry>
   <entry>
-    <title>从数采到平台，你可能差一个Airbyte</title>
-    <url>/2023/06/13/%E4%BB%8E%E6%95%B0%E9%87%87%E5%88%B0%E5%B9%B3%E5%8F%B0%EF%BC%8C%E4%BD%A0%E5%8F%AF%E8%83%BD%E5%B7%AE%E4%B8%80%E4%B8%AAAirbyte/</url>
-    <content><![CDATA[<p>随着工业互联网规模日渐增长，工业互联网应用对于数据的要求也越来越高。</p>
-<p>面对来自现场设备的运行数据、来自控制器的环境数据以及来自上位机的各种应用数据，如何进行快速的整合归集高效的应用成为工业互联网平台的当务之急。考虑到多种数据的采集需求和采集方式都存在差异，如果有一个平台可以实现高层次抽象、可扩展实现，那无疑可以解决我们的问题，Airbyte带着ELT的理念应运而生。</p>
-<p><a href="https://airbyte.com/">Airbyte</a>是一个开源的数据集成平台，提供了数据迁移的基本骨架，通过用户定制可以完美支持几乎所有的数据迁移需求。</p>
-<span id="more"></span>
-
-<h2 id="架构介绍"><a href="#架构介绍" class="headerlink" title="架构介绍"></a>架构介绍</h2><p>从架构上来看，Airbyte由平台和连接器组成。</p>
-<img src="architecture.png" alt="architecture" style="zoom:24%;" />
-
-<p>平台由一组微服务构建，实现了数据平台的基础设施，包含了UI、配置服务、调度服务、日志和告警等基础功能。</p>
-<p>连接器提供了Source到Destination的连接，使用docker提供了连接的可扩展。</p>
-<h2 id="主要概念"><a href="#主要概念" class="headerlink" title="主要概念"></a>主要概念</h2><h3 id="Connections"><a href="#Connections" class="headerlink" title="Connections"></a>Connections</h3><p>实现一次数据迁移的主要载体是一个连接，我们从连接开始。一个连接通常包含了 1）Source Catelog 2）Destination 3）Sync Schedule 4）Sync Mode 5）Transformation</p>
-<ol>
-<li><p>Source Catelog</p>
-<p>Source Catelog解决了数据从哪儿来的问题，通过Catelog定义了一组Stream（表），以及Stream中包含的Field（列）。Source可以是一个数据库，也可以是API或者文件。</p>
-</li>
-<li><p>Destination</p>
-<p>Destination解决了数据到哪儿去的问题，可以是数据库、数据仓库、数据湖或者任何想要使用数据的目的地。</p>
-</li>
-<li><p>Sync Schedule</p>
-<p>同步周期可以设置为手动同步、基于时间同步或者基于Cron表达式同步。</p>
-<p>这里需要注意基于时间同步的情况，如果定义时间同步周期为“Every 12 Hours”，那么触发同步操作的决定是基于最近一次同步的，考虑如下场景：</p>
-<figure class="highlight basic"><table><tr><td class="code"><pre><code class="hljs basic"><span class="hljs-symbol">1 </span><span class="hljs-number">1</span>月<span class="hljs-number">1</span>日<span class="hljs-number">10</span>:<span class="hljs-number">00</span> 完成首次自动同步<br><span class="hljs-symbol">2 </span><span class="hljs-number">1</span>月<span class="hljs-number">1</span>日<span class="hljs-number">12</span>:<span class="hljs-number">00</span> 完成手动同步<br><span class="hljs-symbol">3 </span><span class="hljs-number">1</span>月<span class="hljs-number">1</span>日<span class="hljs-number">22</span>:<span class="hljs-number">00</span> 判断距离上次同步未满<span class="hljs-number">12</span>小时，不会进行数据同步<br><span class="hljs-symbol">4 </span><span class="hljs-number">1</span>月<span class="hljs-number">2</span>日<span class="hljs-number">0</span>:<span class="hljs-number">00</span>  完成第二次自动同步<br></code></pre></td></tr></table></figure>
-</li>
-<li><p>Sync Mode</p>
-<p>同步模式主要包含四种，从名称可以很清楚的理解他们的行为：</p>
-<figure class="highlight basic"><table><tr><td class="code"><pre><code class="hljs basic"><span class="hljs-number">1</span>， Full Refresh - Overwrite<br><span class="hljs-number">2</span>， Full Refresh - Append<br><span class="hljs-number">3</span>， Inc<span class="hljs-comment">remental Sync - Append</span><br><span class="hljs-number">4</span>， Inc<span class="hljs-comment">remental Sync - Dedupted History</span><br></code></pre></td></tr></table></figure>
-</li>
-<li><p>Transformation</p>
-<p>数据转换属于可选项，针对某些特定的数据库可以选用Basic Normalize进行数据转换。</p>
-</li>
-</ol>
-<h3 id="Normalization"><a href="#Normalization" class="headerlink" title="Normalization"></a>Normalization</h3><p>Airbyte的Normalization从功能上来说属于ELT中的T，基于开源项目实现。</p>
-<p>在Airbyte的Source和Destination中传递的原始数据是以json格式组织，如果不做任何处理那么在目标数据库会以一个json列存储所有的数据。数据使用方要么实现自己的transformer进行格式转换，或者使用支持json的API，这在大数据集中无疑又带来了性能问题。</p>
-<p>为了解决数据使用方的使用痛点，Airbyte针对常用的几种数据库提供了Normalization的支持，实现方式是提供了一个Raw Table和一个Destination Table。</p>
-<p>假设源表名为Cars，表定义如下：</p>
-<figure class="highlight json"><table><tr><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>  <span class="hljs-attr">&quot;make&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;alfa romeo&quot;</span><span class="hljs-punctuation">,</span><br>  <span class="hljs-attr">&quot;model&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;4C coupe&quot;</span><span class="hljs-punctuation">,</span><br>  <span class="hljs-attr">&quot;horsepower&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;247&quot;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
-
-<p>经过Airbyte传输到目标数据库后生成的Raw Table的表结构如下：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> &quot;_airbyte_raw_cars&quot; (<br>    <span class="hljs-comment">-- metadata added by airbyte</span><br>    &quot;_airbyte_ab_id&quot; <span class="hljs-type">VARCHAR</span>, <span class="hljs-comment">-- uuid value assigned by connectors to each row of the data written in the destination.</span><br>    &quot;_airbyte_emitted_at&quot; TIMESTAMP_WITH_TIMEZONE, <span class="hljs-comment">-- time at which the record was emitted.</span><br>    &quot;_airbyte_data&quot; JSONB <span class="hljs-comment">-- data stored as a Json Blob.</span><br>);<br></code></pre></td></tr></table></figure>
-
-<p>经过Normalization之后的目标表结构如下：</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> &quot;cars&quot; (<br>    &quot;_airbyte_ab_id&quot; <span class="hljs-type">VARCHAR</span>,<br>    &quot;_airbyte_emitted_at&quot; TIMESTAMP_WITH_TIMEZONE,<br>    &quot;_airbyte_cars_hashid&quot; <span class="hljs-type">VARCHAR</span>,<br>    &quot;_airbyte_normalized_at&quot; TIMESTAMP_WITH_TIMEZONE,<br><br>    <span class="hljs-comment">-- data from source</span><br>    &quot;make&quot; <span class="hljs-type">VARCHAR</span>,<br>    &quot;model&quot; <span class="hljs-type">VARCHAR</span>,<br>    &quot;horsepower&quot; <span class="hljs-type">INTEGER</span><br>);<br></code></pre></td></tr></table></figure>
-
-<p><em>支持Basic Normalization的数据库</em></p>
-<p>BigQuery，MSSQL Server，MySQL 8+，Postgres，Redshift，Snowflake。</p>
-<h2 id="生产应用"><a href="#生产应用" class="headerlink" title="生产应用"></a>生产应用</h2><p>基于本次的数据集成需求：从客户现场上位机的Oracle数据库同步数据到工业互联网平台的Clickhouse，我们制定了如下的数据同步方案：</p>
-<ul>
-<li>主要骨架基于Airbyte实现，实现Oracle数据库抽取数据并发送到RabbitMQ的功能</li>
-<li>编码实现消息消费者，完成数据转换和Clickhouse数据库的写入</li>
-</ul>
-<h3 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h3><p>操作系统方面，通过测试的操作系统有Ubuntu 22.04和Window 10 with Docker Desktop，而测试不通过的操作系统为Centos 7。</p>
-<p>Airbyte需要在Docker环境下运行，所以在方案实施之前需要准备Docker的运行环境，需要特别注意的是Docker Compose需要V2版本以上。</p>
-<p>Airbyte的本地安装只需要下载一个run_ab_platform.sh，并执行 <code>run run_ab_platform.sh -b</code>命令即可，不要按照官方文档下载整个源码库。</p>
-<p>如果需要使用Oracle Source需要首先下载airbyte&#x2F;source-oracle的镜像，使用docker pull命令拉取。</p>
-<h3 id="建立连接"><a href="#建立连接" class="headerlink" title="建立连接"></a>建立连接</h3><p>建立连接的第一步是选择Source，根据需求我们选择了Oracle Source并填入数据库相关信息；</p>
-<p>第二步选择Destination，我们选择了RabbitMQ并填入了相关配置信息；</p>
-<p>最后一步选择同步的表，同步方式和同步周期。</p>
-<img src="connection.png" alt="connection" style="zoom:60%;" />
-
-<p>通过连接配置，Airbyte会连接Oracle数据库抽取到数据，以json的格式发送到RabbitMQ的消息队列中。接下来就是实现一个消费者实现数据转换和存储。</p>
-<h3 id="消息消费"><a href="#消息消费" class="headerlink" title="消息消费"></a>消息消费</h3><p>我们通过SpringBoot实现的RabbitListener来进行消息的消费。</p>
-<p>消息格式参考Airbyte的文档定义：</p>
-<blockquote>
-<p>Each stream will be output a RabbitMQ message with properties. The message properties will be</p>
-<ul>
-<li><code>content_type</code>: set as <code>application/json</code></li>
-<li>headers：message headers, which include:<ul>
-<li><code>stream</code>: the name of stream where the data is coming from</li>
-<li><code>namespace</code>: namespace if available from the stream</li>
-<li><code>emitted_at</code>: timestamp the <code>AirbyteRecord</code> was emitted at.</li>
-</ul>
-</li>
-</ul>
-<p>The <code>AirbyteRecord</code> data will be serialized as JSON and set as the RabbitMQ message body.</p>
-</blockquote>
-<p>所以在Consumer中关注headers中的stream字段和Message body的 payload。</p>
-<p>通过Stream对应的表名决定目标表，同时将payload解析成Map格式对应表中的字段和值。实现代码如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@RabbitListener(queuesToDeclare = &#123;@Queue(name = &quot;airbyte.oracle-source&quot;)&#125;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">dataSync</span><span class="hljs-params">(Message&lt;String&gt; message)</span>&#123;<br>        LOG.info(message.getHeaders().get(<span class="hljs-string">&quot;stream&quot;</span>).toString());<br>        LOG.info(message.getPayload());<br>		<span class="hljs-comment">//根据Stream确定表名称</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">tableName</span> <span class="hljs-operator">=</span> message.getHeaders().get(<span class="hljs-string">&quot;stream&quot;</span>).toString().toUpperCase();<br>        TypeToken&lt;Map&lt;String, String&gt;&gt; type = <span class="hljs-keyword">new</span> <span class="hljs-title class_">TypeToken</span>&lt;Map&lt;String, String&gt;&gt;()&#123;&#125;;<br>        <span class="hljs-comment">//解析payload得到数据</span><br>        Map&lt;String, String&gt; data = gson.fromJson(message.getPayload(), type.getType());<br>        List&lt;String&gt; columns = clickHouseUtilService.showColumns(tableName);<br>        data.keySet().removeIf(key -&gt; !columns.contains(key.toUpperCase()));<br>        <span class="hljs-keyword">try</span> &#123;<br>            clickHouseUtilService.batchInsert(tableName,columns, Collections.singletonList(data));<br>        &#125; <span class="hljs-keyword">catch</span> (Exception ex) &#123;<br>            LOG.error(<span class="hljs-string">&quot;error when insert data to clickhouse, &quot;</span>, ex);<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>通过上面的研究我们不难发现，Airbyte的基本思想还是基于传统数据迁移的流程化处理，创新点在于将可能成为数据集成瓶颈的数据转换进行了概念弱化和位置后移，从而大大提升了数据移动的速度。擅长的事情做到极致，不擅长的事情交给别人。</p>
-<p>通过引入Airbyte的解决方案作为边缘数据集成平台的骨架，借助已有的source和destination我们可以快速形成边缘数据集成平台的雏形。结合Airbyte开源的特点和基于Docker的连接器架构，我们可以自定义工业限定的连接器来扩展平台的能力并构建平台技术壁垒。</p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>数据采集</tag>
-        <tag>架构设计</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>基于Netty的边缘数采</title>
     <url>/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/</url>
     <content><![CDATA[<p>在设备数据采集方面，我们已经探索出一套成熟的做法即在设备侧部署一个边缘程序，通过定时拉取的机制到工控机如PLC的指定位置获取数据。但是对于机器人来说，不同型号的机器人控制设备都有自己不同程度的封装，我们需要严格按照机器人设备的数据开放方式进行定制化实现才有可能正确的获取到数据。</p>
@@ -850,101 +850,138 @@
       </tags>
   </entry>
   <entry>
-    <title>基于可行方向的能耗寻优算法</title>
-    <url>/2023/09/18/%E5%9F%BA%E4%BA%8E%E5%8F%AF%E8%A1%8C%E6%96%B9%E5%90%91%E7%9A%84%E8%83%BD%E8%80%97%E5%AF%BB%E4%BC%98%E7%AE%97%E6%B3%95/</url>
-    <content><![CDATA[<p>在工业场景中，节能减排一直是一个很重要的话题。而在我们服务的汽车制造行业，涂装车间的能耗在四大工艺过程中占比达到了70%，所以如何降低涂装车间的能耗成了降低汽车制造过程能耗的关键。</p>
-<p>本文选择涂装车间的喷房风机作为研究对象，以空调的温湿度作为主要调整指标，尝试通过技术的手段来找到能耗最优解。</p>
+    <title>基于Spring Cloud Gateway的路由实践</title>
+    <url>/2020/03/13/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/</url>
+    <content><![CDATA[<p>在IT和OT融合的道路上，数据能力是很重要的一环。在设备端我们通过软PLC的解决方案覆盖了常见的数采方式和工业协议，那么采来的海量数据如何存储就成了我们当前的重中之重。</p>
+<p>在调研了流行的数据存储方案后，我们决定基于开源时序数据库打造一款工业适用、业务定制的数据存储引擎。而接下来要介绍的路由网关可以认为是整个数据存储引擎的代理人，通过路由网关的引入，极大的透明了数据存储引擎的使用。不管是工业应用还是数采网关抑或是数据分析人员都可以方便的对数据进行读写操作，没有一点负担，没有一点门槛。</p>
 <span id="more"></span>
 
-<h2 id="问题定义"><a href="#问题定义" class="headerlink" title="问题定义"></a>问题定义</h2><p>已知能耗方程的条件下，设定一组温湿度的限定条件，通过优化算法找出使得能耗最小的温湿度值。</p>
+<h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><p>Spring Cloud Gateway（下文以SCG代替）， 顾名思义这是由Spring 官方出品的一款网关产品，是Spring Cloud的子项目。再看一下官方介绍：</p>
 <blockquote>
-<p>使用穷举？<br>目前选择的优化指标有四个，每个指标的取值跨度为10，按照步长0.01计算，我们需要计算的次数为1000^4</p>
+<p>This project provides a library for building an API Gateway on top of Spring MVC. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring&#x2F;metrics, and resiliency.</p>
 </blockquote>
-<h2 id="算法概述"><a href="#算法概述" class="headerlink" title="算法概述"></a>算法概述</h2><p>经过研究，我们采用可行方向法作为算法的指导思想，由于存在温湿度的限定条件，所以算法进行了分支处理。</p>
-<blockquote>
-<p>可行方向是指沿该方向作微小移动后，所得到的新点是可行点，且目标函数值有所下降</p>
-</blockquote>
-<p>程序流程如下图所示：</p>
-<img src="程序流.png" alt="image-20230919095324346" style="zoom:80%;" />
+<p>主要突出了路由功能的简单有效，同时可以在安全、监控以及扩展性方面提供不错的支持，毕竟靠着Spring Cloud这面大树。</p>
+<h2 id="架构考虑"><a href="#架构考虑" class="headerlink" title="架构考虑"></a>架构考虑</h2><image src="archi.png"/>
 
-<h2 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h2><p>算法实现部分我们通过对程序流图进行详细说明来描述算法的实现过程。</p>
-<h3 id="参数初始化"><a href="#参数初始化" class="headerlink" title="参数初始化"></a>参数初始化</h3><p>参数初始化可以根据经验选择限定条件的边界值，如夏季模式下选择温度最大值会降低空调的能耗。</p>
-<p>但是这种单一出发点的选择会导致算法陷入局部最优的困境，最终我们通过随机取样的方法从可行区间内选了10个点，通过多次计算减少了局部最优的可能性。随机选择出发点的同时通过指定伪随机种子，确保了算法的稳定性，即每一次优化都可以得到同样的解；通过种子的合理选择，保证选择的数据分布足够合理。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> List&lt;BigDecimal[]&gt; batchInitParam(List&lt;BigDecimal[]&gt; rangeList)&#123;<br>        List&lt;BigDecimal[]&gt; resultList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        BigDecimal[] result;<br>        <span class="hljs-comment">//取10个随机点</span><br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">10</span>;i++)&#123;<br>            result = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>[rangeList.size()];<br>            <span class="hljs-type">int</span> <span class="hljs-variable">seed</span> <span class="hljs-operator">=</span> i*<span class="hljs-number">10000</span>;<br>            result[<span class="hljs-number">0</span>] = randomFromRange(rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">1</span>],seed);<br>            result[<span class="hljs-number">1</span>] = randomFromRange(rangeList.get(<span class="hljs-number">1</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">1</span>)[<span class="hljs-number">1</span>],seed);<br>            result[<span class="hljs-number">2</span>] = randomFromRange(rangeList.get(<span class="hljs-number">2</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">2</span>)[<span class="hljs-number">1</span>],seed);<br>            result[<span class="hljs-number">3</span>] = randomFromRange(rangeList.get(<span class="hljs-number">3</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">3</span>)[<span class="hljs-number">1</span>],seed);<br>            resultList.add(result);<br>        &#125;<br>        <span class="hljs-keyword">return</span> resultList;<br>    &#125;<br><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> BigDecimal <span class="hljs-title function_">randomFromRange</span><span class="hljs-params">(BigDecimal low, BigDecimal up, <span class="hljs-type">int</span> seed)</span>&#123;<br>        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">gap</span> <span class="hljs-operator">=</span> up.subtract(low).abs();<br>        <span class="hljs-type">Random</span> <span class="hljs-variable">rd</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Random</span>(seed);<br>        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">factor</span> <span class="hljs-operator">=</span> BigDecimal.valueOf(rd.nextDouble());<br>        <span class="hljs-keyword">return</span> low.add(gap.multiply(factor));<br>    &#125;<br></code></pre></td></tr></table></figure>
+<p>这是官方网站的工作原理示意图，从上图可以看出SCG在整个流程中主要担任反向代理的角色。客户端请求抵达SCG后，SCG通过Handler Mapping将请求路由到Web Handler，Web Handler再通过Filter对原始请求进行处理，最终发送到被代理的服务端。</p>
+<p>在研究SCG之前，我们发现Spring Cloud下面已经有一个成熟的API套件Spring Cloud Netflix，提供了服务注册发现（Eureka），熔断器（Hystrix），智能路由（Zuul）和客户端负载均衡（Ribbon）等特性，其中就有我们需要的路由功能Zuul。</p>
+<p>那为什么在集成一个路由功能后，Spring Cloud还要自己开发一个用于路由的Gateway项目呢？我们来看看他们的一些对比，由于Spring Cloud只集成了Zuul1.0，所以比较也集中在Zuul1.0和SCG之间。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>连接方式</th>
+<th>支持服务器</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Zuul1.0</td>
+<td>Servlet API</td>
+<td>Tomcat，undertow</td>
+<td>基本路由规则，仅支持Path的路由</td>
+</tr>
+<tr>
+<td>SCG</td>
+<td>Reactor</td>
+<td>Netty</td>
+<td>较多路由规则，可以支持header，cookie，query，method等丰富的predict定义</td>
+</tr>
+</tbody></table>
+<p>从上面的对比来看，SCG基于Project Reactor可以获得更优秀的吞吐，在功能方面相当于Zuul的优化，更加灵活的配置可以满足几乎所有的网关路由需求。</p>
+<p>虽然说Zuul2.0也是基于Netty开发，并增强了路由和过滤器功能，然而他的多次跳票最终让Spring下决心自己做一款网关路由产品，并表示不会将Zuul2.0集成进以后的Spring Cloud中，也算一段趣闻吧。</p>
+<h2 id="网关实践"><a href="#网关实践" class="headerlink" title="网关实践"></a>网关实践</h2><p>下面我们实际动手实现一个网关，结合过程中遇到的问题来熟悉SCG的各项特性。</p>
+<h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><p>我们新建一个基于Spring Boot的Maven项目，添加SCG的依赖，主要是下面两个：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.cloud<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-cloud-starter-gateway<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-webflux<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
 
-<h3 id="收敛条件"><a href="#收敛条件" class="headerlink" title="收敛条件"></a>收敛条件</h3><p>算法的收敛条件包含：</p>
+<p>我们这里选择的是最新的Spring Boot Release版本（2.1.4）以及支持2.1的Spring Cloud分支Greenwich。 </p>
+<p>最后建一个SpringBootApplication，参照首页的Demo去掉Hystrix和RateLimit相关的内容就可以跑起来了（<a href="https://spring.io/projects/spring-cloud-gateway%EF%BC%89%E3%80%82">https://spring.io/projects/spring-cloud-gateway）。</a></p>
+<h3 id="动态路由"><a href="#动态路由" class="headerlink" title="动态路由"></a>动态路由</h3><p>光有个Demo肯定不行，我们的网关是要实际投产使用的，在分析了实际需求之后我们识别出急需的第一个功能是动态路由。</p>
+<p>在文档中提供了两种方式的路由配置方式：</p>
 <ol>
-<li><p>循环次数</p>
-<p>根据测试的结果，算法的收敛一般在10-15次循环，所以最终定义最大循环次数为25，超过最大循环次数后直接算法结束，返回最后一次计算的结果。</p>
+<li><p>通过java API</p>
+<p>直接通过RouteLocatorBuilder构建如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">builder.routes().route(<span class="hljs-string">&quot;path_route&quot;</span>, r -&gt; r.path(<span class="hljs-string">&quot;/get&quot;</span>).uri(<span class="hljs-string">&quot;http://httpbin.org&quot;</span>)).build();<br></code></pre></td></tr></table></figure>
 </li>
-<li><p>变化值</p>
-<p>通过监控目标函数的值变化，确定算法收敛，根据经验定义为前后两次值变化小于0.1则判定算法收敛，返回最后一次计算的结果。</p>
-</li>
+<li><p>通过配置文件</p>
+<p>通过YAML文件构建路由如下：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">spring:</span><br>  <span class="hljs-attr">cloud:</span><br>    <span class="hljs-attr">gateway:</span><br>      <span class="hljs-attr">routes:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-attr">id:</span> <span class="hljs-string">host_route</span><br>        <span class="hljs-attr">uri:</span> <span class="hljs-string">https://example.org</span><br>        <span class="hljs-attr">predicates:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">path=/foo/&#123;segment&#125;,/bar/&#123;segment&#125;</span><br><br></code></pre></td></tr></table></figure></li>
 </ol>
-<h3 id="检查约束"><a href="#检查约束" class="headerlink" title="检查约束"></a>检查约束</h3><p>约束包含针对优化指标的范围约束和结果函数的合理性约束。</p>
+<p>但是我们实际需求中存在动态分配路由的场景，以上两种方式显然都不能满足需求。</p>
+<p>通过查看源代码发现SCG加载路由是通过RouteDefinitionLocator接口实现，有以下默认实现（框掉的部分可以暂时忽略，这是我们自己的实现）：</p>
+<image src="code1.png"/>
+
+<p>在GatewayAutoConfiguration中通过Primary的方式指定CompositeRouteDefinitionLocator作为路由定义加载的入口，通过组合模式将所有的RouteDefinitionLocator代理。最终通过CompositeRouteDefinitionLocator的getRouteDefinitions方法将所有定义加载出来。</p>
+<image src="code2.png"/>
+
+<image src="code3.png"/>
+
+<p>通过源代码的解读，我们发现如果需要定义新的路由加载方式，只需要增加一个RouteDefinitionLocator的实现即可，在实际操作中为了方便路由更新我们仿照已有的实现</p>
+<p>InMemoryRouteDefinitionRepository进行实现，类图如下：</p>
+<image src="class_diagram.png"/>
+
+<p>我们通过新增了一个抽象类类完成RouteDefinitionRepository的扩展，在抽象类里我们实现了基本的get, save, delete方法，另外新增了refresh方法用于刷新缓存，而缓存的实现参考了InMemory的实现方式。</p>
+<p>在需要进行扩展的时候我们可以通过继承AbstractRoutConfigure来增加我们自己的configure loader，再通过Configuration方式注入即可：</p>
+<image src="code4.png"/>
+
+<p>最终的实现效果是我们通过数据库变更配置后，通过restful接口来调用refresh方法即可完成路由的动态刷新。</p>
+<h3 id="服务路由"><a href="#服务路由" class="headerlink" title="服务路由"></a>服务路由</h3><p>通过上面动态路由的基本实现，我们数据库中的配置是这样的：</p>
+<image src="table.png"/>
+
+<p>但是我们是要做微服务和集群的网关，直接写地址显然是不行的。</p>
+<p>针对这种情况，SCG提供了一种URI的格式：lb:&#x2F;&#x2F;main-service，其中main-service是我们微服务在注册中心的name。当URI以lb开头，则在进行URI解析的时候会去寻找zookeeper，consul，eureka对应的客户端实现。我们使用的是eureka，并且在数据库中加上以下配置：</p>
+<image src="table2.png"/>
+
+<p>这样我们就可以成功代理微服务提供的接口了。</p>
+<h3 id="容错管理"><a href="#容错管理" class="headerlink" title="容错管理"></a>容错管理</h3><p>容错管理从以下两方面进行考虑：</p>
+<ol>
+<li><p>路由未定义</p>
+<p>针对路由未找到的情况，提供有意义的报错信息进行有效反馈。</p>
+<p>实现层面主要通过定义一个NotFound的路由，通过设置order确保NotFound路由在所有的路由之后执行，这样当所有的路由都没有匹配上的时候就会被路由到NotFound路由，从而反馈有意义的报错信息。</p>
+</li>
+<li><p>熔断器</p>
+<p>熔断器主要应用于请求超时，服务端错误等使用场景，SCG提供了Hystrix的集成，我们只需要在YAML配置文件里面配置default filter并加入fallbackUri的实现即可。</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">spring:</span> <br>  <span class="hljs-attr">cloud:</span><br>    <span class="hljs-attr">gateway:</span><br>      <span class="hljs-attr">default-filters:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Hystrix</span><br>        <span class="hljs-attr">args:</span><br>          <span class="hljs-attr">name:</span> <span class="hljs-string">fallbackcmd</span><br>          <span class="hljs-attr">fallbackUri:</span> <span class="hljs-string">forward:/fallbackcontroller</span><br><br></code></pre></td></tr></table></figure></li>
+</ol>
+<p>通过上面两点的配置，我们在请求出错如超时、服务宕机的情况都可以得到对应的错误信息，确保了网关服务的鲁棒性。</p>
+<h3 id="限流机制"><a href="#限流机制" class="headerlink" title="限流机制"></a>限流机制</h3><p>SCG使用的限流机制（Rate Limiter）基于令牌桶算法，我们先大致了解一下令牌桶算法。</p>
+<image src="rate.png"/>
+
+<p>从上图可以看出，令牌桶算法的主要数据结构是个缓冲区。通过匀速生成的令牌来填充缓冲区相当于生产者，而实际流量则相当于消费者来消费缓冲区中的令牌。 </p>
+<p>我们再结合SCG中的实现来看看令牌桶算法如何限流的。</p>
+<p>SCG使用RateLimiter需要引入spring-boot-starter-data-redis-reactive，所以SCG的令牌桶实现是基于Redis的，这样可以满足分布式的要求。SCG在使用过程中需要设置三个参数replenishRate ，burstCapacity和KeyResolver。</p>
 <ul>
-<li><p>范围约束</p>
-<p>范围约束是用户通过页面输入的温湿度范围，约束的形式为：<code>温度 &gt; 21 &amp;&amp; 温度 &lt; 26</code></p>
-<p>在实现中我们通过Java的Function接口来构建约束：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; <span class="hljs-title function_">buildConstraints</span><span class="hljs-params">(<span class="hljs-keyword">final</span> List&lt;BigDecimal[]&gt; rangeList)</span>&#123;<br>    	<span class="hljs-comment">//otobd是自定义的方法，将Object转换为BigDecimal对象</span><br>        List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; constraintList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        constraintList.add(val -&gt; <br>                           OptimizeUtils.otobd(val.get(<span class="hljs-string">&quot;param_1&quot;</span>)).negate().add(rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">0</span>]));<br>        constraintList.add(val -&gt; <br>                           OptimizeUtils.otobd(val.get(<span class="hljs-string">&quot;param_1&quot;</span>)).subtract(rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">1</span>]));<br>        <span class="hljs-comment">//更多约束条件省略...</span><br>        <span class="hljs-keyword">return</span> constraintList;<br>    &#125;<br></code></pre></td></tr></table></figure>
-
-<p>检查约束的时候，直接使用Function的apply方法即可完成约束检查：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; <span class="hljs-title function_">checkConstraints</span><span class="hljs-params">(BigDecimal[] initParam)</span>&#123;<br>        List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; retConstraints = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        <span class="hljs-keyword">for</span> (Function&lt;Map&lt;String, Object&gt;, BigDecimal&gt; f0 : constraintsList) &#123;<br>            <span class="hljs-comment">//buildPointParam 方法通过将数组映射到Map，方便方法调用</span><br>            <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> f0.apply(OptimizeUtils.buildPointParam(initParam));<br>            <span class="hljs-keyword">if</span> (result.compareTo(BigDecimal.ZERO) &gt; <span class="hljs-number">0</span>) &#123;<br>                retConstraints.add(f0);<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> retConstraints;<br>    &#125;<br></code></pre></td></tr></table></figure>
-</li>
-<li><p>合理性约束</p>
-<p>在我们确定了使用Function来实现约束检查的时候，合理性约束只需要提供封装的方法即可。例如需求是小时能耗不能为负数，封装的方法就是返回最小的小时能耗，对应到Function的定义就是：</p>
-<figure class="highlight clojure"><table><tr><td class="code"><pre><code class="hljs clojure">(<span class="hljs-name"><span class="hljs-built_in">val</span></span> -&gt; minHourCostFunction(<span class="hljs-name"><span class="hljs-built_in">val</span></span>).negate())<br></code></pre></td></tr></table></figure>
-
-<p>这里对于Function的输出进行了negate操作，是为了在判断约束的时候可以统一使用大于0的判断。</p>
-</li>
+<li>replenishRate表示的是装桶的速率，也就是令牌生成的速率</li>
+<li>burstCapacity表示瞬间高爆发的容量，官方文档解释是一秒内允许的最大流量又补充了一句是令牌桶可以装下的令牌数</li>
+<li>KeyResolver很好理解，通过key的定义可以明确规定限流的层级，用户级还是IP级别等等</li>
 </ul>
-<h3 id="KT条件"><a href="#KT条件" class="headerlink" title="KT条件"></a>KT条件</h3><blockquote>
-<p>KT条件是指Karush-Kuhn-Tucker条件，它是数学优化问题中的一组条件，用于判断在约束条件下，某点是否为最优解。</p>
-</blockquote>
-<p>结合KT条件的一般呈现，</p>
-<img src="kt条件.png">
+<p>对于burstCapacity的理解，只有当replenishRate和burstCapacity相等时也就是请求处理基本是匀速的情况下，burstCapacity才表示一秒内允许的最大流量，否则解释为令牌桶的容量更加贴切。</p>
+<p>代码实现主要通过RedisRateLimiter.class和request_rate_limiter.lua两个文件，而主要逻辑是通过脚本文件实现。</p>
+<image src="code5.png"/>
 
-<p>我们得出如下结论：<strong>∇f(X)和∇g_i (X)已知，求解K-T条件，是在求解一组线性方程组。</strong></p>
-<p>主要求解过程使用Apache Math3包可以实现：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">double</span>[][] coefficients = <span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[initParam.length][constraintsBound.size()];<br><span class="hljs-comment">//省略构建系数矩阵的过程</span><br><span class="hljs-type">RealMatrix</span> <span class="hljs-variable">matrix1</span> <span class="hljs-operator">=</span> MatrixUtils.createRealMatrix(coefficients);<br><span class="hljs-comment">//常数项需要将梯度乘以-1，g为当前点的梯度</span><br>BigDecimal[] constants = gradientDiv(g,BigDecimal.valueOf(-<span class="hljs-number">1</span>));<br><br><span class="hljs-comment">//使用QR分解 求线性方程组唯一解</span><br><span class="hljs-type">DecompositionSolver</span> <span class="hljs-variable">solver</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">QRDecomposition</span>(matrix1).getSolver();<br><span class="hljs-type">double</span>[] constArr = <span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[constants.length];<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;constants.length;i++)&#123;<br>	constArr[i]=constants[i].doubleValue();<br>&#125;<br><span class="hljs-type">RealMatrix</span> <span class="hljs-variable">vector</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array2DRowRealMatrix</span>(constArr);<br><span class="hljs-type">RealMatrix</span> <span class="hljs-variable">solution</span> <span class="hljs-operator">=</span> solver.solve(vector);<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; solution.getRowDimension(); i++) &#123;<br>	<span class="hljs-keyword">if</span>(solution.getEntry(i, <span class="hljs-number">0</span>) &lt; <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>&#125;<br><span class="hljs-comment">//全部非负则满足KKT</span><br><span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br></code></pre></td></tr></table></figure>
+<p>这里主要获取java传过来的参数，计算出ttl，ttl的逻辑是桶装满所需时间的两倍。</p>
+<image src="code6.png"/>
 
-<h3 id="梯度模收敛"><a href="#梯度模收敛" class="headerlink" title="梯度模收敛"></a>梯度模收敛</h3><p>系统设定一个梯度模阈值（一般来自经验和反复试错），当梯度模小于阈值的时候，我们认为当前点已经到达了一个局部最优，直接返回当前点为本次优化结果。</p>
-<h3 id="计算方向向量"><a href="#计算方向向量" class="headerlink" title="计算方向向量"></a>计算方向向量</h3><p>计算方向是可行方向法的关键，一个好的方向可以让算法更快的完成收敛。从程序流图我们可以发现，计算方向来自两个分支，而针对有约束和无约束我们采用了不同计算方向的策略。</p>
-<ul>
-<li><p>无约束</p>
-<p>无约束情况适用梯度下降算法，当前点的负梯度方向即可行方向。</p>
-</li>
-<li><p>有约束</p>
-<p>有约束情况下适用单纯形法，求解约束附近使得目标函数值最小的方向向量即可行方向。</p>
-<p>定义算法表现形式如下：</p>
-<img src="单纯形法.png">
+<p>上面这段代码是实现限流的关键，每次都会通过当前时间和上次刷新时间的间隔计算填充的令牌，只有填充后的令牌 &gt;&#x3D; 请求的令牌数才符合条件允许令牌获取。</p>
+<p>当新的请求获取令牌后，更新令牌桶的令牌数和最后刷新时间。</p>
+<p>在实际引用中我们根据我们服务器的压力来设定rate和capacity，通过不停的调节来寻求吞吐和负载的平衡。</p>
+<h3 id="日志配置"><a href="#日志配置" class="headerlink" title="日志配置"></a>日志配置</h3><p>日志配置方面除了基本的logback配置，需要加入access_log的配置，根据官方文档我们需要在logback配置文件中加入logger和appender的配置。</p>
+<image src="code7.png"/>
 
-<p>实现过程适用Apache Math3包即可：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">double</span>[] simplexSolver(<span class="hljs-type">double</span>[] g,<br>                                         BigDecimal[] initParam, Map&lt;String, Object&gt; fixParamMap,<br>                                         List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; constraints)&#123;<br>        <span class="hljs-comment">//传入目标函数的系数</span><br>        <span class="hljs-type">LinearObjectiveFunction</span> <span class="hljs-variable">f</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearObjectiveFunction</span>(g, <span class="hljs-number">0</span>);<br>        LinearConstraint[] constraintsArr = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>[constraints.size()+<span class="hljs-number">8</span>];<br>        <span class="hljs-comment">//初始化范围约束</span><br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;constraints.size();i++)&#123;<br>            <span class="hljs-type">double</span>[] g0 = calcGradient(initParam,fixParamMap,constraints.get(i),C_DELTA);<br>            constraintsArr[i] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(g0, Relationship.LEQ, <span class="hljs-number">0</span>);<br>        &#125;<br>    	<span class="hljs-comment">//构建值约束，需要在-1到1</span><br>        LinearConstraint[] commonConstraints = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>[]&#123;<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span> &#125;, Relationship.GEQ, -<span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>&#125;, Relationship.GEQ, -<span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span> &#125;, Relationship.GEQ, -<span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span> &#125;, Relationship.GEQ, -<span class="hljs-number">1</span>)<br>        &#125;;<br>        System.arraycopy(commonConstraints,<span class="hljs-number">0</span>,constraintsArr,constraints.size(),<span class="hljs-number">8</span>);<br>        <span class="hljs-type">LinearConstraintSet</span> <span class="hljs-variable">constraintsSet</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraintSet</span>(constraintsArr);<br>        <span class="hljs-type">SimplexSolver</span> <span class="hljs-variable">solver</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SimplexSolver</span>();<br>        <span class="hljs-type">PointValuePair</span> <span class="hljs-variable">solution</span> <span class="hljs-operator">=</span> solver.optimize(f,constraintsSet,GoalType.MINIMIZE);<br>        <span class="hljs-keyword">return</span> solution.getPoint();<br>    &#125;<br></code></pre></td></tr></table></figure></li>
-</ul>
-<h3 id="约束一维搜索"><a href="#约束一维搜索" class="headerlink" title="约束一维搜索"></a>约束一维搜索</h3><blockquote>
-<p>所谓约束一维搜索，就是求解一元函数约束极小点的算法。在确定初始区间时，对产生的每一个探测点都必须进行可行性判断，如果违反了某个或者某些约束条件，就必须减少步长因子，以使新的探测点落在最近的一个约束边界上或约束边界的一个容许区间内。</p>
-</blockquote>
-<img src="约束一维搜索.png">
-
-<p>针对a、b两种单调的情况，x3和x1为相应情况的极小值，在c中我们得到一个[x1,x3]的区间，然后通过黄金分割法查找出区间最小值。</p>
-<p>算法步骤如下：</p>
-<img src="一维搜索程序流.png">
-
-<p>在找到一个区间后，我们使用黄金分割法查找区间内的极小值。代码实现上使用递归逐步缩小范围，直到范围达到预定义的阈值，选取范围中心点作为极小点：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> BigDecimal[] findMinPoint(BigDecimal[] start, BigDecimal[] end,<br>                                      BigDecimal[] p1, BigDecimal[] p2,<br>                                      Map&lt;String, Object&gt; fixParamMap,Function&lt;Map&lt;String, Object&gt;, BigDecimal&gt; f)&#123;<br>        <span class="hljs-comment">//判断满足收敛精度</span><br>        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">threshold</span> <span class="hljs-operator">=</span> OptimizeUtils.calculateModulus(OptimizeUtils.gradientDiff(start,end));<br>        <span class="hljs-keyword">if</span>(threshold.compareTo(OptimizeUtils.GRATIO_THREASHOLD) &lt;<span class="hljs-number">0</span>)&#123;<br>            <span class="hljs-keyword">return</span> OptimizeUtils.gradientDiv(OptimizeUtils.gradientAdd(start,end), BigDecimal.valueOf(<span class="hljs-number">2</span>));<br>        &#125;<br>        BigDecimal f1,f2;<br>        <span class="hljs-comment">//初始化区间</span><br>        <span class="hljs-keyword">if</span>(p1 == <span class="hljs-literal">null</span>)<br>            p1 = calculateGoldRatio(start,end, OptimizeUtils.GRATIO_DOWN);<br>        f1 = f.apply(buildPointParam(p1,fixParamMap));<br>        <span class="hljs-keyword">if</span>(p2 == <span class="hljs-literal">null</span>)<br>            p2 = calculateGoldRatio(start,end, OptimizeUtils.GRATIO_UP);<br>        f2 = f.apply(buildPointParam(p2,fixParamMap));<br>        <span class="hljs-keyword">if</span>(f1.compareTo(f2) &lt;<span class="hljs-number">0</span>)&#123;<br>            <span class="hljs-keyword">return</span> findMinPoint(start,p2,<span class="hljs-literal">null</span>,p1,fixParamMap,f);<br>        &#125;<span class="hljs-keyword">else</span>&#123;<br>            <span class="hljs-keyword">return</span> findMinPoint(p1,end,p2,<span class="hljs-literal">null</span>,fixParamMap,f);<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="回顾总结"><a href="#回顾总结" class="headerlink" title="回顾总结"></a>回顾总结</h2><p>在这个案例中我们通过引入可行方向法对汽车制造工艺的涂装车间能耗进行优化。</p>
-<p>在可行方向的方向选择中我们结合了梯度下降法和单纯形法来应对是否存在约束的差异，明确了方向后我们采用了约束一维搜索获取下一次迭代的出发点，最终通过收敛条件得到一个相对最优解。</p>
-<p>为了解决局部最优的困境，我们引入随机多个初始出发点，进行多次求解，减少局部最优出现的可能性。</p>
-<p>最终经过验证的优化效果达到了15%的能耗节约。</p>
+<p>如上图所示，通过定义logger接收netty的AccessLog，通过异步发射器发送到accessLog和errorLog两个Appender，在Appender中通过filter来区分日志类型。 </p>
+<p>这里需要注意的是Netty AccessLog的配置要到reactor-netty0.7.9之后才支持，所以在使用这个功能之前需要确保我们netty的版本满足要求，项目目前使用的spring版本如下，对应的reactor-netty版本为0.8.6。</p>
+<p>配置了这么多，然而access.log文件还是空空如也，因为你漏掉了很重要的一步：</p>
+<p>在启动参数中添加 <code>-Dreactor.netty.http.server.accessLogEnabled=true</code>. 注意这个属性是java系统属性而不是spring配置属性，也就是说只能通过启动参数注入。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我们通过一些简单的介绍了解了SCG的出现背景，然后通过实际的网关搭建实践来一步步的理解SCG的架构理念和实现细节。</p>
+<p>通过动态路由部分我们见证了SCG的可扩展性架构，在服务路由和容错管理部分我们主要和Spring Cloud已有组件（eureka， hystrix）进行集成，而在限流机制部分我们通过阅读源代码理解了基于令牌桶的限流算法以及如何结合Redis实现分布式系统限流，在日志配置部分主要是结合Netty的日志机制来完成网关的访问日志配置。</p>
+<p>在我们的实践中我们没有用上SCG的所有特性，但是就目前的情况用于我们自己的API 网关已经够用。</p>
 ]]></content>
       <categories>
-        <category>工业算法</category>
+        <category>技术总结</category>
       </categories>
       <tags>
-        <tag>数据技术</tag>
-        <tag>最优化技术</tag>
+        <tag>微服务</tag>
+        <tag>应用技术</tag>
       </tags>
   </entry>
   <entry>
@@ -1195,6 +1232,104 @@
       </tags>
   </entry>
   <entry>
+    <title>基于可行方向的能耗寻优算法</title>
+    <url>/2023/09/18/%E5%9F%BA%E4%BA%8E%E5%8F%AF%E8%A1%8C%E6%96%B9%E5%90%91%E7%9A%84%E8%83%BD%E8%80%97%E5%AF%BB%E4%BC%98%E7%AE%97%E6%B3%95/</url>
+    <content><![CDATA[<p>在工业场景中，节能减排一直是一个很重要的话题。而在我们服务的汽车制造行业，涂装车间的能耗在四大工艺过程中占比达到了70%，所以如何降低涂装车间的能耗成了降低汽车制造过程能耗的关键。</p>
+<p>本文选择涂装车间的喷房风机作为研究对象，以空调的温湿度作为主要调整指标，尝试通过技术的手段来找到能耗最优解。</p>
+<span id="more"></span>
+
+<h2 id="问题定义"><a href="#问题定义" class="headerlink" title="问题定义"></a>问题定义</h2><p>已知能耗方程的条件下，设定一组温湿度的限定条件，通过优化算法找出使得能耗最小的温湿度值。</p>
+<blockquote>
+<p>使用穷举？<br>目前选择的优化指标有四个，每个指标的取值跨度为10，按照步长0.01计算，我们需要计算的次数为1000^4</p>
+</blockquote>
+<h2 id="算法概述"><a href="#算法概述" class="headerlink" title="算法概述"></a>算法概述</h2><p>经过研究，我们采用可行方向法作为算法的指导思想，由于存在温湿度的限定条件，所以算法进行了分支处理。</p>
+<blockquote>
+<p>可行方向是指沿该方向作微小移动后，所得到的新点是可行点，且目标函数值有所下降</p>
+</blockquote>
+<p>程序流程如下图所示：</p>
+<img src="程序流.png" alt="image-20230919095324346" style="zoom:80%;" />
+
+<h2 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h2><p>算法实现部分我们通过对程序流图进行详细说明来描述算法的实现过程。</p>
+<h3 id="参数初始化"><a href="#参数初始化" class="headerlink" title="参数初始化"></a>参数初始化</h3><p>参数初始化可以根据经验选择限定条件的边界值，如夏季模式下选择温度最大值会降低空调的能耗。</p>
+<p>但是这种单一出发点的选择会导致算法陷入局部最优的困境，最终我们通过随机取样的方法从可行区间内选了10个点，通过多次计算减少了局部最优的可能性。随机选择出发点的同时通过指定伪随机种子，确保了算法的稳定性，即每一次优化都可以得到同样的解；通过种子的合理选择，保证选择的数据分布足够合理。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> List&lt;BigDecimal[]&gt; batchInitParam(List&lt;BigDecimal[]&gt; rangeList)&#123;<br>        List&lt;BigDecimal[]&gt; resultList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        BigDecimal[] result;<br>        <span class="hljs-comment">//取10个随机点</span><br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">10</span>;i++)&#123;<br>            result = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BigDecimal</span>[rangeList.size()];<br>            <span class="hljs-type">int</span> <span class="hljs-variable">seed</span> <span class="hljs-operator">=</span> i*<span class="hljs-number">10000</span>;<br>            result[<span class="hljs-number">0</span>] = randomFromRange(rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">1</span>],seed);<br>            result[<span class="hljs-number">1</span>] = randomFromRange(rangeList.get(<span class="hljs-number">1</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">1</span>)[<span class="hljs-number">1</span>],seed);<br>            result[<span class="hljs-number">2</span>] = randomFromRange(rangeList.get(<span class="hljs-number">2</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">2</span>)[<span class="hljs-number">1</span>],seed);<br>            result[<span class="hljs-number">3</span>] = randomFromRange(rangeList.get(<span class="hljs-number">3</span>)[<span class="hljs-number">0</span>],rangeList.get(<span class="hljs-number">3</span>)[<span class="hljs-number">1</span>],seed);<br>            resultList.add(result);<br>        &#125;<br>        <span class="hljs-keyword">return</span> resultList;<br>    &#125;<br><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> BigDecimal <span class="hljs-title function_">randomFromRange</span><span class="hljs-params">(BigDecimal low, BigDecimal up, <span class="hljs-type">int</span> seed)</span>&#123;<br>        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">gap</span> <span class="hljs-operator">=</span> up.subtract(low).abs();<br>        <span class="hljs-type">Random</span> <span class="hljs-variable">rd</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Random</span>(seed);<br>        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">factor</span> <span class="hljs-operator">=</span> BigDecimal.valueOf(rd.nextDouble());<br>        <span class="hljs-keyword">return</span> low.add(gap.multiply(factor));<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="收敛条件"><a href="#收敛条件" class="headerlink" title="收敛条件"></a>收敛条件</h3><p>算法的收敛条件包含：</p>
+<ol>
+<li><p>循环次数</p>
+<p>根据测试的结果，算法的收敛一般在10-15次循环，所以最终定义最大循环次数为25，超过最大循环次数后直接算法结束，返回最后一次计算的结果。</p>
+</li>
+<li><p>变化值</p>
+<p>通过监控目标函数的值变化，确定算法收敛，根据经验定义为前后两次值变化小于0.1则判定算法收敛，返回最后一次计算的结果。</p>
+</li>
+</ol>
+<h3 id="检查约束"><a href="#检查约束" class="headerlink" title="检查约束"></a>检查约束</h3><p>约束包含针对优化指标的范围约束和结果函数的合理性约束。</p>
+<ul>
+<li><p>范围约束</p>
+<p>范围约束是用户通过页面输入的温湿度范围，约束的形式为：<code>温度 &gt; 21 &amp;&amp; 温度 &lt; 26</code></p>
+<p>在实现中我们通过Java的Function接口来构建约束：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; <span class="hljs-title function_">buildConstraints</span><span class="hljs-params">(<span class="hljs-keyword">final</span> List&lt;BigDecimal[]&gt; rangeList)</span>&#123;<br>    	<span class="hljs-comment">//otobd是自定义的方法，将Object转换为BigDecimal对象</span><br>        List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; constraintList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        constraintList.add(val -&gt; <br>                           OptimizeUtils.otobd(val.get(<span class="hljs-string">&quot;param_1&quot;</span>)).negate().add(rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">0</span>]));<br>        constraintList.add(val -&gt; <br>                           OptimizeUtils.otobd(val.get(<span class="hljs-string">&quot;param_1&quot;</span>)).subtract(rangeList.get(<span class="hljs-number">0</span>)[<span class="hljs-number">1</span>]));<br>        <span class="hljs-comment">//更多约束条件省略...</span><br>        <span class="hljs-keyword">return</span> constraintList;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>检查约束的时候，直接使用Function的apply方法即可完成约束检查：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; <span class="hljs-title function_">checkConstraints</span><span class="hljs-params">(BigDecimal[] initParam)</span>&#123;<br>        List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; retConstraints = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        <span class="hljs-keyword">for</span> (Function&lt;Map&lt;String, Object&gt;, BigDecimal&gt; f0 : constraintsList) &#123;<br>            <span class="hljs-comment">//buildPointParam 方法通过将数组映射到Map，方便方法调用</span><br>            <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> f0.apply(OptimizeUtils.buildPointParam(initParam));<br>            <span class="hljs-keyword">if</span> (result.compareTo(BigDecimal.ZERO) &gt; <span class="hljs-number">0</span>) &#123;<br>                retConstraints.add(f0);<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> retConstraints;<br>    &#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>合理性约束</p>
+<p>在我们确定了使用Function来实现约束检查的时候，合理性约束只需要提供封装的方法即可。例如需求是小时能耗不能为负数，封装的方法就是返回最小的小时能耗，对应到Function的定义就是：</p>
+<figure class="highlight clojure"><table><tr><td class="code"><pre><code class="hljs clojure">(<span class="hljs-name"><span class="hljs-built_in">val</span></span> -&gt; minHourCostFunction(<span class="hljs-name"><span class="hljs-built_in">val</span></span>).negate())<br></code></pre></td></tr></table></figure>
+
+<p>这里对于Function的输出进行了negate操作，是为了在判断约束的时候可以统一使用大于0的判断。</p>
+</li>
+</ul>
+<h3 id="KT条件"><a href="#KT条件" class="headerlink" title="KT条件"></a>KT条件</h3><blockquote>
+<p>KT条件是指Karush-Kuhn-Tucker条件，它是数学优化问题中的一组条件，用于判断在约束条件下，某点是否为最优解。</p>
+</blockquote>
+<p>结合KT条件的一般呈现，</p>
+<img src="kt条件.png">
+
+<p>我们得出如下结论：<strong>∇f(X)和∇g_i (X)已知，求解K-T条件，是在求解一组线性方程组。</strong></p>
+<p>主要求解过程使用Apache Math3包可以实现：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">double</span>[][] coefficients = <span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[initParam.length][constraintsBound.size()];<br><span class="hljs-comment">//省略构建系数矩阵的过程</span><br><span class="hljs-type">RealMatrix</span> <span class="hljs-variable">matrix1</span> <span class="hljs-operator">=</span> MatrixUtils.createRealMatrix(coefficients);<br><span class="hljs-comment">//常数项需要将梯度乘以-1，g为当前点的梯度</span><br>BigDecimal[] constants = gradientDiv(g,BigDecimal.valueOf(-<span class="hljs-number">1</span>));<br><br><span class="hljs-comment">//使用QR分解 求线性方程组唯一解</span><br><span class="hljs-type">DecompositionSolver</span> <span class="hljs-variable">solver</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">QRDecomposition</span>(matrix1).getSolver();<br><span class="hljs-type">double</span>[] constArr = <span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[constants.length];<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;constants.length;i++)&#123;<br>	constArr[i]=constants[i].doubleValue();<br>&#125;<br><span class="hljs-type">RealMatrix</span> <span class="hljs-variable">vector</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Array2DRowRealMatrix</span>(constArr);<br><span class="hljs-type">RealMatrix</span> <span class="hljs-variable">solution</span> <span class="hljs-operator">=</span> solver.solve(vector);<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; solution.getRowDimension(); i++) &#123;<br>	<span class="hljs-keyword">if</span>(solution.getEntry(i, <span class="hljs-number">0</span>) &lt; <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>&#125;<br><span class="hljs-comment">//全部非负则满足KKT</span><br><span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br></code></pre></td></tr></table></figure>
+
+<h3 id="梯度模收敛"><a href="#梯度模收敛" class="headerlink" title="梯度模收敛"></a>梯度模收敛</h3><p>系统设定一个梯度模阈值（一般来自经验和反复试错），当梯度模小于阈值的时候，我们认为当前点已经到达了一个局部最优，直接返回当前点为本次优化结果。</p>
+<h3 id="计算方向向量"><a href="#计算方向向量" class="headerlink" title="计算方向向量"></a>计算方向向量</h3><p>计算方向是可行方向法的关键，一个好的方向可以让算法更快的完成收敛。从程序流图我们可以发现，计算方向来自两个分支，而针对有约束和无约束我们采用了不同计算方向的策略。</p>
+<ul>
+<li><p>无约束</p>
+<p>无约束情况适用梯度下降算法，当前点的负梯度方向即可行方向。</p>
+</li>
+<li><p>有约束</p>
+<p>有约束情况下适用单纯形法，求解约束附近使得目标函数值最小的方向向量即可行方向。</p>
+<p>定义算法表现形式如下：</p>
+<img src="单纯形法.png">
+
+<p>实现过程适用Apache Math3包即可：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">double</span>[] simplexSolver(<span class="hljs-type">double</span>[] g,<br>                                         BigDecimal[] initParam, Map&lt;String, Object&gt; fixParamMap,<br>                                         List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; constraints)&#123;<br>        <span class="hljs-comment">//传入目标函数的系数</span><br>        <span class="hljs-type">LinearObjectiveFunction</span> <span class="hljs-variable">f</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearObjectiveFunction</span>(g, <span class="hljs-number">0</span>);<br>        LinearConstraint[] constraintsArr = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>[constraints.size()+<span class="hljs-number">8</span>];<br>        <span class="hljs-comment">//初始化范围约束</span><br>        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;constraints.size();i++)&#123;<br>            <span class="hljs-type">double</span>[] g0 = calcGradient(initParam,fixParamMap,constraints.get(i),C_DELTA);<br>            constraintsArr[i] = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(g0, Relationship.LEQ, <span class="hljs-number">0</span>);<br>        &#125;<br>    	<span class="hljs-comment">//构建值约束，需要在-1到1</span><br>        LinearConstraint[] commonConstraints = <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>[]&#123;<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span> &#125;, Relationship.GEQ, -<span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>&#125;, Relationship.GEQ, -<span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span> &#125;, Relationship.GEQ, -<span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span> &#125;, Relationship.LEQ, <span class="hljs-number">1</span>),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraint</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">double</span>[] &#123; <span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span> &#125;, Relationship.GEQ, -<span class="hljs-number">1</span>)<br>        &#125;;<br>        System.arraycopy(commonConstraints,<span class="hljs-number">0</span>,constraintsArr,constraints.size(),<span class="hljs-number">8</span>);<br>        <span class="hljs-type">LinearConstraintSet</span> <span class="hljs-variable">constraintsSet</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LinearConstraintSet</span>(constraintsArr);<br>        <span class="hljs-type">SimplexSolver</span> <span class="hljs-variable">solver</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SimplexSolver</span>();<br>        <span class="hljs-type">PointValuePair</span> <span class="hljs-variable">solution</span> <span class="hljs-operator">=</span> solver.optimize(f,constraintsSet,GoalType.MINIMIZE);<br>        <span class="hljs-keyword">return</span> solution.getPoint();<br>    &#125;<br></code></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="约束一维搜索"><a href="#约束一维搜索" class="headerlink" title="约束一维搜索"></a>约束一维搜索</h3><blockquote>
+<p>所谓约束一维搜索，就是求解一元函数约束极小点的算法。在确定初始区间时，对产生的每一个探测点都必须进行可行性判断，如果违反了某个或者某些约束条件，就必须减少步长因子，以使新的探测点落在最近的一个约束边界上或约束边界的一个容许区间内。</p>
+</blockquote>
+<img src="约束一维搜索.png">
+
+<p>针对a、b两种单调的情况，x3和x1为相应情况的极小值，在c中我们得到一个[x1,x3]的区间，然后通过黄金分割法查找出区间最小值。</p>
+<p>算法步骤如下：</p>
+<img src="一维搜索程序流.png">
+
+<p>在找到一个区间后，我们使用黄金分割法查找区间内的极小值。代码实现上使用递归逐步缩小范围，直到范围达到预定义的阈值，选取范围中心点作为极小点：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> BigDecimal[] findMinPoint(BigDecimal[] start, BigDecimal[] end,<br>                                      BigDecimal[] p1, BigDecimal[] p2,<br>                                      Map&lt;String, Object&gt; fixParamMap,Function&lt;Map&lt;String, Object&gt;, BigDecimal&gt; f)&#123;<br>        <span class="hljs-comment">//判断满足收敛精度</span><br>        <span class="hljs-type">BigDecimal</span> <span class="hljs-variable">threshold</span> <span class="hljs-operator">=</span> OptimizeUtils.calculateModulus(OptimizeUtils.gradientDiff(start,end));<br>        <span class="hljs-keyword">if</span>(threshold.compareTo(OptimizeUtils.GRATIO_THREASHOLD) &lt;<span class="hljs-number">0</span>)&#123;<br>            <span class="hljs-keyword">return</span> OptimizeUtils.gradientDiv(OptimizeUtils.gradientAdd(start,end), BigDecimal.valueOf(<span class="hljs-number">2</span>));<br>        &#125;<br>        BigDecimal f1,f2;<br>        <span class="hljs-comment">//初始化区间</span><br>        <span class="hljs-keyword">if</span>(p1 == <span class="hljs-literal">null</span>)<br>            p1 = calculateGoldRatio(start,end, OptimizeUtils.GRATIO_DOWN);<br>        f1 = f.apply(buildPointParam(p1,fixParamMap));<br>        <span class="hljs-keyword">if</span>(p2 == <span class="hljs-literal">null</span>)<br>            p2 = calculateGoldRatio(start,end, OptimizeUtils.GRATIO_UP);<br>        f2 = f.apply(buildPointParam(p2,fixParamMap));<br>        <span class="hljs-keyword">if</span>(f1.compareTo(f2) &lt;<span class="hljs-number">0</span>)&#123;<br>            <span class="hljs-keyword">return</span> findMinPoint(start,p2,<span class="hljs-literal">null</span>,p1,fixParamMap,f);<br>        &#125;<span class="hljs-keyword">else</span>&#123;<br>            <span class="hljs-keyword">return</span> findMinPoint(p1,end,p2,<span class="hljs-literal">null</span>,fixParamMap,f);<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="回顾总结"><a href="#回顾总结" class="headerlink" title="回顾总结"></a>回顾总结</h2><p>在这个案例中我们通过引入可行方向法对汽车制造工艺的涂装车间能耗进行优化。</p>
+<p>在可行方向的方向选择中我们结合了梯度下降法和单纯形法来应对是否存在约束的差异，明确了方向后我们采用了约束一维搜索获取下一次迭代的出发点，最终通过收敛条件得到一个相对最优解。</p>
+<p>为了解决局部最优的困境，我们引入随机多个初始出发点，进行多次求解，减少局部最优出现的可能性。</p>
+<p>最终经过验证的优化效果达到了15%的能耗节约。</p>
+]]></content>
+      <categories>
+        <category>工业算法</category>
+      </categories>
+      <tags>
+        <tag>数据技术</tag>
+        <tag>最优化技术</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>如何监测配置数据的变化</title>
     <url>/2022/12/29/%E5%A6%82%E4%BD%95%E7%9B%91%E6%B5%8B%E9%85%8D%E7%BD%AE%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%98%E5%8C%96/</url>
     <content><![CDATA[<p>在工业互联网平台上存在多种业务应用，每个应用有自己的配置数据，当配置数据发生变更的时候需要及时的下发到边缘节点让配置生效。我们可以通过节点管理模块提供手动下发的功能，即操作人员修改完配置后通知系统管理员进行对应节点的配置下发。实际操作中发现由于引发配置变更的点过于分散，导致经常会忘记下发而无法使配置及时生效。再者业务操作人员自己并不清楚当前操作的配置是否需要下发，会引发很多无效的沟通，降低了生产效率。</p>
@@ -1287,6 +1422,74 @@
       <tags>
         <tag>开发技术</tag>
         <tag>微服务</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>异常检测算法之STL</title>
+    <url>/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/</url>
+    <content><![CDATA[<p>在工业时序数据的异常判定中，我们提供了基于SPC的单特征判定和孤立森林的多维特征判定。但是这两种异常判定对于趋势数据的判定表现得并不是很尽如人意。对于符合趋势的时序数据我们认定正常工况主要有两种：</p>
+<ol>
+<li>某个特定值或者在其周围进行波动</li>
+<li>沿着特定的趋势进行变化或者在趋势周围进行波动</li>
+</ol>
+<p>对于第一种情况的趋势，SPC或者孤立森林都可以很好的应付，到了第二种情况则要求随着趋势的变化动态的调整阈值，这大大增加了算法实现的复杂度。通过调研发现，基于时序数据分解的STL算法可以满足我们的要求。</p>
+<h2 id="算法介绍"><a href="#算法介绍" class="headerlink" title="算法介绍"></a>算法介绍</h2><p>STL的全称是 Seasonal and Trend decomposition using Loess， 其中Loess是进行非线性关系求解的方法，ST代表数据分解的两种主要成分，因此时序数据最终被分解为三个部分：</p>
+<ol>
+<li><p>Seasonal Component</p>
+<p>周期性成分，代表数据按照周期性波动的行为</p>
+</li>
+<li><p>Trend Component</p>
+<p>趋势性成分，代表数据按照特定趋势发展的行为</p>
+</li>
+<li><p>Residue Component</p>
+<p>残值成分，代表数据去除周期性和趋势性之后的剩余部分</p>
+</li>
+</ol>
+<p>$$<br>Y_v &#x3D; T_v + S_v + R_v<br>$$</p>
+<p>如公式所示，针对每一个时序数据值都可以表示为三种成分之和。</p>
+<h2 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h2><p>STL算法在Python中通过 statsmodels.tsa.seasonal 包提供的STL库进行实现，如下是一个简单的实现示例：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> statsmodels.tsa.seasonal <span class="hljs-keyword">import</span> STL<br><span class="hljs-keyword">import</span> pandas <span class="hljs-keyword">as</span> pd<br><span class="hljs-keyword">import</span> matplotlib.pyplot <span class="hljs-keyword">as</span> plt<br><br>pd.plotting.register_matplotlib_converters()<br>df = pd.read_csv(constant.APP_PATH + <span class="hljs-string">&#x27;/data/data.csv&#x27;</span>)<br>df = df.tail(<span class="hljs-number">1000</span>)<br>data = df[[<span class="hljs-string">&#x27;f1&#x27;</span>]]<br>stl = STL(data, period=<span class="hljs-number">30</span>, seasonal=<span class="hljs-number">99</span>)<br>res = stl.fit()<br>res.plot()<br>plt.show()<br></code></pre></td></tr></table></figure>
+
+<p>首先选取数据源data.csv中的f1列作为研究对象，使用STL方法进行分析，指定参数period和seasonal。通过fit方法返回的分析结果中包含了我们需要的结果数据：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><code class="hljs python"><span class="hljs-meta">@property</span><br>   <span class="hljs-keyword">def</span> <span class="hljs-title function_">observed</span>(<span class="hljs-params">self</span>):<br>       <span class="hljs-string">&quot;&quot;&quot;Observed data&quot;&quot;&quot;</span><br>       <span class="hljs-keyword">return</span> self._observed<br><br><span class="hljs-meta">   @property</span><br>   <span class="hljs-keyword">def</span> <span class="hljs-title function_">seasonal</span>(<span class="hljs-params">self</span>):<br>       <span class="hljs-string">&quot;&quot;&quot;The estimated seasonal component&quot;&quot;&quot;</span><br>       <span class="hljs-keyword">return</span> self._seasonal<br><br><span class="hljs-meta">   @property</span><br>   <span class="hljs-keyword">def</span> <span class="hljs-title function_">trend</span>(<span class="hljs-params">self</span>):<br>       <span class="hljs-string">&quot;&quot;&quot;The estimated trend component&quot;&quot;&quot;</span><br>       <span class="hljs-keyword">return</span> self._trend<br><br><span class="hljs-meta">   @property</span><br>   <span class="hljs-keyword">def</span> <span class="hljs-title function_">resid</span>(<span class="hljs-params">self</span>):<br>       <span class="hljs-string">&quot;&quot;&quot;The estimated residuals&quot;&quot;&quot;</span><br>       <span class="hljs-keyword">return</span> self._resid<br></code></pre></td></tr></table></figure>
+
+<p>调用res.plot() 方法可以将以上四个数据集在一张图中呈现出来。</p>
+<img src="Figure_1.png" alt="Figure_1" style="zoom:60%;" />
+
+<h2 id="场景应用"><a href="#场景应用" class="headerlink" title="场景应用"></a>场景应用</h2><p>在实际应用中我们通常需要考虑两个工程性的问题，即如何选取参数和如何进行异常判定。</p>
+<h3 id="参数选取"><a href="#参数选取" class="headerlink" title="参数选取"></a>参数选取</h3><p>在原论文中提供了6个参数，到Python的实现中变成了13个参数分布在STL构造方法和fit方法中。</p>
+<p>正如论文中提到的一样大多数参数的设值都是相当直接的，通过字面意思可以很容易的判断应该设置的值，如period参数根据数据的特性，如果是月度数据则设置为12。在我们上面的例子中，每天的数据量为30我们把period设置为30即可。</p>
+<p>难点在于如何合理地设置seasonal参数，seasonal参数通常设置为大于7的奇数，值越大则周期性成分中的子序列越平滑。这时候就面临着一个抉择：</p>
+<ul>
+<li>如果设置过大，则异常点对于周期的影响无法体现，容易造成漏报</li>
+<li>如果设置过小，周期内部噪音过多，容易造成误报</li>
+</ul>
+<p>所以在seasonal参数设置的时候需要数据分析人员针对数据进行反复测算，最终达到以下效果：</p>
+<ol>
+<li>对于存在异常的周期需要体现异常点对周期的影响</li>
+<li>对于不存在异常的周期经过平滑之后需要遵循同样的可视化模式</li>
+</ol>
+<h3 id="判定异常"><a href="#判定异常" class="headerlink" title="判定异常"></a>判定异常</h3><p>从STL算法的一般形式可以看出，如果每个点都符合周期成分和趋势成分的累加，那么对应的残值就应该等于0或者接近0。<br>$$<br>Y_v &#x3D; T_v + S_v + R_v<br>$$</p>
+<p>所以在实际数据的诊断中可以使用残值来进行异常诊断，具体来说就是针对拟合后的残值数据计算上下限，根据预设或者训练的异常比例判定异常。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><code class="hljs python">low = stats.scoreatpercentile(res.resid, <span class="hljs-number">0.2</span>)<br>   high = stats.scoreatpercentile(res.resid, <span class="hljs-number">99.8</span>)<br></code></pre></td></tr></table></figure>
+
+<p>按照以上异常比例得到的异常点图示如图：</p>
+<img src="Figure_2.png" alt="Figure_2" style="zoom:72%;" />
+
+<p>异常的实际含义为，在异常点数据趋势发生了变化或者数据周期性行为出现了偏差。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我们通过引入STL算法来应对趋势性数据的异常检测，通过将数据分解为周期性和趋势性成分，得到数据残值作为诊断因子。</p>
+<p>实际工程应用中再结合阈值分析或者SPC的方法可以对趋势性数据进行超差或者异常判断。STL作为分解类算法的一种，提供了简单有效的实现以及灵活的参数配置，可以应对大部分的趋势性数据检测场景。</p>
+<p>同时由于只支持加法类型的分解，带来了一定局限性，如果需要乘法类型的分解可以考虑X11 decomposition等算法。</p>
+<p>参考：</p>
+<p><a href="https://www.wessa.net/download/stl.pdf">STL论文</a></p>
+<p><a href="https://otexts.com/fpp2/stl.html">STL decomposition</a></p>
+]]></content>
+      <categories>
+        <category>工业算法</category>
+      </categories>
+      <tags>
+        <tag>数据技术</tag>
+        <tag>异常检测</tag>
       </tags>
   </entry>
   <entry>
@@ -1588,143 +1791,8 @@
         <category>解决方案</category>
       </categories>
       <tags>
-        <tag>微服务</tag>
         <tag>架构设计</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>基于Spring Cloud Gateway的路由实践</title>
-    <url>/2020/03/13/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/</url>
-    <content><![CDATA[<p>在IT和OT融合的道路上，数据能力是很重要的一环。在设备端我们通过软PLC的解决方案覆盖了常见的数采方式和工业协议，那么采来的海量数据如何存储就成了我们当前的重中之重。</p>
-<p>在调研了流行的数据存储方案后，我们决定基于开源时序数据库打造一款工业适用、业务定制的数据存储引擎。而接下来要介绍的路由网关可以认为是整个数据存储引擎的代理人，通过路由网关的引入，极大的透明了数据存储引擎的使用。不管是工业应用还是数采网关抑或是数据分析人员都可以方便的对数据进行读写操作，没有一点负担，没有一点门槛。</p>
-<span id="more"></span>
-
-<h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><p>Spring Cloud Gateway（下文以SCG代替）， 顾名思义这是由Spring 官方出品的一款网关产品，是Spring Cloud的子项目。再看一下官方介绍：</p>
-<blockquote>
-<p>This project provides a library for building an API Gateway on top of Spring MVC. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring&#x2F;metrics, and resiliency.</p>
-</blockquote>
-<p>主要突出了路由功能的简单有效，同时可以在安全、监控以及扩展性方面提供不错的支持，毕竟靠着Spring Cloud这面大树。</p>
-<h2 id="架构考虑"><a href="#架构考虑" class="headerlink" title="架构考虑"></a>架构考虑</h2><image src="archi.png"/>
-
-<p>这是官方网站的工作原理示意图，从上图可以看出SCG在整个流程中主要担任反向代理的角色。客户端请求抵达SCG后，SCG通过Handler Mapping将请求路由到Web Handler，Web Handler再通过Filter对原始请求进行处理，最终发送到被代理的服务端。</p>
-<p>在研究SCG之前，我们发现Spring Cloud下面已经有一个成熟的API套件Spring Cloud Netflix，提供了服务注册发现（Eureka），熔断器（Hystrix），智能路由（Zuul）和客户端负载均衡（Ribbon）等特性，其中就有我们需要的路由功能Zuul。</p>
-<p>那为什么在集成一个路由功能后，Spring Cloud还要自己开发一个用于路由的Gateway项目呢？我们来看看他们的一些对比，由于Spring Cloud只集成了Zuul1.0，所以比较也集中在Zuul1.0和SCG之间。</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>连接方式</th>
-<th>支持服务器</th>
-<th>功能</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Zuul1.0</td>
-<td>Servlet API</td>
-<td>Tomcat，undertow</td>
-<td>基本路由规则，仅支持Path的路由</td>
-</tr>
-<tr>
-<td>SCG</td>
-<td>Reactor</td>
-<td>Netty</td>
-<td>较多路由规则，可以支持header，cookie，query，method等丰富的predict定义</td>
-</tr>
-</tbody></table>
-<p>从上面的对比来看，SCG基于Project Reactor可以获得更优秀的吞吐，在功能方面相当于Zuul的优化，更加灵活的配置可以满足几乎所有的网关路由需求。</p>
-<p>虽然说Zuul2.0也是基于Netty开发，并增强了路由和过滤器功能，然而他的多次跳票最终让Spring下决心自己做一款网关路由产品，并表示不会将Zuul2.0集成进以后的Spring Cloud中，也算一段趣闻吧。</p>
-<h2 id="网关实践"><a href="#网关实践" class="headerlink" title="网关实践"></a>网关实践</h2><p>下面我们实际动手实现一个网关，结合过程中遇到的问题来熟悉SCG的各项特性。</p>
-<h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><p>我们新建一个基于Spring Boot的Maven项目，添加SCG的依赖，主要是下面两个：</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.cloud<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-cloud-starter-gateway<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-webflux<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
-
-<p>我们这里选择的是最新的Spring Boot Release版本（2.1.4）以及支持2.1的Spring Cloud分支Greenwich。 </p>
-<p>最后建一个SpringBootApplication，参照首页的Demo去掉Hystrix和RateLimit相关的内容就可以跑起来了（<a href="https://spring.io/projects/spring-cloud-gateway%EF%BC%89%E3%80%82">https://spring.io/projects/spring-cloud-gateway）。</a></p>
-<h3 id="动态路由"><a href="#动态路由" class="headerlink" title="动态路由"></a>动态路由</h3><p>光有个Demo肯定不行，我们的网关是要实际投产使用的，在分析了实际需求之后我们识别出急需的第一个功能是动态路由。</p>
-<p>在文档中提供了两种方式的路由配置方式：</p>
-<ol>
-<li><p>通过java API</p>
-<p>直接通过RouteLocatorBuilder构建如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">builder.routes().route(<span class="hljs-string">&quot;path_route&quot;</span>, r -&gt; r.path(<span class="hljs-string">&quot;/get&quot;</span>).uri(<span class="hljs-string">&quot;http://httpbin.org&quot;</span>)).build();<br></code></pre></td></tr></table></figure>
-</li>
-<li><p>通过配置文件</p>
-<p>通过YAML文件构建路由如下：</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">spring:</span><br>  <span class="hljs-attr">cloud:</span><br>    <span class="hljs-attr">gateway:</span><br>      <span class="hljs-attr">routes:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-attr">id:</span> <span class="hljs-string">host_route</span><br>        <span class="hljs-attr">uri:</span> <span class="hljs-string">https://example.org</span><br>        <span class="hljs-attr">predicates:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">path=/foo/&#123;segment&#125;,/bar/&#123;segment&#125;</span><br><br></code></pre></td></tr></table></figure></li>
-</ol>
-<p>但是我们实际需求中存在动态分配路由的场景，以上两种方式显然都不能满足需求。</p>
-<p>通过查看源代码发现SCG加载路由是通过RouteDefinitionLocator接口实现，有以下默认实现（框掉的部分可以暂时忽略，这是我们自己的实现）：</p>
-<image src="code1.png"/>
-
-<p>在GatewayAutoConfiguration中通过Primary的方式指定CompositeRouteDefinitionLocator作为路由定义加载的入口，通过组合模式将所有的RouteDefinitionLocator代理。最终通过CompositeRouteDefinitionLocator的getRouteDefinitions方法将所有定义加载出来。</p>
-<image src="code2.png"/>
-
-<image src="code3.png"/>
-
-<p>通过源代码的解读，我们发现如果需要定义新的路由加载方式，只需要增加一个RouteDefinitionLocator的实现即可，在实际操作中为了方便路由更新我们仿照已有的实现</p>
-<p>InMemoryRouteDefinitionRepository进行实现，类图如下：</p>
-<image src="class_diagram.png"/>
-
-<p>我们通过新增了一个抽象类类完成RouteDefinitionRepository的扩展，在抽象类里我们实现了基本的get, save, delete方法，另外新增了refresh方法用于刷新缓存，而缓存的实现参考了InMemory的实现方式。</p>
-<p>在需要进行扩展的时候我们可以通过继承AbstractRoutConfigure来增加我们自己的configure loader，再通过Configuration方式注入即可：</p>
-<image src="code4.png"/>
-
-<p>最终的实现效果是我们通过数据库变更配置后，通过restful接口来调用refresh方法即可完成路由的动态刷新。</p>
-<h3 id="服务路由"><a href="#服务路由" class="headerlink" title="服务路由"></a>服务路由</h3><p>通过上面动态路由的基本实现，我们数据库中的配置是这样的：</p>
-<image src="table.png"/>
-
-<p>但是我们是要做微服务和集群的网关，直接写地址显然是不行的。</p>
-<p>针对这种情况，SCG提供了一种URI的格式：lb:&#x2F;&#x2F;main-service，其中main-service是我们微服务在注册中心的name。当URI以lb开头，则在进行URI解析的时候会去寻找zookeeper，consul，eureka对应的客户端实现。我们使用的是eureka，并且在数据库中加上以下配置：</p>
-<image src="table2.png"/>
-
-<p>这样我们就可以成功代理微服务提供的接口了。</p>
-<h3 id="容错管理"><a href="#容错管理" class="headerlink" title="容错管理"></a>容错管理</h3><p>容错管理从以下两方面进行考虑：</p>
-<ol>
-<li><p>路由未定义</p>
-<p>针对路由未找到的情况，提供有意义的报错信息进行有效反馈。</p>
-<p>实现层面主要通过定义一个NotFound的路由，通过设置order确保NotFound路由在所有的路由之后执行，这样当所有的路由都没有匹配上的时候就会被路由到NotFound路由，从而反馈有意义的报错信息。</p>
-</li>
-<li><p>熔断器</p>
-<p>熔断器主要应用于请求超时，服务端错误等使用场景，SCG提供了Hystrix的集成，我们只需要在YAML配置文件里面配置default filter并加入fallbackUri的实现即可。</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">spring:</span> <br>  <span class="hljs-attr">cloud:</span><br>    <span class="hljs-attr">gateway:</span><br>      <span class="hljs-attr">default-filters:</span><br>      <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">Hystrix</span><br>        <span class="hljs-attr">args:</span><br>          <span class="hljs-attr">name:</span> <span class="hljs-string">fallbackcmd</span><br>          <span class="hljs-attr">fallbackUri:</span> <span class="hljs-string">forward:/fallbackcontroller</span><br><br></code></pre></td></tr></table></figure></li>
-</ol>
-<p>通过上面两点的配置，我们在请求出错如超时、服务宕机的情况都可以得到对应的错误信息，确保了网关服务的鲁棒性。</p>
-<h3 id="限流机制"><a href="#限流机制" class="headerlink" title="限流机制"></a>限流机制</h3><p>SCG使用的限流机制（Rate Limiter）基于令牌桶算法，我们先大致了解一下令牌桶算法。</p>
-<image src="rate.png"/>
-
-<p>从上图可以看出，令牌桶算法的主要数据结构是个缓冲区。通过匀速生成的令牌来填充缓冲区相当于生产者，而实际流量则相当于消费者来消费缓冲区中的令牌。 </p>
-<p>我们再结合SCG中的实现来看看令牌桶算法如何限流的。</p>
-<p>SCG使用RateLimiter需要引入spring-boot-starter-data-redis-reactive，所以SCG的令牌桶实现是基于Redis的，这样可以满足分布式的要求。SCG在使用过程中需要设置三个参数replenishRate ，burstCapacity和KeyResolver。</p>
-<ul>
-<li>replenishRate表示的是装桶的速率，也就是令牌生成的速率</li>
-<li>burstCapacity表示瞬间高爆发的容量，官方文档解释是一秒内允许的最大流量又补充了一句是令牌桶可以装下的令牌数</li>
-<li>KeyResolver很好理解，通过key的定义可以明确规定限流的层级，用户级还是IP级别等等</li>
-</ul>
-<p>对于burstCapacity的理解，只有当replenishRate和burstCapacity相等时也就是请求处理基本是匀速的情况下，burstCapacity才表示一秒内允许的最大流量，否则解释为令牌桶的容量更加贴切。</p>
-<p>代码实现主要通过RedisRateLimiter.class和request_rate_limiter.lua两个文件，而主要逻辑是通过脚本文件实现。</p>
-<image src="code5.png"/>
-
-<p>这里主要获取java传过来的参数，计算出ttl，ttl的逻辑是桶装满所需时间的两倍。</p>
-<image src="code6.png"/>
-
-<p>上面这段代码是实现限流的关键，每次都会通过当前时间和上次刷新时间的间隔计算填充的令牌，只有填充后的令牌 &gt;&#x3D; 请求的令牌数才符合条件允许令牌获取。</p>
-<p>当新的请求获取令牌后，更新令牌桶的令牌数和最后刷新时间。</p>
-<p>在实际引用中我们根据我们服务器的压力来设定rate和capacity，通过不停的调节来寻求吞吐和负载的平衡。</p>
-<h3 id="日志配置"><a href="#日志配置" class="headerlink" title="日志配置"></a>日志配置</h3><p>日志配置方面除了基本的logback配置，需要加入access_log的配置，根据官方文档我们需要在logback配置文件中加入logger和appender的配置。</p>
-<image src="code7.png"/>
-
-<p>如上图所示，通过定义logger接收netty的AccessLog，通过异步发射器发送到accessLog和errorLog两个Appender，在Appender中通过filter来区分日志类型。 </p>
-<p>这里需要注意的是Netty AccessLog的配置要到reactor-netty0.7.9之后才支持，所以在使用这个功能之前需要确保我们netty的版本满足要求，项目目前使用的spring版本如下，对应的reactor-netty版本为0.8.6。</p>
-<p>配置了这么多，然而access.log文件还是空空如也，因为你漏掉了很重要的一步：</p>
-<p>在启动参数中添加 <code>-Dreactor.netty.http.server.accessLogEnabled=true</code>. 注意这个属性是java系统属性而不是spring配置属性，也就是说只能通过启动参数注入。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我们通过一些简单的介绍了解了SCG的出现背景，然后通过实际的网关搭建实践来一步步的理解SCG的架构理念和实现细节。</p>
-<p>通过动态路由部分我们见证了SCG的可扩展性架构，在服务路由和容错管理部分我们主要和Spring Cloud已有组件（eureka， hystrix）进行集成，而在限流机制部分我们通过阅读源代码理解了基于令牌桶的限流算法以及如何结合Redis实现分布式系统限流，在日志配置部分主要是结合Netty的日志机制来完成网关的访问日志配置。</p>
-<p>在我们的实践中我们没有用上SCG的所有特性，但是就目前的情况用于我们自己的API 网关已经够用。</p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
         <tag>微服务</tag>
-        <tag>应用技术</tag>
       </tags>
   </entry>
   <entry>
@@ -2022,55 +2090,6 @@
       </tags>
   </entry>
   <entry>
-    <title>设计模式实战之策略枚举</title>
-    <url>/2021/11/27/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%AD%96%E7%95%A5%E6%9E%9A%E4%B8%BE/</url>
-    <content><![CDATA[<p>在开发中经常会遇到一些语句拼接的问题，如用于数据库查询的where条件或者用于逻辑判断的表达式。我们在应对这类问题的时候，直觉是使用if-else或者switch条件判断，下面是一个常见的例子：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title function_">buildStatement</span><span class="hljs-params">(<span class="hljs-type">int</span> type, String[] value)</span>&#123;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">statement</span> <span class="hljs-operator">=</span><span class="hljs-string">&quot;&quot;</span>;<br>    <span class="hljs-keyword">if</span>(type == <span class="hljs-number">1</span>) statement =<span class="hljs-string">&quot;value &gt;= %s and value &lt;= %s&quot;</span>;<span class="hljs-comment">//介于</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(type == <span class="hljs-number">2</span>) statement = <span class="hljs-string">&quot;value &lt; %s or value &gt; %s&quot;</span>;<span class="hljs-comment">//不介于</span><br>    ……<br>    <span class="hljs-keyword">return</span> String.format(statement, value[<span class="hljs-number">0</span>], value[<span class="hljs-number">1</span>]);<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<span id="more"></span>
-
-<h2 id="问题反思"><a href="#问题反思" class="headerlink" title="问题反思"></a>问题反思</h2><p>这段拼接字符串的代码功能上没什么问题，但是过多的if-else使得代码的阅读和维护都显得不是那么友好。在上面的例子中，我们还隐藏了一个关于type的枚举。考虑扩展性如果需要新增一个类型，我们需要做：</p>
-<ul>
-<li>Type枚举新增一个类型</li>
-<li>新增一个if-else 分支</li>
-</ul>
-<p>在枚举里面新增一个类型相当于增加了一个单例类，符合设计原则；但是新增if-else分支则涉及到具体类逻辑的修改，不符合开闭原则。</p>
-<p>让我们再来思考一下面临的问题：每个类型对应了一种字符串拼接的方法，要求根据高层次模块的需求可以自由切换，而不用关心拼接的细节。这正契合了策略模式的定义：</p>
-<blockquote>
-<p>策略模式通过定义一组算法将他们封装起来，使得算法之间可以相互替换</p>
-</blockquote>
-<h2 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h2><p>基于策略模式的定义，我们可以绘制出语句拼接场景下的类图。</p>
-<img src="class-diagram.png" alt="Image" />
-
-<p>首先定义了一个策略接口Statement，以及通用行为build。</p>
-<p>每一个策略都定义一个实现类，如介于（Between）。在实现类的代码实现如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//构造函数注入类型</span><br>Between()&#123;<br>  Super(<span class="hljs-number">1</span>);<br>&#125;<br><span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String[] params)</span>&#123;<br>  <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;value &gt;=%s and value &lt;=%s&quot;</span>,value[<span class="hljs-number">0</span>],value[<span class="hljs-number">1</span>]);<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>环境类Context提供了切换拼接方式的入口，高层模块调用方式如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">Context</span> <span class="hljs-variable">context</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Context</span>();<br>String[] values = <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[]&#123;<span class="hljs-string">&quot;10&quot;</span>,<span class="hljs-string">&quot;20&quot;</span>&#125;;<br>context.setStatement(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Between</span>());<br><span class="hljs-type">String</span> <span class="hljs-variable">betweenStatement</span> <span class="hljs-operator">=</span> context.buildStatement(values);<br>Context.setStatement(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Equal</span>());<br><span class="hljs-type">String</span> <span class="hljs-variable">equlStatement</span> <span class="hljs-operator">=</span> context.buildStatement(values);<br></code></pre></td></tr></table></figure>
-
-<p>通过上面的设计，如果我们新增一个拼接类型只需要新增一个新的实现类即可，不需要涉及任何现有代码的改动，符合开闭原则。</p>
-<p>但是如此完美的设计还是逃避不了策略模式的通病：类爆炸。当拼接类型过多的时候，系统中会出现很多的实现类，而且每个类都只有几十行代码，这在无形之中也会增加系统的维护成本。针对这种情形，我们可以引入策略枚举。因为我们知道枚举的值其实就是对应一个单例的实现，我们通常使用的枚举只是定义了这个单例的属性，如下图所示。</p>
-<img src="type-enum.png" alt="Image" />
-
-<p>策略枚举可以同时定义属性和行为，看起来更加的物尽其用。具体实现就是在枚举中除了属性定义之外通过抽象方法来定义枚举的行为，而在每一个枚举值中进行实现。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">enum</span> <span class="hljs-title class_">LogicStatement</span>&#123;<br>        BETWEEN(<span class="hljs-number">1</span>,<span class="hljs-string">&quot;介于&quot;</span>)&#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span> &#123;<br>                <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;and value&gt;%s and value&lt;%s&quot;</span>,values[<span class="hljs-number">0</span>],values[<span class="hljs-number">1</span>]);<br>            &#125;<br>        &#125;,<br>        NOT_BETWEEN(<span class="hljs-number">2</span>,<span class="hljs-string">&quot;未介于&quot;</span>)&#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span> &#123;<br>                <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;and (value&gt;=%s or value&lt;=%s)&quot;</span>,values[<span class="hljs-number">1</span>],values[<span class="hljs-number">0</span>]);<br>            &#125;<br>        &#125;,<br>        EQUAL(<span class="hljs-number">3</span>,<span class="hljs-string">&quot;等于&quot;</span>)&#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span> &#123;<br>                <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;and value=%s&quot;</span>,values[<span class="hljs-number">0</span>]);<br>            &#125;<br>        &#125;;<br><br>        <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> value;<br>        <span class="hljs-keyword">private</span> String name;<br>        LogicStatement(<span class="hljs-type">int</span> _value, String _name)&#123;<br>            <span class="hljs-built_in">this</span>.value = _value;<br>            <span class="hljs-built_in">this</span>.name = _name;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getValue</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> value;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getName</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> name;<br>        &#125;<br><br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>如上所示，LogicStatement定义了枚举的属性和行为，在每一个枚举中通过构造器注入属性，通过重写来定义行为。通过策略枚举的实现在策略模式的基础上有效的归集了策略模式的实现类，方便管理和维护。</p>
-<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>上面的例子中我们使用策略模式来实现字符串拼接的功能，主要原因是功能的封装和算法的切换符合策略模式的定义。通过策略模式的引进可以增强设计和实现的可维护性和可扩展性。对于简单策略可能带来的类爆炸问题，我们可以通过策略枚举解决。但是需要谨记使用策略枚举的前提：</p>
-<ol>
-<li>简单策略，即策略的实现代码较少，否则会造成枚举类过大</li>
-<li>策略类较多，如果策略类只有五个以内或者更少还是建议使用策略类的方式来实现，毕竟策略枚举的扩展还是要修改已有枚举类代码，并不是纯粹意义的扩展</li>
-</ol>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>设计模式</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>设计模式实战之状态模式</title>
     <url>/2021/12/17/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/</url>
     <content><![CDATA[<p>系统启动阶段需要完成一些准备工作，最初是通过Spring Application Runner来实现，实现思路用业务语言描述就是：</p>
@@ -2151,58 +2170,46 @@
       </tags>
   </entry>
   <entry>
-    <title>设计模式实战之访问者模式</title>
-    <url>/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/</url>
-    <content><![CDATA[<p>访问者模式主要解决了数据结构和数据行为的分离，通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展。所以访问者模式可以理解为重构模式。</p>
-<p>访问者模式主要有四个角色：</p>
-<ol>
-<li>Visitor接口，通过抽象的访问者接口定义了访问的行为</li>
-<li>ConcreteVisitor实现类对访问行为进行具体的逻辑实现</li>
-<li>Element接口定义了被访问者的基本操作</li>
-<li>Element实现类定义了具体的被访问对象实现</li>
-</ol>
+    <title>设计模式实战之策略枚举</title>
+    <url>/2021/11/27/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E7%AD%96%E7%95%A5%E6%9E%9A%E4%B8%BE/</url>
+    <content><![CDATA[<p>在开发中经常会遇到一些语句拼接的问题，如用于数据库查询的where条件或者用于逻辑判断的表达式。我们在应对这类问题的时候，直觉是使用if-else或者switch条件判断，下面是一个常见的例子：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title function_">buildStatement</span><span class="hljs-params">(<span class="hljs-type">int</span> type, String[] value)</span>&#123;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">statement</span> <span class="hljs-operator">=</span><span class="hljs-string">&quot;&quot;</span>;<br>    <span class="hljs-keyword">if</span>(type == <span class="hljs-number">1</span>) statement =<span class="hljs-string">&quot;value &gt;= %s and value &lt;= %s&quot;</span>;<span class="hljs-comment">//介于</span><br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(type == <span class="hljs-number">2</span>) statement = <span class="hljs-string">&quot;value &lt; %s or value &gt; %s&quot;</span>;<span class="hljs-comment">//不介于</span><br>    ……<br>    <span class="hljs-keyword">return</span> String.format(statement, value[<span class="hljs-number">0</span>], value[<span class="hljs-number">1</span>]);<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
 <span id="more"></span>
 
+<h2 id="问题反思"><a href="#问题反思" class="headerlink" title="问题反思"></a>问题反思</h2><p>这段拼接字符串的代码功能上没什么问题，但是过多的if-else使得代码的阅读和维护都显得不是那么友好。在上面的例子中，我们还隐藏了一个关于type的枚举。考虑扩展性如果需要新增一个类型，我们需要做：</p>
+<ul>
+<li>Type枚举新增一个类型</li>
+<li>新增一个if-else 分支</li>
+</ul>
+<p>在枚举里面新增一个类型相当于增加了一个单例类，符合设计原则；但是新增if-else分支则涉及到具体类逻辑的修改，不符合开闭原则。</p>
+<p>让我们再来思考一下面临的问题：每个类型对应了一种字符串拼接的方法，要求根据高层次模块的需求可以自由切换，而不用关心拼接的细节。这正契合了策略模式的定义：</p>
+<blockquote>
+<p>策略模式通过定义一组算法将他们封装起来，使得算法之间可以相互替换</p>
+</blockquote>
+<h2 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h2><p>基于策略模式的定义，我们可以绘制出语句拼接场景下的类图。</p>
 <img src="class-diagram.png" alt="Image" />
 
-<p>访问者模式适用于数据结构相对固定而行为可变的场景，结合类图也就是说Element以及其实现类相对固定，而需要改变的是访问这些Element之后的行为。访问者模式的可扩展性体现在visitor的可扩展。</p>
-<p>访问者模式最重要的优点我认为是实现了单一职责原则，每一个visitor实现类实现了一个功能，职责划分非常清晰。</p>
-<p>访问者模式的缺点：</p>
-<ul>
-<li>Element被访问类不可扩展</li>
-<li>Visitor直接依赖具体的被访问对象，不符合依赖倒置原则</li>
-<li>Visitor直接访问被依赖对象内部的方法，不符合迪米特法则</li>
-</ul>
-<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><p>在模型计算的触发中我们定义了三种计算任务，分别是特征计算任务、累积损伤计算任务和异常诊断计算任务。任务类型是相对固定的，而计算任务所对应的行为是有扩展需求的，这恰恰符合了访问者模式定义的使用场景。</p>
-<blockquote>
-<p>通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展</p>
-</blockquote>
-<h2 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h2><p>在进行详细的类图设计之前，我们进行角色匹配</p>
-<ul>
-<li>Element角色定义了被访问者的通用属性，对应计算认为的抽象类Task</li>
-<li>Element1等具体被访问者就对应了我们场景中的计算任务：FeatureTask、ModelTask等</li>
-<li>Visitor角色定义了访问者的行为</li>
-<li>ConcreteVisitor角色定义了具体的访问行为，如计算行为可以对应一个具体的CalculateVisitor</li>
-</ul>
-<p>结合访问者模式得到类图如下：</p>
-<img src="new-class-diagram.png" alt="Image" />
+<p>首先定义了一个策略接口Statement，以及通用行为build。</p>
+<p>每一个策略都定义一个实现类，如介于（Between）。在实现类的代码实现如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-comment">//构造函数注入类型</span><br>Between()&#123;<br>  Super(<span class="hljs-number">1</span>);<br>&#125;<br><span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String[] params)</span>&#123;<br>  <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;value &gt;=%s and value &lt;=%s&quot;</span>,value[<span class="hljs-number">0</span>],value[<span class="hljs-number">1</span>]);<br>&#125;<br></code></pre></td></tr></table></figure>
 
-<p>CalculateVisitor实现如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CalculateVisitor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Visitor</span>&#123;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">visit</span><span class="hljs-params">(FeatureTask featureTask)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;开始执行特征计算任务，任务名：&quot;</span>+featureTask.getName());<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">visit</span><span class="hljs-params">(ModelTask modelTask)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;开始执行模型计算任务，任务名：&quot;</span>+modelTask.getName());<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>环境类Context提供了切换拼接方式的入口，高层模块调用方式如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">Context</span> <span class="hljs-variable">context</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Context</span>();<br>String[] values = <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[]&#123;<span class="hljs-string">&quot;10&quot;</span>,<span class="hljs-string">&quot;20&quot;</span>&#125;;<br>context.setStatement(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Between</span>());<br><span class="hljs-type">String</span> <span class="hljs-variable">betweenStatement</span> <span class="hljs-operator">=</span> context.buildStatement(values);<br>Context.setStatement(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Equal</span>());<br><span class="hljs-type">String</span> <span class="hljs-variable">equlStatement</span> <span class="hljs-operator">=</span> context.buildStatement(values);<br></code></pre></td></tr></table></figure>
 
-<p>对于CalculateVisitor来说引起变化的原因只有计算逻辑的变化，因此是符合单一职责原则的。计算任务类型固定，不存在任务的扩展需求，所以从扩展角度来看访问者模式是可以满足要求的。</p>
-<p>我们再看一下上面访问者的类图，发现迪米特法则也好依赖倒置原则也罢，问题的根源在于Visitor直接依赖了实现类，那直接依赖接口会怎么样呢？</p>
-<img src="future-class-diagram.png" alt="Image" />
+<p>通过上面的设计，如果我们新增一个拼接类型只需要新增一个新的实现类即可，不需要涉及任何现有代码的改动，符合开闭原则。</p>
+<p>但是如此完美的设计还是逃避不了策略模式的通病：类爆炸。当拼接类型过多的时候，系统中会出现很多的实现类，而且每个类都只有几十行代码，这在无形之中也会增加系统的维护成本。针对这种情形，我们可以引入策略枚举。因为我们知道枚举的值其实就是对应一个单例的实现，我们通常使用的枚举只是定义了这个单例的属性，如下图所示。</p>
+<img src="type-enum.png" alt="Image" />
 
-<p>依赖倒置的问题解决，Task接口和Visitor接口可以分别扩展，开闭的问题也解决了。CalculateVisitor中的实现：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CalculateVisitor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Visitor</span>&#123;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> &lt;T <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Task</span>&gt; <span class="hljs-keyword">void</span> <span class="hljs-title function_">visit</span><span class="hljs-params">(T task)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;开始执行特征计算任务，任务名：&quot;</span>+task.getName());<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>策略枚举可以同时定义属性和行为，看起来更加的物尽其用。具体实现就是在枚举中除了属性定义之外通过抽象方法来定义枚举的行为，而在每一个枚举值中进行实现。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">enum</span> <span class="hljs-title class_">LogicStatement</span>&#123;<br>        BETWEEN(<span class="hljs-number">1</span>,<span class="hljs-string">&quot;介于&quot;</span>)&#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span> &#123;<br>                <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;and value&gt;%s and value&lt;%s&quot;</span>,values[<span class="hljs-number">0</span>],values[<span class="hljs-number">1</span>]);<br>            &#125;<br>        &#125;,<br>        NOT_BETWEEN(<span class="hljs-number">2</span>,<span class="hljs-string">&quot;未介于&quot;</span>)&#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span> &#123;<br>                <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;and (value&gt;=%s or value&lt;=%s)&quot;</span>,values[<span class="hljs-number">1</span>],values[<span class="hljs-number">0</span>]);<br>            &#125;<br>        &#125;,<br>        EQUAL(<span class="hljs-number">3</span>,<span class="hljs-string">&quot;等于&quot;</span>)&#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span> &#123;<br>                <span class="hljs-keyword">return</span> String.format(<span class="hljs-string">&quot;and value=%s&quot;</span>,values[<span class="hljs-number">0</span>]);<br>            &#125;<br>        &#125;;<br><br>        <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> value;<br>        <span class="hljs-keyword">private</span> String name;<br>        LogicStatement(<span class="hljs-type">int</span> _value, String _name)&#123;<br>            <span class="hljs-built_in">this</span>.value = _value;<br>            <span class="hljs-built_in">this</span>.name = _name;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getValue</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> value;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getName</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> name;<br>        &#125;<br><br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> String <span class="hljs-title function_">build</span><span class="hljs-params">(String... values)</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 
-<p>客户端调用如下：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">List&lt;Task&gt; taskList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br><span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">10</span>;i++)&#123;<br>    taskList.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FeatureTask</span>(<span class="hljs-string">&quot;F_&quot;</span>+i));<br>    taskList.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ModelTask</span>(<span class="hljs-string">&quot;M_&quot;</span>+i));<br>&#125;<br>Collections.shuffle(taskList);<br><span class="hljs-comment">//数据准备完成</span><br><span class="hljs-type">Visitor</span> <span class="hljs-variable">calculateVisitor</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CalculateVisitor</span>();<br><span class="hljs-keyword">for</span>(Task t: taskList)&#123;<br>    t.accept(calculateVisitor);<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>在上面的例子中我们首先引入经典的访问者模式，将数据结构和行为分离后发现违背依赖倒置原则引发的扩展性问题其实可以通过泛型来解决。经过改造之后，设计更加灵活，可扩展性更好。</p>
-<p>但是我们要谨记每一个设计模式都有其适用的场景，设计模式没有银弹。</p>
-<p>对比以上两种访问者模式实现可以发现，第二种设计扩展性更好的同时带来了架构的复杂性，对于被访问者的要求更高了，也就是说他们必须是同类，只有这样才能将公共行为抽取到接口来满足依赖倒置原则；反观第一种设计，由于访问者直接访问实现类，所以被访问者实现类之间只存在accept这一个共性约束，被访问者之间是同事类的关系即可。</p>
+<p>如上所示，LogicStatement定义了枚举的属性和行为，在每一个枚举中通过构造器注入属性，通过重写来定义行为。通过策略枚举的实现在策略模式的基础上有效的归集了策略模式的实现类，方便管理和维护。</p>
+<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>上面的例子中我们使用策略模式来实现字符串拼接的功能，主要原因是功能的封装和算法的切换符合策略模式的定义。通过策略模式的引进可以增强设计和实现的可维护性和可扩展性。对于简单策略可能带来的类爆炸问题，我们可以通过策略枚举解决。但是需要谨记使用策略枚举的前提：</p>
+<ol>
+<li>简单策略，即策略的实现代码较少，否则会造成枚举类过大</li>
+<li>策略类较多，如果策略类只有五个以内或者更少还是建议使用策略类的方式来实现，毕竟策略枚举的扩展还是要修改已有枚举类代码，并不是纯粹意义的扩展</li>
+</ol>
 ]]></content>
       <categories>
         <category>技术总结</category>
@@ -2261,6 +2268,67 @@
 <p>我们在原始的实现中只是使用了模板方法，通过抽象类实现了功能的可复用，这种方式我们称之为静态增强。这时候如果需要新增新的增强方式，需要涉及抽象类的修改和模型实现类的修改，无法满足开闭原则，扩展性不好。</p>
 <p>如果引入装饰模式，使用包装类的方式对原始功能进行增强，理论上可以增加任意多的增强。装饰类的新增只需要高层模块的修改，不涉及已有功能的改动，符合了开闭原则。</p>
 <p>实际应用中可以结合模板方法，动静结合的对类进行增强。同时需要注意包装类的数量不宜过多，太多的增强可能引发代码复杂度的急剧增加带来维护的难度。</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>设计模式</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>设计模式实战之访问者模式</title>
+    <url>/2022/01/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9E%E6%88%98%E4%B9%8B%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F/</url>
+    <content><![CDATA[<p>访问者模式主要解决了数据结构和数据行为的分离，通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展。所以访问者模式可以理解为重构模式。</p>
+<p>访问者模式主要有四个角色：</p>
+<ol>
+<li>Visitor接口，通过抽象的访问者接口定义了访问的行为</li>
+<li>ConcreteVisitor实现类对访问行为进行具体的逻辑实现</li>
+<li>Element接口定义了被访问者的基本操作</li>
+<li>Element实现类定义了具体的被访问对象实现</li>
+</ol>
+<span id="more"></span>
+
+<img src="class-diagram.png" alt="Image" />
+
+<p>访问者模式适用于数据结构相对固定而行为可变的场景，结合类图也就是说Element以及其实现类相对固定，而需要改变的是访问这些Element之后的行为。访问者模式的可扩展性体现在visitor的可扩展。</p>
+<p>访问者模式最重要的优点我认为是实现了单一职责原则，每一个visitor实现类实现了一个功能，职责划分非常清晰。</p>
+<p>访问者模式的缺点：</p>
+<ul>
+<li>Element被访问类不可扩展</li>
+<li>Visitor直接依赖具体的被访问对象，不符合依赖倒置原则</li>
+<li>Visitor直接访问被依赖对象内部的方法，不符合迪米特法则</li>
+</ul>
+<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><p>在模型计算的触发中我们定义了三种计算任务，分别是特征计算任务、累积损伤计算任务和异常诊断计算任务。任务类型是相对固定的，而计算任务所对应的行为是有扩展需求的，这恰恰符合了访问者模式定义的使用场景。</p>
+<blockquote>
+<p>通过访问者模式可以在保持数据结构相对稳定的情况下，对数据行为进行单独扩展</p>
+</blockquote>
+<h2 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h2><p>在进行详细的类图设计之前，我们进行角色匹配</p>
+<ul>
+<li>Element角色定义了被访问者的通用属性，对应计算认为的抽象类Task</li>
+<li>Element1等具体被访问者就对应了我们场景中的计算任务：FeatureTask、ModelTask等</li>
+<li>Visitor角色定义了访问者的行为</li>
+<li>ConcreteVisitor角色定义了具体的访问行为，如计算行为可以对应一个具体的CalculateVisitor</li>
+</ul>
+<p>结合访问者模式得到类图如下：</p>
+<img src="new-class-diagram.png" alt="Image" />
+
+<p>CalculateVisitor实现如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CalculateVisitor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Visitor</span>&#123;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">visit</span><span class="hljs-params">(FeatureTask featureTask)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;开始执行特征计算任务，任务名：&quot;</span>+featureTask.getName());<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">visit</span><span class="hljs-params">(ModelTask modelTask)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;开始执行模型计算任务，任务名：&quot;</span>+modelTask.getName());<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>对于CalculateVisitor来说引起变化的原因只有计算逻辑的变化，因此是符合单一职责原则的。计算任务类型固定，不存在任务的扩展需求，所以从扩展角度来看访问者模式是可以满足要求的。</p>
+<p>我们再看一下上面访问者的类图，发现迪米特法则也好依赖倒置原则也罢，问题的根源在于Visitor直接依赖了实现类，那直接依赖接口会怎么样呢？</p>
+<img src="future-class-diagram.png" alt="Image" />
+
+<p>依赖倒置的问题解决，Task接口和Visitor接口可以分别扩展，开闭的问题也解决了。CalculateVisitor中的实现：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CalculateVisitor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Visitor</span>&#123;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> &lt;T <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Task</span>&gt; <span class="hljs-keyword">void</span> <span class="hljs-title function_">visit</span><span class="hljs-params">(T task)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;开始执行特征计算任务，任务名：&quot;</span>+task.getName());<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>客户端调用如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">List&lt;Task&gt; taskList = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br><span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">10</span>;i++)&#123;<br>    taskList.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FeatureTask</span>(<span class="hljs-string">&quot;F_&quot;</span>+i));<br>    taskList.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ModelTask</span>(<span class="hljs-string">&quot;M_&quot;</span>+i));<br>&#125;<br>Collections.shuffle(taskList);<br><span class="hljs-comment">//数据准备完成</span><br><span class="hljs-type">Visitor</span> <span class="hljs-variable">calculateVisitor</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CalculateVisitor</span>();<br><span class="hljs-keyword">for</span>(Task t: taskList)&#123;<br>    t.accept(calculateVisitor);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>在上面的例子中我们首先引入经典的访问者模式，将数据结构和行为分离后发现违背依赖倒置原则引发的扩展性问题其实可以通过泛型来解决。经过改造之后，设计更加灵活，可扩展性更好。</p>
+<p>但是我们要谨记每一个设计模式都有其适用的场景，设计模式没有银弹。</p>
+<p>对比以上两种访问者模式实现可以发现，第二种设计扩展性更好的同时带来了架构的复杂性，对于被访问者的要求更高了，也就是说他们必须是同类，只有这样才能将公共行为抽取到接口来满足依赖倒置原则；反观第一种设计，由于访问者直接访问实现类，所以被访问者实现类之间只存在accept这一个共性约束，被访问者之间是同事类的关系即可。</p>
 ]]></content>
       <categories>
         <category>技术总结</category>
@@ -2344,8 +2412,8 @@
       </categories>
       <tags>
         <tag>Java</tag>
-        <tag>微服务</tag>
         <tag>架构设计</tag>
+        <tag>微服务</tag>
       </tags>
   </entry>
 </search>
