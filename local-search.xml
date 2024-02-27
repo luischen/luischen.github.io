@@ -4,6 +4,33 @@
   
   
   <entry>
+    <title>初识Node-Red</title>
+    <link href="/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/"/>
+    <url>/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/</url>
+    
+    <content type="html"><![CDATA[<p>Node-Red 是一个基于流程的编程工具，通过可视化编辑的方式帮助用户生成事件驱动的应用。其核心思想是连接，通过将IOT设备、API和在线服务连接，形成数据流程从而产生价值。</p><p>Node-Red名字中的Node包含两层含义，第一层指代流程中的节点，所有的IOT设备、API和在线服务都以Node的形式存在；第二层指代实现方式，Node-Red基于Nodejs构建，这也为它带来了事件驱动和非阻塞的特性。</p><h2 id="快速开始"><a href="#快速开始" class="headerlink" title="快速开始"></a>快速开始</h2><p>我们可以从github（<a href="https://github.com/node-red/node-red%EF%BC%89%E8%8E%B7%E5%8F%96%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC%E7%9A%84%E6%BA%90%E4%BB%A3%E7%A0%81%EF%BC%8C%E4%BB%8E%E6%BA%90%E4%BB%A3%E7%A0%81%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BA%E7%A1%AE%E4%BF%9D%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8%E6%9C%80%E6%96%B0%E7%9A%84%E7%89%B9%E6%80%A7%E3%80%82">https://github.com/node-red/node-red）获取最新版本的源代码，从源代码开始构建确保可以使用最新的特性。</a></p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs shell">git clone https://github.com/node-red/node-red.git<br>cd node-red<br>npm install<br>npm run build<br>npm start<br></code></pre></td></tr></table></figure><p>启动完成后，访问 <a href="http://localhost:1880/">http://localhost:1880</a> 即可进入管理页面。</p><img src="main.png" alt="image-20240226180233137" style="zoom:80%;" /><p>可以看到左边面板是已安装的节点，中间是编辑区，右边是功能区。</p><p>通过将左边面板的节点拖拽到编辑区，并进行连线即可形成流程。在节点上双击可以编辑节点内容。编辑完成后通过点击右上角的部署按钮完成流程部署运行。</p><h2 id="一个简单的流程"><a href="#一个简单的流程" class="headerlink" title="一个简单的流程"></a>一个简单的流程</h2><img src="simple.png" alt="image-20240226180748546" style="zoom:80%;" /><p>以上图中折线图流程为例，我们通过引入四个节点完成了流程的构建：</p><ol><li><p>周期触发器，通过Inject Node实现每隔10s生成一个事件</p></li><li><p>设定payload，通过一个Change Node给msg中的payload属性赋一个随机值</p><img src="change_node.png" alt="image-20240226181537477" style="zoom:50%;" /></li><li><p>折线图数据准备，使用Function Node通过js准备折线图需要的数据</p><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs javascript"><span class="hljs-keyword">let</span> result = &#123;<br>    <span class="hljs-string">&#x27;topic&#x27;</span>: <span class="hljs-string">&#x27;random&#x27;</span>,<br>    <span class="hljs-string">&#x27;payload&#x27;</span>: msg.<span class="hljs-property">payload</span>,<br>    <span class="hljs-string">&#x27;timestamp&#x27;</span> : msg.<span class="hljs-property">timestamp</span><br>&#125;<br><span class="hljs-keyword">return</span> result;<br></code></pre></td></tr></table></figure></li><li><p>折线图，最后来到Chart Node，选择折线图的展现形式</p></li></ol><p>流程部署后，通过访问Dashboard（<a href="http://localhost:1880/ui/%EF%BC%89%EF%BC%8C%E5%BE%97%E5%88%B0%E4%BA%86%E5%A6%82%E4%B8%8B%E7%9A%84%E6%8A%98%E7%BA%BF%E5%9B%BE">http://localhost:1880/ui/），得到了如下的折线图</a></p><img src="chart1.png" alt="image-20240226181413893" style="zoom:80%;" /><h2 id="OPC-UA数据流程"><a href="#OPC-UA数据流程" class="headerlink" title="OPC-UA数据流程"></a>OPC-UA数据流程</h2><p>接下来我们更进一步，使用实际工作中涉及的OPC-UA协议进行数据采集验证。</p><h3 id="UA服务器搭建"><a href="#UA服务器搭建" class="headerlink" title="UA服务器搭建"></a>UA服务器搭建</h3><p>我们可以基于开源项目node-opcua（<a href="https://github.com/node-opcua/node-opcua%EF%BC%89%E6%90%AD%E5%BB%BAOPC-UA%E6%9C%8D%E5%8A%A1%E5%99%A8%E3%80%82">https://github.com/node-opcua/node-opcua）搭建OPC-UA服务器。</a></p><p>首先安装node-opcua包</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">mkdir</span> mytest</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">cd</span> mytest</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">npm init</span> <br><span class="hljs-meta prompt_">$ </span><span class="language-bash">npm install node-opcua --unsafe-perms</span><br></code></pre></td></tr></table></figure><p>然后编写sample_server.js，参考文档 <a href="https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_server.md">https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_server.md</a> 并根据自己的需求进行改写。</p><p>最后通过 <code>node sample_server.js</code> 启动一个UA服务器。</p><h3 id="UA的节点安装"><a href="#UA的节点安装" class="headerlink" title="UA的节点安装"></a>UA的节点安装</h3><p>在管理页面通过节点管理菜单进入后，搜索opcua，选择 node-red-contrib-opcua，点击安装即可完成节点安装。安装完成后在左侧的已安装模块会出现opcua的相关节点，</p><img src="uanodes.png" alt="image-20240226184252739" style="zoom:50%;" /><h3 id="UA流程构建"><a href="#UA流程构建" class="headerlink" title="UA流程构建"></a>UA流程构建</h3><img src="flow_ua.png" alt="image-20240226183740712" style="zoom:80%;" /><p>UA流程使用如下节点共同构建UA数据采集流程：</p><ol><li><p>开始监听，通过Inject Node开始流程</p></li><li><p>内存监听，配置OpcUa-Item Node将需要监听的节点ID和数据类型通过消息传递给UA Client</p><img src="uaitem.png" alt="image-20240227110350561" style="zoom:80%;" /></li><li><p>OPC UA Client，通过OpcUa-Client Node配置UA服务器地址、交互方式（action）和交互频率</p><img src="uaclient.png" alt="image-20240227110445263" style="zoom:80%;" /></li><li><p>Topic数据分流，一个Switch Node将Client输出的数据进行分流，支持多种匹配方式，案例中使用topic完全匹配的方式来将不同的监听项分发到不同的分支。根据定义的分支数量，节点会生成相应数量的输出端点，将端点连接到子流程即可</p><img src="switch_node.png" alt="image-20240227112700879" style="zoom:80%;" /></li><li><p>debug节点，通过配置Debug节点可以在调试窗口查看节点的输出</p></li><li><p>仪表盘数据准备，一个用于准备数据的Function Node</p></li><li><p>内存使用仪表盘，一个使用仪表盘形式的Chart Node</p></li></ol><p>流程部署后，访问Dashboard，得到如下展示：</p><img src="chart2.png" alt="image-20240227110244199" style="zoom:80%;" /><h2 id="不是结束的结束"><a href="#不是结束的结束" class="headerlink" title="不是结束的结束"></a>不是结束的结束</h2><p>我们通过两个流程的实战，对于Node-Red进行了初步的了解，同时验证了Node-Red作为IOT数据采集工具的功能可用性。</p><p>但是如果要作为一个生产可用的软件，我们还需要考虑得更多。</p><ul><li>如果需要在车间的不同硬件上部署多个实例，如何实现批量部署、批量管理和状态监控？</li><li>如何通过性能测试界定软件在不同协议下工作的性能边界？</li><li>如何通过软件工程来确保软件的可靠性？</li></ul><p>Node-Red的征程才刚刚开始，后续会通过源码学习和专题研究的方式向产品化的目标前进。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>技术总结</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>数据采集</tag>
+      
+      <tag>IOT</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>异常检测算法之STL</title>
     <link href="/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/"/>
     <url>/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/</url>
@@ -47,9 +74,9 @@
     
     <tags>
       
-      <tag>信息安全</tag>
-      
       <tag>IOT</tag>
+      
+      <tag>信息安全</tag>
       
     </tags>
     

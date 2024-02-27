@@ -16,26 +16,34 @@
   <meta name="author" content="Luis Chen">
   <meta name="keywords" content="">
   
-    <meta name="description" content="在工业时序数据的异常判定中，我们提供了基于SPC的单特征判定和孤立森林的多维特征判定。但是这两种异常判定对于趋势数据的判定表现得并不是很尽如人意。对于符合趋势的时序数据我们认定正常工况主要有两种：  某个特定值或者在其周围进行波动 沿着特定的趋势进行变化或者在趋势周围进行波动  对于第一种情况的趋势，SPC或者孤立森林都可以很好的应付，到了第二种情况则要求随着趋势的变化动态的调整阈值，这大大增加了">
+    <meta name="description" content="Node-Red 是一个基于流程的编程工具，通过可视化编辑的方式帮助用户生成事件驱动的应用。其核心思想是连接，通过将IOT设备、API和在线服务连接，形成数据流程从而产生价值。 Node-Red名字中的Node包含两层含义，第一层指代流程中的节点，所有的IOT设备、API和在线服务都以Node的形式存在；第二层指代实现方式，Node-Red基于Nodejs构建，这也为它带来了事件驱动和非阻塞的特性">
 <meta property="og:type" content="article">
-<meta property="og:title" content="异常检测算法之STL">
-<meta property="og:url" content="https://luischen.github.io/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/index.html">
+<meta property="og:title" content="初识Node-Red">
+<meta property="og:url" content="https://luischen.github.io/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/index.html">
 <meta property="og:site_name" content="Next Station">
-<meta property="og:description" content="在工业时序数据的异常判定中，我们提供了基于SPC的单特征判定和孤立森林的多维特征判定。但是这两种异常判定对于趋势数据的判定表现得并不是很尽如人意。对于符合趋势的时序数据我们认定正常工况主要有两种：  某个特定值或者在其周围进行波动 沿着特定的趋势进行变化或者在趋势周围进行波动  对于第一种情况的趋势，SPC或者孤立森林都可以很好的应付，到了第二种情况则要求随着趋势的变化动态的调整阈值，这大大增加了">
+<meta property="og:description" content="Node-Red 是一个基于流程的编程工具，通过可视化编辑的方式帮助用户生成事件驱动的应用。其核心思想是连接，通过将IOT设备、API和在线服务连接，形成数据流程从而产生价值。 Node-Red名字中的Node包含两层含义，第一层指代流程中的节点，所有的IOT设备、API和在线服务都以Node的形式存在；第二层指代实现方式，Node-Red基于Nodejs构建，这也为它带来了事件驱动和非阻塞的特性">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://luischen.github.io/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/Figure_1.png">
-<meta property="og:image" content="https://luischen.github.io/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/Figure_2.png">
-<meta property="article:published_time" content="2023-12-25T03:09:30.000Z">
-<meta property="article:modified_time" content="2023-12-25T08:06:08.016Z">
+<meta property="og:image" content="https://luischen.github.io/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/main.png">
+<meta property="og:image" content="https://luischen.github.io/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/simple.png">
+<meta property="og:image" content="https://luischen.github.io/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/change_node.png">
+<meta property="og:image" content="https://luischen.github.io/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/chart1.png">
+<meta property="og:image" content="https://luischen.github.io/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/uanodes.png">
+<meta property="og:image" content="https://luischen.github.io/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/flow_ua.png">
+<meta property="og:image" content="https://luischen.github.io/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/uaitem.png">
+<meta property="og:image" content="https://luischen.github.io/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/uaclient.png">
+<meta property="og:image" content="https://luischen.github.io/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/switch_node.png">
+<meta property="og:image" content="https://luischen.github.io/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/chart2.png">
+<meta property="article:published_time" content="2024-02-26T09:20:00.000Z">
+<meta property="article:modified_time" content="2024-02-27T03:28:41.398Z">
 <meta property="article:author" content="Luis Chen">
-<meta property="article:tag" content="数据技术">
-<meta property="article:tag" content="异常检测">
+<meta property="article:tag" content="数据采集">
+<meta property="article:tag" content="IOT">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://luischen.github.io/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/Figure_1.png">
+<meta name="twitter:image" content="https://luischen.github.io/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/main.png">
   
   
   
-  <title>异常检测算法之STL - Next Station</title>
+  <title>初识Node-Red - Next Station</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -201,7 +209,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="异常检测算法之STL"></span>
+            <span id="subtitle" data-typed-text="初识Node-Red"></span>
           
         </div>
 
@@ -212,8 +220,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2023-12-25 11:09" pubdate>
-          2023年12月25日 上午
+        <time datetime="2024-02-26 17:20" pubdate>
+          2024年2月26日 下午
         </time>
       </span>
     
@@ -224,7 +232,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.4k 字
+          2k 字
         
       </span>
     
@@ -235,7 +243,7 @@
         
         
         
-          21 分钟
+          17 分钟
         
       </span>
     
@@ -273,67 +281,84 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">异常检测算法之STL</h1>
+            <h1 style="display: none">初识Node-Red</h1>
             
             
               <div class="markdown-body">
                 
-                <p>在工业时序数据的异常判定中，我们提供了基于SPC的单特征判定和孤立森林的多维特征判定。但是这两种异常判定对于趋势数据的判定表现得并不是很尽如人意。对于符合趋势的时序数据我们认定正常工况主要有两种：</p>
+                <p>Node-Red 是一个基于流程的编程工具，通过可视化编辑的方式帮助用户生成事件驱动的应用。其核心思想是连接，通过将IOT设备、API和在线服务连接，形成数据流程从而产生价值。</p>
+<p>Node-Red名字中的Node包含两层含义，第一层指代流程中的节点，所有的IOT设备、API和在线服务都以Node的形式存在；第二层指代实现方式，Node-Red基于Nodejs构建，这也为它带来了事件驱动和非阻塞的特性。</p>
+<h2 id="快速开始"><a href="#快速开始" class="headerlink" title="快速开始"></a>快速开始</h2><p>我们可以从github（<a target="_blank" rel="noopener" href="https://github.com/node-red/node-red%EF%BC%89%E8%8E%B7%E5%8F%96%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC%E7%9A%84%E6%BA%90%E4%BB%A3%E7%A0%81%EF%BC%8C%E4%BB%8E%E6%BA%90%E4%BB%A3%E7%A0%81%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BA%E7%A1%AE%E4%BF%9D%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8%E6%9C%80%E6%96%B0%E7%9A%84%E7%89%B9%E6%80%A7%E3%80%82">https://github.com/node-red/node-red）获取最新版本的源代码，从源代码开始构建确保可以使用最新的特性。</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs shell">git clone https://github.com/node-red/node-red.git<br>cd node-red<br>npm install<br>npm run build<br>npm start<br></code></pre></td></tr></table></figure>
+
+<p>启动完成后，访问 <a target="_blank" rel="noopener" href="http://localhost:1880/">http://localhost:1880</a> 即可进入管理页面。</p>
+<img src="main.png" srcset="/img/loading.gif" lazyload alt="image-20240226180233137" style="zoom:80%;" />
+
+<p>可以看到左边面板是已安装的节点，中间是编辑区，右边是功能区。</p>
+<p>通过将左边面板的节点拖拽到编辑区，并进行连线即可形成流程。在节点上双击可以编辑节点内容。编辑完成后通过点击右上角的部署按钮完成流程部署运行。</p>
+<h2 id="一个简单的流程"><a href="#一个简单的流程" class="headerlink" title="一个简单的流程"></a>一个简单的流程</h2><img src="simple.png" srcset="/img/loading.gif" lazyload alt="image-20240226180748546" style="zoom:80%;" />
+
+<p>以上图中折线图流程为例，我们通过引入四个节点完成了流程的构建：</p>
 <ol>
-<li>某个特定值或者在其周围进行波动</li>
-<li>沿着特定的趋势进行变化或者在趋势周围进行波动</li>
+<li><p>周期触发器，通过Inject Node实现每隔10s生成一个事件</p>
+</li>
+<li><p>设定payload，通过一个Change Node给msg中的payload属性赋一个随机值</p>
+<img src="change_node.png" srcset="/img/loading.gif" lazyload alt="image-20240226181537477" style="zoom:50%;" />
+</li>
+<li><p>折线图数据准备，使用Function Node通过js准备折线图需要的数据</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs javascript"><span class="hljs-keyword">let</span> result = &#123;<br>    <span class="hljs-string">&#x27;topic&#x27;</span>: <span class="hljs-string">&#x27;random&#x27;</span>,<br>    <span class="hljs-string">&#x27;payload&#x27;</span>: msg.<span class="hljs-property">payload</span>,<br>    <span class="hljs-string">&#x27;timestamp&#x27;</span> : msg.<span class="hljs-property">timestamp</span><br>&#125;<br><span class="hljs-keyword">return</span> result;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>折线图，最后来到Chart Node，选择折线图的展现形式</p>
+</li>
 </ol>
-<p>对于第一种情况的趋势，SPC或者孤立森林都可以很好的应付，到了第二种情况则要求随着趋势的变化动态的调整阈值，这大大增加了算法实现的复杂度。通过调研发现，基于时序数据分解的STL算法可以满足我们的要求。</p>
-<h2 id="算法介绍"><a href="#算法介绍" class="headerlink" title="算法介绍"></a>算法介绍</h2><p>STL的全称是 Seasonal and Trend decomposition using Loess， 其中Loess是进行非线性关系求解的方法，ST代表数据分解的两种主要成分，因此时序数据最终被分解为三个部分：</p>
+<p>流程部署后，通过访问Dashboard（<a target="_blank" rel="noopener" href="http://localhost:1880/ui/%EF%BC%89%EF%BC%8C%E5%BE%97%E5%88%B0%E4%BA%86%E5%A6%82%E4%B8%8B%E7%9A%84%E6%8A%98%E7%BA%BF%E5%9B%BE">http://localhost:1880/ui/），得到了如下的折线图</a></p>
+<img src="chart1.png" srcset="/img/loading.gif" lazyload alt="image-20240226181413893" style="zoom:80%;" />
+
+<h2 id="OPC-UA数据流程"><a href="#OPC-UA数据流程" class="headerlink" title="OPC-UA数据流程"></a>OPC-UA数据流程</h2><p>接下来我们更进一步，使用实际工作中涉及的OPC-UA协议进行数据采集验证。</p>
+<h3 id="UA服务器搭建"><a href="#UA服务器搭建" class="headerlink" title="UA服务器搭建"></a>UA服务器搭建</h3><p>我们可以基于开源项目node-opcua（<a target="_blank" rel="noopener" href="https://github.com/node-opcua/node-opcua%EF%BC%89%E6%90%AD%E5%BB%BAOPC-UA%E6%9C%8D%E5%8A%A1%E5%99%A8%E3%80%82">https://github.com/node-opcua/node-opcua）搭建OPC-UA服务器。</a></p>
+<p>首先安装node-opcua包</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">mkdir</span> mytest</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">cd</span> mytest</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">npm init</span> <br><span class="hljs-meta prompt_">$ </span><span class="language-bash">npm install node-opcua --unsafe-perms</span><br></code></pre></td></tr></table></figure>
+
+<p>然后编写sample_server.js，参考文档 <a target="_blank" rel="noopener" href="https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_server.md">https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_server.md</a> 并根据自己的需求进行改写。</p>
+<p>最后通过 <code>node sample_server.js</code> 启动一个UA服务器。</p>
+<h3 id="UA的节点安装"><a href="#UA的节点安装" class="headerlink" title="UA的节点安装"></a>UA的节点安装</h3><p>在管理页面通过节点管理菜单进入后，搜索opcua，选择 node-red-contrib-opcua，点击安装即可完成节点安装。安装完成后在左侧的已安装模块会出现opcua的相关节点，</p>
+<img src="uanodes.png" srcset="/img/loading.gif" lazyload alt="image-20240226184252739" style="zoom:50%;" />
+
+<h3 id="UA流程构建"><a href="#UA流程构建" class="headerlink" title="UA流程构建"></a>UA流程构建</h3><img src="flow_ua.png" srcset="/img/loading.gif" lazyload alt="image-20240226183740712" style="zoom:80%;" />
+
+<p>UA流程使用如下节点共同构建UA数据采集流程：</p>
 <ol>
-<li><p>Seasonal Component</p>
-<p>周期性成分，代表数据按照周期性波动的行为</p>
+<li><p>开始监听，通过Inject Node开始流程</p>
 </li>
-<li><p>Trend Component</p>
-<p>趋势性成分，代表数据按照特定趋势发展的行为</p>
+<li><p>内存监听，配置OpcUa-Item Node将需要监听的节点ID和数据类型通过消息传递给UA Client</p>
+<img src="uaitem.png" srcset="/img/loading.gif" lazyload alt="image-20240227110350561" style="zoom:80%;" />
 </li>
-<li><p>Residue Component</p>
-<p>残值成分，代表数据去除周期性和趋势性之后的剩余部分</p>
+<li><p>OPC UA Client，通过OpcUa-Client Node配置UA服务器地址、交互方式（action）和交互频率</p>
+<img src="uaclient.png" srcset="/img/loading.gif" lazyload alt="image-20240227110445263" style="zoom:80%;" />
+</li>
+<li><p>Topic数据分流，一个Switch Node将Client输出的数据进行分流，支持多种匹配方式，案例中使用topic完全匹配的方式来将不同的监听项分发到不同的分支。根据定义的分支数量，节点会生成相应数量的输出端点，将端点连接到子流程即可</p>
+<img src="switch_node.png" srcset="/img/loading.gif" lazyload alt="image-20240227112700879" style="zoom:80%;" />
+</li>
+<li><p>debug节点，通过配置Debug节点可以在调试窗口查看节点的输出</p>
+</li>
+<li><p>仪表盘数据准备，一个用于准备数据的Function Node</p>
+</li>
+<li><p>内存使用仪表盘，一个使用仪表盘形式的Chart Node</p>
 </li>
 </ol>
-<p>$$<br>Y_v &#x3D; T_v + S_v + R_v<br>$$</p>
-<p>如公式所示，针对每一个时序数据值都可以表示为三种成分之和。</p>
-<h2 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h2><p>STL算法在Python中通过 statsmodels.tsa.seasonal 包提供的STL库进行实现，如下是一个简单的实现示例：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> statsmodels.tsa.seasonal <span class="hljs-keyword">import</span> STL<br><span class="hljs-keyword">import</span> pandas <span class="hljs-keyword">as</span> pd<br><span class="hljs-keyword">import</span> matplotlib.pyplot <span class="hljs-keyword">as</span> plt<br><br>pd.plotting.register_matplotlib_converters()<br>df = pd.read_csv(constant.APP_PATH + <span class="hljs-string">&#x27;/data/data.csv&#x27;</span>)<br>df = df.tail(<span class="hljs-number">1000</span>)<br>data = df[[<span class="hljs-string">&#x27;f1&#x27;</span>]]<br>stl = STL(data, period=<span class="hljs-number">30</span>, seasonal=<span class="hljs-number">99</span>)<br>res = stl.fit()<br>res.plot()<br>plt.show()<br></code></pre></td></tr></table></figure>
+<p>流程部署后，访问Dashboard，得到如下展示：</p>
+<img src="chart2.png" srcset="/img/loading.gif" lazyload alt="image-20240227110244199" style="zoom:80%;" />
 
-<p>首先选取数据源data.csv中的f1列作为研究对象，使用STL方法进行分析，指定参数period和seasonal。通过fit方法返回的分析结果中包含了我们需要的结果数据：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-meta">@property</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">observed</span>(<span class="hljs-params">self</span>):<br>    <span class="hljs-string">&quot;&quot;&quot;Observed data&quot;&quot;&quot;</span><br>    <span class="hljs-keyword">return</span> self._observed<br><br><span class="hljs-meta">@property</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">seasonal</span>(<span class="hljs-params">self</span>):<br>    <span class="hljs-string">&quot;&quot;&quot;The estimated seasonal component&quot;&quot;&quot;</span><br>    <span class="hljs-keyword">return</span> self._seasonal<br><br><span class="hljs-meta">@property</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">trend</span>(<span class="hljs-params">self</span>):<br>    <span class="hljs-string">&quot;&quot;&quot;The estimated trend component&quot;&quot;&quot;</span><br>    <span class="hljs-keyword">return</span> self._trend<br><br><span class="hljs-meta">@property</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">resid</span>(<span class="hljs-params">self</span>):<br>    <span class="hljs-string">&quot;&quot;&quot;The estimated residuals&quot;&quot;&quot;</span><br>    <span class="hljs-keyword">return</span> self._resid<br></code></pre></td></tr></table></figure>
 
-<p>调用res.plot() 方法可以将以上四个数据集在一张图中呈现出来。</p>
-<img src="Figure_1.png" srcset="/img/loading.gif" lazyload alt="Figure_1" style="zoom:60%;" />
 
-<h2 id="场景应用"><a href="#场景应用" class="headerlink" title="场景应用"></a>场景应用</h2><p>在实际应用中我们通常需要考虑两个工程性的问题，即如何选取参数和如何进行异常判定。</p>
-<h3 id="参数选取"><a href="#参数选取" class="headerlink" title="参数选取"></a>参数选取</h3><p>在原论文中提供了6个参数，到Python的实现中变成了13个参数分布在STL构造方法和fit方法中。</p>
-<p>正如论文中提到的一样大多数参数的设值都是相当直接的，通过字面意思可以很容易的判断应该设置的值，如period参数根据数据的特性，如果是月度数据则设置为12。在我们上面的例子中，每天的数据量为30我们把period设置为30即可。</p>
-<p>难点在于如何合理地设置seasonal参数，seasonal参数通常设置为大于7的奇数，值越大则周期性成分中的子序列越平滑。这时候就面临着一个抉择：</p>
+<h2 id="不是结束的结束"><a href="#不是结束的结束" class="headerlink" title="不是结束的结束"></a>不是结束的结束</h2><p>我们通过两个流程的实战，对于Node-Red进行了初步的了解，同时验证了Node-Red作为IOT数据采集工具的功能可用性。</p>
+<p>但是如果要作为一个生产可用的软件，我们还需要考虑得更多。</p>
 <ul>
-<li>如果设置过大，则异常点对于周期的影响无法体现，容易造成漏报</li>
-<li>如果设置过小，周期内部噪音过多，容易造成误报</li>
+<li>如果需要在车间的不同硬件上部署多个实例，如何实现批量部署、批量管理和状态监控？</li>
+<li>如何通过性能测试界定软件在不同协议下工作的性能边界？</li>
+<li>如何通过软件工程来确保软件的可靠性？</li>
 </ul>
-<p>所以在seasonal参数设置的时候需要数据分析人员针对数据进行反复测算，最终达到以下效果：</p>
-<ol>
-<li>对于存在异常的周期需要体现异常点对周期的影响</li>
-<li>对于不存在异常的周期经过平滑之后需要遵循同样的可视化模式</li>
-</ol>
-<h3 id="判定异常"><a href="#判定异常" class="headerlink" title="判定异常"></a>判定异常</h3><p>从STL算法的一般形式可以看出，如果每个点都符合周期成分和趋势成分的累加，那么对应的残值就应该等于0或者接近0。<br>$$<br>Y_v &#x3D; T_v + S_v + R_v<br>$$</p>
-<p>所以在实际数据的诊断中可以使用残值来进行异常诊断，具体来说就是针对拟合后的残值数据计算上下限，根据预设或者训练的异常比例判定异常。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">low = stats.scoreatpercentile(res.resid, <span class="hljs-number">0.2</span>)<br>high = stats.scoreatpercentile(res.resid, <span class="hljs-number">99.8</span>)<br></code></pre></td></tr></table></figure>
-
-<p>按照以上异常比例得到的异常点图示如图：</p>
-<img src="Figure_2.png" srcset="/img/loading.gif" lazyload alt="Figure_2" style="zoom:72%;" />
-
-<p>异常的实际含义为，在异常点数据趋势发生了变化或者数据周期性行为出现了偏差。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我们通过引入STL算法来应对趋势性数据的异常检测，通过将数据分解为周期性和趋势性成分，得到数据残值作为诊断因子。</p>
-<p>实际工程应用中再结合阈值分析或者SPC的方法可以对趋势性数据进行超差或者异常判断。STL作为分解类算法的一种，提供了简单有效的实现以及灵活的参数配置，可以应对大部分的趋势性数据检测场景。</p>
-<p>同时由于只支持加法类型的分解，带来了一定局限性，如果需要乘法类型的分解可以考虑X11 decomposition等算法。</p>
-<p>参考：</p>
-<p><a target="_blank" rel="noopener" href="https://www.wessa.net/download/stl.pdf">STL论文</a></p>
-<p><a target="_blank" rel="noopener" href="https://otexts.com/fpp2/stl.html">STL decomposition</a></p>
+<p>Node-Red的征程才刚刚开始，后续会通过源码学习和专题研究的方式向产品化的目标前进。</p>
 
                 
               </div>
@@ -352,7 +377,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E5%B7%A5%E4%B8%9A%E7%AE%97%E6%B3%95/" class="category-chain-item">工业算法</a>
+  <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" class="category-chain-item">技术总结</a>
   
   
 
@@ -367,9 +392,9 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E6%95%B0%E6%8D%AE%E6%8A%80%E6%9C%AF/">#数据技术</a>
+        <a href="/tags/%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86/">#数据采集</a>
       
-        <a href="/tags/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B/">#异常检测</a>
+        <a href="/tags/IOT/">#IOT</a>
       
     </div>
   
@@ -381,8 +406,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>异常检测算法之STL</div>
-      <div>https://luischen.github.io/2023/12/25/异常检测算法之STL/</div>
+      <div>初识Node-Red</div>
+      <div>https://luischen.github.io/2024/02/26/初识Node-Red/</div>
     </div>
     <div class="license-meta">
       
@@ -394,7 +419,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2023年12月25日</div>
+          <div>2024年2月26日</div>
         </div>
       
       
@@ -426,18 +451,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/" title="初识Node-Red">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">初识Node-Red</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2023/10/24/%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x-509%E8%AF%81%E4%B9%A6%E4%BD%BF%E7%94%A8/" title="设备认证中的x.509证书使用">
-                        <span class="hidden-mobile">设备认证中的x.509证书使用</span>
+                      <a href="/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/" title="异常检测算法之STL">
+                        <span class="hidden-mobile">异常检测算法之STL</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
