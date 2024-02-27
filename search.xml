@@ -113,6 +113,66 @@
       </tags>
   </entry>
   <entry>
+    <title>InfluxDB数据接入MQTT</title>
+    <url>/2021/12/22/InfluxDB%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5MQTT/</url>
+    <content><![CDATA[<p>在边缘计算场景中数据存储在边缘的时序数据库如 InfluxDB 中，如果不能将数据进行归集以统筹管理则可能形成数据孤岛，无法充分有效的发挥大数据的威力。</p>
+<p>边缘端的数据流是数采网关直连InfluxDB，通过restful的方式将采集到的数据发送到时序数据库。这种方式的优点是架构简单，没有中间环节数据传输效率高、实时性有保障。缺点则是可扩展性低，无法满足数据处理、数据转发等需求。</p>
+<p>在某大型客户的案例中我们面临的挑战是边缘时序数据需要接入对方的工业互联网平台，鉴于平台支持MQTT方式接入，我们的问题就转化为：<em>边缘时序数据发送到MQTT队列</em></p>
+<span id="more"></span>
+
+<h2 id="方案设计"><a href="#方案设计" class="headerlink" title="方案设计"></a>方案设计</h2><p>在分析了我们现在连接方式后我们总结出三种方案来应对挑战。</p>
+<img src="solution.png"/>
+
+<ol>
+<li>方案一，网关直接连接MQTT</li>
+<li>方案二，定时任务去InfluxDB拉取后发送到MQTT</li>
+<li>方案三，模拟一个InfluxDB的订阅者，作为中间层</li>
+</ol>
+<p>综合来看方案一实现方式比较简单，直接由网关发起双写。缺点是对网关性能要求比较高，同样也面临后期扩展性的问题。</p>
+<p>方案二和方案三都是通过增加一个中间层来解决问题，通过中间层可以实现数据预处理、数据分发等功能保留了扩展性。不同点在于方案二采用主动拉取的方式，方案三采用了订阅者模式由InfluxDB推送数据更新到订阅者。相比较而言方案三的实时性更好，性能损耗也相对更小。</p>
+<p>最终我们选择方案三作为InfluxDB到MQTT的连接方案。</p>
+<img src="solution2.png"/>
+
+<h2 id="方案实现"><a href="#方案实现" class="headerlink" title="方案实现"></a>方案实现</h2><p>我们从三个方面来依次阐述方案实现：</p>
+<h3 id="InfluxDB-设置"><a href="#InfluxDB-设置" class="headerlink" title="InfluxDB 设置"></a>InfluxDB 设置</h3><p>在InfluxDB设置中，订阅是默认开启的。如果已经关闭注意打开即可，配置项段落如下：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml">[<span class="hljs-string">subscriber</span>]<br>	<span class="hljs-comment"># determine whether the subscriber service is enabled</span><br>	<span class="hljs-string">enable</span> <span class="hljs-string">=</span> <span class="hljs-literal">true</span><br></code></pre></td></tr></table></figure>
+
+<p>在完成了配置后需要重启服务生效。然后通过执行语句创建subscription，完成订阅。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">CREATE</span> SUBSCRIPTION &quot;mysub&quot; <span class="hljs-keyword">ON</span> &quot;test&quot;.&quot;autogen&quot; DESTINATIONS <span class="hljs-keyword">ALL</span> <span class="hljs-string">&#x27;http://192.168.8.181:9090&#x27;</span><br></code></pre></td></tr></table></figure>
+
+<p>其中 mysub 是订阅的名称，test 和 autogen 分别是数据库和保留策略的名称，<a href="http://192.168.8.181:9090/">http://192.168.8.181:9090</a> 是订阅者地址，InfluxDB会将fork的请求发送到这个地址。</p>
+<h3 id="订阅者实现"><a href="#订阅者实现" class="headerlink" title="订阅者实现"></a>订阅者实现</h3><p>订阅者实现是整个方案的核心，我们通过类图来说明。</p>
+<img src="class-diagram.png" />
+
+<p>Router是订阅者对外暴露的端点，通过receive方法接收请求后将请求流转到Transformer。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@PostMapping(&quot;/write&quot;)</span><br><span class="hljs-keyword">public</span> Mono&lt;String&gt; <span class="hljs-title function_">receive</span><span class="hljs-params">(<span class="hljs-meta">@RequestBody</span> String data)</span>&#123;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">mqttdata</span> <span class="hljs-operator">=</span> transformer.transform(data);<br>    gateway.sendToMqtt(mqttdata);<br>    <span class="hljs-keyword">return</span> Mono.empty();<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>Transformer将数据从InfluxDB的line protocol转换为平台接收的MQTT数据格式，通过MQTT客户端发送。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> String <span class="hljs-title function_">transform</span><span class="hljs-params">(String lineData)</span> &#123;<br>		<span class="hljs-type">RootCloudThing</span> <span class="hljs-variable">thing</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RootCloudThing</span>();<br>		<br>		String[] lines = lineData.split(<span class="hljs-string">&quot;\n&quot;</span>);<br>		List&lt;RootCloudItem&gt; items = Arrays.stream(lines)<br>				.filter(line-&gt; itemConfigure.isValidLine(line))<br>				.map(RootCloudItem::buildFromLine).collect(Collectors.toList());<br>		thing.setItems(items);<br>		<br>		Map&lt;String,List&lt;RootCloudThing&gt;&gt; innerMap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>		innerMap.put(<span class="hljs-string">&quot;things&quot;</span>, Arrays.asList(thing));<br>		Map&lt;String,Object&gt; outerMap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>		outerMap.put(<span class="hljs-string">&quot;body&quot;</span>, innerMap);<br>		<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Gson</span>().toJson(outerMap);<br>	&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>transform方法主要实现了line数据的过滤和向RootCloudThing对象的转换，最后以Json格式返回给Router用以发送到MQTT broker。</p>
+<h3 id="发送MQTT"><a href="#发送MQTT" class="headerlink" title="发送MQTT"></a>发送MQTT</h3><p>我们基于eclipse paho作为MQTT的客户端实现，pom文件引入如下依赖。</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>	<span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.integration<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>	<span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-integration-mqtt<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>通过配置文件注入配置</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># mqtt configure</span><br><span class="hljs-string">mqtt.broker.uri=tcp://mqtt-broker-pre.rootcloudapp.com:1883</span><br><span class="hljs-string">mqtt.broker.username=xxxxxxxx</span><br><span class="hljs-string">mqtt.broker.passcode=xxxxxxxx</span><br><span class="hljs-string">mqtt.broker.topic=v4/p/post/thing/live/json/1.1</span><br></code></pre></td></tr></table></figure>
+
+<p>通过ProducerConfigure类实现配置读取并初始化客户端bean</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Configuration</span><br><span class="hljs-meta">@ConfigurationProperties(prefix = &quot;mqtt.broker&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ProducerConfigure</span> &#123;<br>	<br>	<span class="hljs-keyword">private</span> String uri;<br>	<span class="hljs-keyword">private</span> String username;<br>	<span class="hljs-keyword">private</span> String passcode;<br>	<span class="hljs-keyword">private</span> String topic;<br>	<span class="hljs-meta">@Bean</span><br>	<span class="hljs-keyword">public</span> MqttPahoClientFactory <span class="hljs-title function_">mqttClientFactory</span><span class="hljs-params">()</span> &#123;<br>		<span class="hljs-type">DefaultMqttPahoClientFactory</span> <span class="hljs-variable">factory</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DefaultMqttPahoClientFactory</span>();<br>		<span class="hljs-type">MqttConnectOptions</span> <span class="hljs-variable">options</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MqttConnectOptions</span>();<br>		options.setServerURIs(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[] &#123; uri &#125;);<br>		options.setUserName(username);		<br>		options.setPassword(passcode.toCharArray());<br>		options.setCleanSession(<span class="hljs-literal">true</span>);<br>		factory.setConnectionOptions(options);<br>		<span class="hljs-keyword">return</span> factory;<br>	&#125;	<br><br>	<span class="hljs-meta">@Bean</span><br>	<span class="hljs-keyword">public</span> MessageChannel <span class="hljs-title function_">mqttOutboundChannel</span><span class="hljs-params">()</span> &#123;<br>		<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DirectChannel</span>();<br>	&#125;<br><br>	<span class="hljs-meta">@Bean</span><br>	<span class="hljs-meta">@ServiceActivator(inputChannel = &quot;mqttOutboundChannel&quot;)</span><br>	<span class="hljs-keyword">public</span> MessageHandler <span class="hljs-title function_">mqttOutbound</span><span class="hljs-params">()</span> &#123;<br>		<span class="hljs-type">MqttPahoMessageHandler</span> <span class="hljs-variable">messageHandler</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MqttPahoMessageHandler</span>(username, mqttClientFactory());<br>		messageHandler.setAsync(<span class="hljs-literal">true</span>);<br>		messageHandler.setDefaultTopic(topic);<br>		<span class="hljs-keyword">return</span> messageHandler;<br>	&#125;<br><br>	<span class="hljs-meta">@MessagingGateway(defaultRequestChannel = &quot;mqttOutboundChannel&quot;)</span><br>	<span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">MyGateway</span> &#123;<br>		<span class="hljs-keyword">void</span> <span class="hljs-title function_">sendToMqtt</span><span class="hljs-params">(String data)</span>;<br>	&#125;<br>	<span class="hljs-comment">//getter setter ....</span><br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>通过方案实现章节的三个步骤我们已经基本实现了一个用于订阅InfluxDB的中间层，反观实现原理和Canal（ <a href="https://github.com/alibaba/canal/">https://github.com/alibaba/canal/</a> ） 有点类似。</p>
+<p>通过中间层的引入，在网关直连到InfluxDB的已有方式不需要任何改动的前提下，我们实现了数据的预处理和分发。基于中间层我们可以将时序数据发送到任意目的地，满足数据归集、数据备份、数据展示和数据分析等多种需求。</p>
+<p>附源代码地址（版本更新后可能和原文实现有差异）：<a href="https://gitee.com/luischen/databridge">https://gitee.com/luischen/databridge</a></p>
+]]></content>
+      <categories>
+        <category>解决方案</category>
+      </categories>
+      <tags>
+        <tag>InfluxDB</tag>
+        <tag>数据技术</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java中的锁机制</title>
     <url>/2020/05/25/Java%E4%B8%AD%E7%9A%84%E9%94%81%E6%9C%BA%E5%88%B6/</url>
     <content><![CDATA[<p>说起Java中的并发，有一个永恒的话题就是锁机制，而提及Java中的锁，我们一般认为有两种形式，</p>
@@ -197,66 +257,6 @@
       <tags>
         <tag>编程语言</tag>
         <tag>Java</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>InfluxDB数据接入MQTT</title>
-    <url>/2021/12/22/InfluxDB%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5MQTT/</url>
-    <content><![CDATA[<p>在边缘计算场景中数据存储在边缘的时序数据库如 InfluxDB 中，如果不能将数据进行归集以统筹管理则可能形成数据孤岛，无法充分有效的发挥大数据的威力。</p>
-<p>边缘端的数据流是数采网关直连InfluxDB，通过restful的方式将采集到的数据发送到时序数据库。这种方式的优点是架构简单，没有中间环节数据传输效率高、实时性有保障。缺点则是可扩展性低，无法满足数据处理、数据转发等需求。</p>
-<p>在某大型客户的案例中我们面临的挑战是边缘时序数据需要接入对方的工业互联网平台，鉴于平台支持MQTT方式接入，我们的问题就转化为：<em>边缘时序数据发送到MQTT队列</em></p>
-<span id="more"></span>
-
-<h2 id="方案设计"><a href="#方案设计" class="headerlink" title="方案设计"></a>方案设计</h2><p>在分析了我们现在连接方式后我们总结出三种方案来应对挑战。</p>
-<img src="solution.png"/>
-
-<ol>
-<li>方案一，网关直接连接MQTT</li>
-<li>方案二，定时任务去InfluxDB拉取后发送到MQTT</li>
-<li>方案三，模拟一个InfluxDB的订阅者，作为中间层</li>
-</ol>
-<p>综合来看方案一实现方式比较简单，直接由网关发起双写。缺点是对网关性能要求比较高，同样也面临后期扩展性的问题。</p>
-<p>方案二和方案三都是通过增加一个中间层来解决问题，通过中间层可以实现数据预处理、数据分发等功能保留了扩展性。不同点在于方案二采用主动拉取的方式，方案三采用了订阅者模式由InfluxDB推送数据更新到订阅者。相比较而言方案三的实时性更好，性能损耗也相对更小。</p>
-<p>最终我们选择方案三作为InfluxDB到MQTT的连接方案。</p>
-<img src="solution2.png"/>
-
-<h2 id="方案实现"><a href="#方案实现" class="headerlink" title="方案实现"></a>方案实现</h2><p>我们从三个方面来依次阐述方案实现：</p>
-<h3 id="InfluxDB-设置"><a href="#InfluxDB-设置" class="headerlink" title="InfluxDB 设置"></a>InfluxDB 设置</h3><p>在InfluxDB设置中，订阅是默认开启的。如果已经关闭注意打开即可，配置项段落如下：</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml">[<span class="hljs-string">subscriber</span>]<br>	<span class="hljs-comment"># determine whether the subscriber service is enabled</span><br>	<span class="hljs-string">enable</span> <span class="hljs-string">=</span> <span class="hljs-literal">true</span><br></code></pre></td></tr></table></figure>
-
-<p>在完成了配置后需要重启服务生效。然后通过执行语句创建subscription，完成订阅。</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">CREATE</span> SUBSCRIPTION &quot;mysub&quot; <span class="hljs-keyword">ON</span> &quot;test&quot;.&quot;autogen&quot; DESTINATIONS <span class="hljs-keyword">ALL</span> <span class="hljs-string">&#x27;http://192.168.8.181:9090&#x27;</span><br></code></pre></td></tr></table></figure>
-
-<p>其中 mysub 是订阅的名称，test 和 autogen 分别是数据库和保留策略的名称，<a href="http://192.168.8.181:9090/">http://192.168.8.181:9090</a> 是订阅者地址，InfluxDB会将fork的请求发送到这个地址。</p>
-<h3 id="订阅者实现"><a href="#订阅者实现" class="headerlink" title="订阅者实现"></a>订阅者实现</h3><p>订阅者实现是整个方案的核心，我们通过类图来说明。</p>
-<img src="class-diagram.png" />
-
-<p>Router是订阅者对外暴露的端点，通过receive方法接收请求后将请求流转到Transformer。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@PostMapping(&quot;/write&quot;)</span><br><span class="hljs-keyword">public</span> Mono&lt;String&gt; <span class="hljs-title function_">receive</span><span class="hljs-params">(<span class="hljs-meta">@RequestBody</span> String data)</span>&#123;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">mqttdata</span> <span class="hljs-operator">=</span> transformer.transform(data);<br>    gateway.sendToMqtt(mqttdata);<br>    <span class="hljs-keyword">return</span> Mono.empty();<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>Transformer将数据从InfluxDB的line protocol转换为平台接收的MQTT数据格式，通过MQTT客户端发送。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> String <span class="hljs-title function_">transform</span><span class="hljs-params">(String lineData)</span> &#123;<br>		<span class="hljs-type">RootCloudThing</span> <span class="hljs-variable">thing</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RootCloudThing</span>();<br>		<br>		String[] lines = lineData.split(<span class="hljs-string">&quot;\n&quot;</span>);<br>		List&lt;RootCloudItem&gt; items = Arrays.stream(lines)<br>				.filter(line-&gt; itemConfigure.isValidLine(line))<br>				.map(RootCloudItem::buildFromLine).collect(Collectors.toList());<br>		thing.setItems(items);<br>		<br>		Map&lt;String,List&lt;RootCloudThing&gt;&gt; innerMap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>		innerMap.put(<span class="hljs-string">&quot;things&quot;</span>, Arrays.asList(thing));<br>		Map&lt;String,Object&gt; outerMap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>		outerMap.put(<span class="hljs-string">&quot;body&quot;</span>, innerMap);<br>		<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Gson</span>().toJson(outerMap);<br>	&#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>transform方法主要实现了line数据的过滤和向RootCloudThing对象的转换，最后以Json格式返回给Router用以发送到MQTT broker。</p>
-<h3 id="发送MQTT"><a href="#发送MQTT" class="headerlink" title="发送MQTT"></a>发送MQTT</h3><p>我们基于eclipse paho作为MQTT的客户端实现，pom文件引入如下依赖。</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>	<span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.integration<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>	<span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-integration-mqtt<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
-
-<p>通过配置文件注入配置</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><code class="hljs yaml"><span class="hljs-comment"># mqtt configure</span><br><span class="hljs-string">mqtt.broker.uri=tcp://mqtt-broker-pre.rootcloudapp.com:1883</span><br><span class="hljs-string">mqtt.broker.username=xxxxxxxx</span><br><span class="hljs-string">mqtt.broker.passcode=xxxxxxxx</span><br><span class="hljs-string">mqtt.broker.topic=v4/p/post/thing/live/json/1.1</span><br></code></pre></td></tr></table></figure>
-
-<p>通过ProducerConfigure类实现配置读取并初始化客户端bean</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Configuration</span><br><span class="hljs-meta">@ConfigurationProperties(prefix = &quot;mqtt.broker&quot;)</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ProducerConfigure</span> &#123;<br>	<br>	<span class="hljs-keyword">private</span> String uri;<br>	<span class="hljs-keyword">private</span> String username;<br>	<span class="hljs-keyword">private</span> String passcode;<br>	<span class="hljs-keyword">private</span> String topic;<br>	<span class="hljs-meta">@Bean</span><br>	<span class="hljs-keyword">public</span> MqttPahoClientFactory <span class="hljs-title function_">mqttClientFactory</span><span class="hljs-params">()</span> &#123;<br>		<span class="hljs-type">DefaultMqttPahoClientFactory</span> <span class="hljs-variable">factory</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DefaultMqttPahoClientFactory</span>();<br>		<span class="hljs-type">MqttConnectOptions</span> <span class="hljs-variable">options</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MqttConnectOptions</span>();<br>		options.setServerURIs(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[] &#123; uri &#125;);<br>		options.setUserName(username);		<br>		options.setPassword(passcode.toCharArray());<br>		options.setCleanSession(<span class="hljs-literal">true</span>);<br>		factory.setConnectionOptions(options);<br>		<span class="hljs-keyword">return</span> factory;<br>	&#125;	<br><br>	<span class="hljs-meta">@Bean</span><br>	<span class="hljs-keyword">public</span> MessageChannel <span class="hljs-title function_">mqttOutboundChannel</span><span class="hljs-params">()</span> &#123;<br>		<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DirectChannel</span>();<br>	&#125;<br><br>	<span class="hljs-meta">@Bean</span><br>	<span class="hljs-meta">@ServiceActivator(inputChannel = &quot;mqttOutboundChannel&quot;)</span><br>	<span class="hljs-keyword">public</span> MessageHandler <span class="hljs-title function_">mqttOutbound</span><span class="hljs-params">()</span> &#123;<br>		<span class="hljs-type">MqttPahoMessageHandler</span> <span class="hljs-variable">messageHandler</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MqttPahoMessageHandler</span>(username, mqttClientFactory());<br>		messageHandler.setAsync(<span class="hljs-literal">true</span>);<br>		messageHandler.setDefaultTopic(topic);<br>		<span class="hljs-keyword">return</span> messageHandler;<br>	&#125;<br><br>	<span class="hljs-meta">@MessagingGateway(defaultRequestChannel = &quot;mqttOutboundChannel&quot;)</span><br>	<span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">MyGateway</span> &#123;<br>		<span class="hljs-keyword">void</span> <span class="hljs-title function_">sendToMqtt</span><span class="hljs-params">(String data)</span>;<br>	&#125;<br>	<span class="hljs-comment">//getter setter ....</span><br><br>&#125;<br></code></pre></td></tr></table></figure>
-
-<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>通过方案实现章节的三个步骤我们已经基本实现了一个用于订阅InfluxDB的中间层，反观实现原理和Canal（ <a href="https://github.com/alibaba/canal/">https://github.com/alibaba/canal/</a> ） 有点类似。</p>
-<p>通过中间层的引入，在网关直连到InfluxDB的已有方式不需要任何改动的前提下，我们实现了数据的预处理和分发。基于中间层我们可以将时序数据发送到任意目的地，满足数据归集、数据备份、数据展示和数据分析等多种需求。</p>
-<p>附源代码地址（版本更新后可能和原文实现有差异）：<a href="https://gitee.com/luischen/databridge">https://gitee.com/luischen/databridge</a></p>
-]]></content>
-      <categories>
-        <category>解决方案</category>
-      </categories>
-      <tags>
-        <tag>InfluxDB</tag>
-        <tag>数据技术</tag>
       </tags>
   </entry>
   <entry>
@@ -389,6 +389,39 @@
       </categories>
       <tags>
         <tag>开发技术</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>为什么Java中的String设计成不可变的</title>
+    <url>/2020/03/13/%E4%B8%BA%E4%BB%80%E4%B9%88Java%E4%B8%AD%E7%9A%84String%E8%AE%BE%E8%AE%A1%E6%88%90%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%9A%84/</url>
+    <content><![CDATA[<p>原文出处：<a href="https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/">https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/</a></p>
+<p>在Java中String类是不可变的(final)。简单来说，一个不可变的类就意味着他的实例是不可修改的，实例的所有信息都是在实例创建的时候被初始化并且不可被修改。不可变类的设计有很多优点。这篇博文主要从内存，同步和数据结构的角度来具体说明这种不可变的概念。</p>
+<span id="more"></span>
+
+<h2 id="String-Pool-的需要"><a href="#String-Pool-的需要" class="headerlink" title="String Pool 的需要"></a>String Pool 的需要</h2><p>String Pool（String intern pool）是在方法区的一块特殊存储区域。当一个String被创建时如果发现当前String已经存在于String Pool，则会返回一个已存在String的引用而不会新建一个对象。以下代码只会创建一个String对象在堆内存中：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">String</span> <span class="hljs-variable">string1</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;abcd&quot;</span>;<br><span class="hljs-type">String</span> <span class="hljs-variable">string2</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;abcd&quot;</span>;<br></code></pre></td></tr></table></figure>
+
+<p>下图是创建的过程：</p>
+<img src="string-create.png" />
+
+<p>假设一个String是可变的，改变了一个引用指向的String会导致其他引用得到错误的值。</p>
+<h2 id="缓存-Hash-Code"><a href="#缓存-Hash-Code" class="headerlink" title="缓存 Hash Code"></a>缓存 Hash Code</h2><p>在Java中，对于String的Hash Code使用是非常频繁的，例如在HashMap或HashSet中。将String设计成不可变可以保证他的Hash Code始终一致，这样Hash Code就可以被缓存并且不用担心变化。这就意味着，不需要在每次使用String的时候都去计算他的Hash Code，这也使得程序运行更加高效。</p>
+<h2 id="简化使用"><a href="#简化使用" class="headerlink" title="简化使用"></a>简化使用</h2><p>为了更加详细的阐述，我们考虑以下程序：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">HashSet&lt;String&gt; set = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashSet</span>&lt;String&gt;();<br>set.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(<span class="hljs-string">&quot;a&quot;</span>));<br>set.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(<span class="hljs-string">&quot;b&quot;</span>));<br>set.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(<span class="hljs-string">&quot;c&quot;</span>));<br> <br><span class="hljs-keyword">for</span>(String a: set)&#123;<br>	a.value = <span class="hljs-string">&quot;a&quot;</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在这个例子中，如果String是可变的，那么就会违背set的设计初衷（set包含不重复的元素）。当然上面的例子只是为了论证，实际上String类中没有value这个字段。我们在使用set的时候同样要注意这个问题，如果set中的元素会发生变化，那么就有可能违背set的不重复设定。</p>
+<h2 id="安全"><a href="#安全" class="headerlink" title="安全"></a>安全</h2><p>String在很多Java类中被广泛用作参数，例如网络连接，文件打开等。假设String是可变的，一个连接或者一个文件就可能被改变，这会导致严重的安全隐患。某个方法以为正在连接到一个机器，实际并没有。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">boolean</span> <span class="hljs-title function_">connect</span><span class="hljs-params">(String s)</span>&#123;<br>    <span class="hljs-keyword">if</span> (!isSecure(s)) &#123; <br>		<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SecurityException</span>(); <br>	&#125;<br>    <span class="hljs-comment">//here will cause problem, if s is changed before this by using other references.    </span><br>    causeProblem(s);<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>因为不可变对象不能被改变，他们还可以在多线程中被自由的共享，这就消除了对象同步的需求。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总的来说，String被设计成不可变的出发点是效率和安全。这也是不可变类在很多情况下被优先使用的原因。</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>编程语言</tag>
+        <tag>Java</tag>
       </tags>
   </entry>
   <entry>
@@ -538,39 +571,6 @@
       </categories>
       <tags>
         <tag>性能优化</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>为什么Java中的String设计成不可变的</title>
-    <url>/2020/03/13/%E4%B8%BA%E4%BB%80%E4%B9%88Java%E4%B8%AD%E7%9A%84String%E8%AE%BE%E8%AE%A1%E6%88%90%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%9A%84/</url>
-    <content><![CDATA[<p>原文出处：<a href="https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/">https://www.programcreek.com/2013/04/why-string-is-immutable-in-java/</a></p>
-<p>在Java中String类是不可变的(final)。简单来说，一个不可变的类就意味着他的实例是不可修改的，实例的所有信息都是在实例创建的时候被初始化并且不可被修改。不可变类的设计有很多优点。这篇博文主要从内存，同步和数据结构的角度来具体说明这种不可变的概念。</p>
-<span id="more"></span>
-
-<h2 id="String-Pool-的需要"><a href="#String-Pool-的需要" class="headerlink" title="String Pool 的需要"></a>String Pool 的需要</h2><p>String Pool（String intern pool）是在方法区的一块特殊存储区域。当一个String被创建时如果发现当前String已经存在于String Pool，则会返回一个已存在String的引用而不会新建一个对象。以下代码只会创建一个String对象在堆内存中：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">String</span> <span class="hljs-variable">string1</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;abcd&quot;</span>;<br><span class="hljs-type">String</span> <span class="hljs-variable">string2</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;abcd&quot;</span>;<br></code></pre></td></tr></table></figure>
-
-<p>下图是创建的过程：</p>
-<img src="string-create.png" />
-
-<p>假设一个String是可变的，改变了一个引用指向的String会导致其他引用得到错误的值。</p>
-<h2 id="缓存-Hash-Code"><a href="#缓存-Hash-Code" class="headerlink" title="缓存 Hash Code"></a>缓存 Hash Code</h2><p>在Java中，对于String的Hash Code使用是非常频繁的，例如在HashMap或HashSet中。将String设计成不可变可以保证他的Hash Code始终一致，这样Hash Code就可以被缓存并且不用担心变化。这就意味着，不需要在每次使用String的时候都去计算他的Hash Code，这也使得程序运行更加高效。</p>
-<h2 id="简化使用"><a href="#简化使用" class="headerlink" title="简化使用"></a>简化使用</h2><p>为了更加详细的阐述，我们考虑以下程序：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java">HashSet&lt;String&gt; set = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashSet</span>&lt;String&gt;();<br>set.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(<span class="hljs-string">&quot;a&quot;</span>));<br>set.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(<span class="hljs-string">&quot;b&quot;</span>));<br>set.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(<span class="hljs-string">&quot;c&quot;</span>));<br> <br><span class="hljs-keyword">for</span>(String a: set)&#123;<br>	a.value = <span class="hljs-string">&quot;a&quot;</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>在这个例子中，如果String是可变的，那么就会违背set的设计初衷（set包含不重复的元素）。当然上面的例子只是为了论证，实际上String类中没有value这个字段。我们在使用set的时候同样要注意这个问题，如果set中的元素会发生变化，那么就有可能违背set的不重复设定。</p>
-<h2 id="安全"><a href="#安全" class="headerlink" title="安全"></a>安全</h2><p>String在很多Java类中被广泛用作参数，例如网络连接，文件打开等。假设String是可变的，一个连接或者一个文件就可能被改变，这会导致严重的安全隐患。某个方法以为正在连接到一个机器，实际并没有。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">boolean</span> <span class="hljs-title function_">connect</span><span class="hljs-params">(String s)</span>&#123;<br>    <span class="hljs-keyword">if</span> (!isSecure(s)) &#123; <br>		<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SecurityException</span>(); <br>	&#125;<br>    <span class="hljs-comment">//here will cause problem, if s is changed before this by using other references.    </span><br>    causeProblem(s);<br>&#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>因为不可变对象不能被改变，他们还可以在多线程中被自由的共享，这就消除了对象同步的需求。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总的来说，String被设计成不可变的出发点是效率和安全。这也是不可变类在很多情况下被优先使用的原因。</p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>编程语言</tag>
-        <tag>Java</tag>
       </tags>
   </entry>
   <entry>
@@ -771,7 +771,7 @@
     <url>/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/</url>
     <content><![CDATA[<p>Node-Red 是一个基于流程的编程工具，通过可视化编辑的方式帮助用户生成事件驱动的应用。其核心思想是连接，通过将IOT设备、API和在线服务连接，形成数据流程从而产生价值。</p>
 <p>Node-Red名字中的Node包含两层含义，第一层指代流程中的节点，所有的IOT设备、API和在线服务都以Node的形式存在；第二层指代实现方式，Node-Red基于Nodejs构建，这也为它带来了事件驱动和非阻塞的特性。</p>
-<h2 id="快速开始"><a href="#快速开始" class="headerlink" title="快速开始"></a>快速开始</h2><p>我们可以从github（<a href="https://github.com/node-red/node-red%EF%BC%89%E8%8E%B7%E5%8F%96%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC%E7%9A%84%E6%BA%90%E4%BB%A3%E7%A0%81%EF%BC%8C%E4%BB%8E%E6%BA%90%E4%BB%A3%E7%A0%81%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BA%E7%A1%AE%E4%BF%9D%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8%E6%9C%80%E6%96%B0%E7%9A%84%E7%89%B9%E6%80%A7%E3%80%82">https://github.com/node-red/node-red）获取最新版本的源代码，从源代码开始构建确保可以使用最新的特性。</a></p>
+<h2 id="快速开始"><a href="#快速开始" class="headerlink" title="快速开始"></a>快速开始</h2><p>我们可以从<a href="https://github.com/node-red/node-red">github</a> 获取最新版本的源代码，从源代码开始构建确保可以使用最新的特性。</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><code class="hljs shell">git clone https://github.com/node-red/node-red.git<br>cd node-red<br>npm install<br>npm run build<br>npm start<br></code></pre></td></tr></table></figure>
 
 <p>启动完成后，访问 <a href="http://localhost:1880/">http://localhost:1880</a> 即可进入管理页面。</p>
@@ -794,11 +794,11 @@
 <li><p>折线图，最后来到Chart Node，选择折线图的展现形式</p>
 </li>
 </ol>
-<p>流程部署后，通过访问Dashboard（<a href="http://localhost:1880/ui/%EF%BC%89%EF%BC%8C%E5%BE%97%E5%88%B0%E4%BA%86%E5%A6%82%E4%B8%8B%E7%9A%84%E6%8A%98%E7%BA%BF%E5%9B%BE">http://localhost:1880/ui/），得到了如下的折线图</a></p>
+<p>流程部署后，通过访问Dashboard <a href="http://localhost:1880/ui/">http://localhost:1880/ui/</a> ，得到了如下的折线图</p>
 <img src="chart1.png" alt="image-20240226181413893" style="zoom:80%;" />
 
 <h2 id="OPC-UA数据流程"><a href="#OPC-UA数据流程" class="headerlink" title="OPC-UA数据流程"></a>OPC-UA数据流程</h2><p>接下来我们更进一步，使用实际工作中涉及的OPC-UA协议进行数据采集验证。</p>
-<h3 id="UA服务器搭建"><a href="#UA服务器搭建" class="headerlink" title="UA服务器搭建"></a>UA服务器搭建</h3><p>我们可以基于开源项目node-opcua（<a href="https://github.com/node-opcua/node-opcua%EF%BC%89%E6%90%AD%E5%BB%BAOPC-UA%E6%9C%8D%E5%8A%A1%E5%99%A8%E3%80%82">https://github.com/node-opcua/node-opcua）搭建OPC-UA服务器。</a></p>
+<h3 id="UA服务器搭建"><a href="#UA服务器搭建" class="headerlink" title="UA服务器搭建"></a>UA服务器搭建</h3><p>我们可以基于开源项目<a href="https://github.com/node-red/node-red">node-opcua</a> 搭建OPC-UA服务器。</p>
 <p>首先安装node-opcua包</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">mkdir</span> mytest</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash"><span class="hljs-built_in">cd</span> mytest</span><br><span class="hljs-meta prompt_">$ </span><span class="language-bash">npm init</span> <br><span class="hljs-meta prompt_">$ </span><span class="language-bash">npm install node-opcua --unsafe-perms</span><br></code></pre></td></tr></table></figure>
 
@@ -2063,6 +2063,47 @@
       </tags>
   </entry>
   <entry>
+    <title>统计二进制1的代码解读</title>
+    <url>/2019/07/17/%E7%BB%9F%E8%AE%A1%E4%BA%8C%E8%BF%9B%E5%88%B61%E7%9A%84%E4%BB%A3%E7%A0%81%E8%A7%A3%E8%AF%BB/</url>
+    <content><![CDATA[<p>为了适应边缘计算的需求决定投入学习Go语言的浪潮，用了10年的java突然要去接受一个风格完全不一样的语言感觉真是太刺激了。 在看《Go语言圣经》的时候看到里面的一个计算二进制中1的个数的程序popcount，觉得挺有意思就拿出来分享一下吧。</p>
+<p>程序代码总计也没几行，可以说很一目了然了：</p>
+ <span id="more"></span>
+
+<img src="code.png"/>
+
+<p>程序分为两个部分，</p>
+<ol>
+<li>初始化构造一个长度为256的数组</li>
+<li>主程序PopCount通过8次右移操作分别求低8位的1数量然后相加</li>
+</ol>
+<p>那这么明显的结构，这么清晰的代码有啥好解读呢？主要原因是在第一遍看的时候产生了两个疑问，我觉得有必要记录一下解决疑惑的过程。</p>
+<h2 id="初始化数组为什么是256"><a href="#初始化数组为什么是256" class="headerlink" title="初始化数组为什么是256"></a>初始化数组为什么是256</h2><p>这个问题需要和PopCount主程序结合看。</p>
+<p>因为在主程序中使用的算法是将64位的无符号整数切割成8个8位，而8位的无符号整数取值范围是0-255，为了完整表示这256个数值的1的位数，所以使用了长度为256的数组。</p>
+<h2 id="初始化算法的依据是什么"><a href="#初始化算法的依据是什么" class="headerlink" title="初始化算法的依据是什么"></a>初始化算法的依据是什么</h2><p>其实初始化的算法就一句话 pc[i] &#x3D; pc[i&#x2F;2] + byte(i&amp;1)，一句话就得出了整数中二进制1的个数字典表也太神奇了吧。怎么来理解这个算法呢？经验？定理？当然可以选择记住就行。</p>
+<p>但是我们还是可以尝试着大声的念出这段代码的含义，</p>
+<blockquote>
+<p>整数 i 中1的个数等于整数 i&#x2F;2 中1的个数加上i在低1位的1的个数</p>
+</blockquote>
+<p>是不是有点灵感了？直接上图吧</p>
+<img src="algorithm.png"/>
+
+<p>从图中可以看出每个整数i的1的个数由两部分组成</p>
+<ol>
+<li>i&#x2F;2的1的个数，这部分就对应算法中的pc[i&#x2F;2]</li>
+<li>i&#x2F;2的余数，这部分对应算法中的byte[i&amp;1]</li>
+</ol>
+<hr>
+<p>到这里这段代码的疑惑就全部解开了，嗯就是这么Go！</p>
+]]></content>
+      <categories>
+        <category>技术总结</category>
+      </categories>
+      <tags>
+        <tag>Golang</tag>
+        <tag>算法</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>设备认证中的x.509证书使用</title>
     <url>/2023/10/24/%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x-509%E8%AF%81%E4%B9%A6%E4%BD%BF%E7%94%A8/</url>
     <content><![CDATA[<p>从信息安全角度考虑，物联网设备在接入工业网络和IOT平台的时候需要通过身份认证体系对外证明其可信度。x.509证书是使用较广泛的一种认证方式，本文展现了一个工业设备通过x.509证书接入IOT平台的认证过程。</p>
@@ -2131,47 +2172,6 @@
       <tags>
         <tag>IOT</tag>
         <tag>信息安全</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>统计二进制1的代码解读</title>
-    <url>/2019/07/17/%E7%BB%9F%E8%AE%A1%E4%BA%8C%E8%BF%9B%E5%88%B61%E7%9A%84%E4%BB%A3%E7%A0%81%E8%A7%A3%E8%AF%BB/</url>
-    <content><![CDATA[<p>为了适应边缘计算的需求决定投入学习Go语言的浪潮，用了10年的java突然要去接受一个风格完全不一样的语言感觉真是太刺激了。 在看《Go语言圣经》的时候看到里面的一个计算二进制中1的个数的程序popcount，觉得挺有意思就拿出来分享一下吧。</p>
-<p>程序代码总计也没几行，可以说很一目了然了：</p>
- <span id="more"></span>
-
-<img src="code.png"/>
-
-<p>程序分为两个部分，</p>
-<ol>
-<li>初始化构造一个长度为256的数组</li>
-<li>主程序PopCount通过8次右移操作分别求低8位的1数量然后相加</li>
-</ol>
-<p>那这么明显的结构，这么清晰的代码有啥好解读呢？主要原因是在第一遍看的时候产生了两个疑问，我觉得有必要记录一下解决疑惑的过程。</p>
-<h2 id="初始化数组为什么是256"><a href="#初始化数组为什么是256" class="headerlink" title="初始化数组为什么是256"></a>初始化数组为什么是256</h2><p>这个问题需要和PopCount主程序结合看。</p>
-<p>因为在主程序中使用的算法是将64位的无符号整数切割成8个8位，而8位的无符号整数取值范围是0-255，为了完整表示这256个数值的1的位数，所以使用了长度为256的数组。</p>
-<h2 id="初始化算法的依据是什么"><a href="#初始化算法的依据是什么" class="headerlink" title="初始化算法的依据是什么"></a>初始化算法的依据是什么</h2><p>其实初始化的算法就一句话 pc[i] &#x3D; pc[i&#x2F;2] + byte(i&amp;1)，一句话就得出了整数中二进制1的个数字典表也太神奇了吧。怎么来理解这个算法呢？经验？定理？当然可以选择记住就行。</p>
-<p>但是我们还是可以尝试着大声的念出这段代码的含义，</p>
-<blockquote>
-<p>整数 i 中1的个数等于整数 i&#x2F;2 中1的个数加上i在低1位的1的个数</p>
-</blockquote>
-<p>是不是有点灵感了？直接上图吧</p>
-<img src="algorithm.png"/>
-
-<p>从图中可以看出每个整数i的1的个数由两部分组成</p>
-<ol>
-<li>i&#x2F;2的1的个数，这部分就对应算法中的pc[i&#x2F;2]</li>
-<li>i&#x2F;2的余数，这部分对应算法中的byte[i&amp;1]</li>
-</ol>
-<hr>
-<p>到这里这段代码的疑惑就全部解开了，嗯就是这么Go！</p>
-]]></content>
-      <categories>
-        <category>技术总结</category>
-      </categories>
-      <tags>
-        <tag>Golang</tag>
-        <tag>算法</tag>
       </tags>
   </entry>
   <entry>
