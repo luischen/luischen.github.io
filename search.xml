@@ -2596,11 +2596,11 @@
 </ol>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Home</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -2645,11 +2645,11 @@
 <p>已跳过安装包、代码、运行环境和 CnosDB 调研。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Home</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -3489,11 +3489,11 @@
 <p>该架构能够支持 PdM、拧紧&#x2F;压装、焊接、IRUN、能源、涂装等业务节点逐步接入，并通过统一的数据、模型、规则、报表和 API 能力，持续赋能智能制造场景。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Architecture</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -3539,11 +3539,11 @@
 </ul>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Architecture</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -3576,11 +3576,11 @@
 </tbody></table>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Architecture</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -3636,11 +3636,11 @@
 </tbody></table>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Architecture</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -3712,11 +3712,11 @@
 </tbody></table>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Architecture</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -3745,11 +3745,11 @@
 <p>基于装配线经验数据，每天的数据量为：<br>(250000 * 26 + 45000 * 60 + 45000 * 16) &#x2F; (1024 * 1024 ) &#x3D; <font color="#ff0000">10 MB</font></p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Architecture</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -3784,11 +3784,11 @@
 </ul>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -4079,11 +4079,11 @@
 <p>所以，一份好的数采清单，决定的不只是“能不能采到数据”，更决定了“采到的数据能不能真正用起来”。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -4517,11 +4517,11 @@
 <p>也就是说，这套系统的核心不是单纯的“读 PLC”，而是“把不同设备的通讯差异收敛到一套可配置的采集模型里”。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -4984,11 +4984,11 @@
 <p>这也是它们能在工业现场长期运行的原因。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -5222,11 +5222,11 @@
 <p>如果是现场联调、协议验证、快速做一个可视化流程，Node-RED 更合适。<br>如果是数据从一个系统稳定地流向另一个系统，并且希望有同步策略、连接器和规范化能力，Airbyte 更合适。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -5623,11 +5623,11 @@
 </ul>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -5708,11 +5708,11 @@
 <p>如果主笔记要保持“拧紧”为主线，这里可以作为扩展理解，不必改动主定义。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -6128,11 +6128,11 @@
 <p>它不替代详细设计，但足以帮助团队建立统一的技术实现视角。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -6284,11 +6284,11 @@
 </ul>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -6416,11 +6416,11 @@
 <p>需要注意：第 8 项 <code>AA015</code> 只有 <code>eccTorqueAngleSimplifyLoader</code> 会加入列表并用于计算最终角度。如果该特征模型的 <code>loader_class</code> 是旧的 <code>eccTorqueAngleLoader</code> 或 <code>eccTorqueLoader</code>，这一项会被忽略。因此最终要结合 <code>t_dict_feature_model.loader_class</code> 确认。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -6830,11 +6830,11 @@
 <h2 id="11-一句话总结"><a href="#11-一句话总结" class="headerlink" title="11. 一句话总结"></a>11. 一句话总结</h2><p>时间性能系统的核心，是把产线时序数据转化成一套可解释的节拍知识，通过理论基准、损失拆分和瓶颈归因，把“哪里慢”进一步变成“为什么慢、慢在哪里、该先改什么”。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -7217,11 +7217,11 @@
 <p>当前 PDM 系统已经具备云端配置治理、模型训练、诊断展示、特征查询、事件规则和云边配置同步等关键能力。下一阶段最值得投入的方向，是把诊断结果继续向维护闭环、模型效果评估、配置版本治理和云边可观测性推进，让系统从“能判断异常”演进为“能持续提升维护决策质量”。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -7471,11 +7471,11 @@
 <p>如果后续要继续优化系统，优先方向不是增加更多口径，而是让基准更清晰、损失更可解释、报表更易落地。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -7576,11 +7576,11 @@
 <p>如果后续继续扩展，建议优先补充的也是这些方向的架构图、时序图和数据流说明，而不是进一步堆叠实现细节。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -7630,11 +7630,11 @@
 <p>工业 AI 平台不应只依赖一个大模型，而应采用“LLM + 检索 + 专用模型 + 工具”的组合。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -7672,11 +7672,11 @@
 <h2 id="4-和证书页的关系"><a href="#4-和证书页的关系" class="headerlink" title="4. 和证书页的关系"></a>4. 和证书页的关系</h2><p>握手之所以成立，前提是证书链和私钥验证都通过。证书结构和信任链可以继续看 <a href="./02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE.md">x509 证书与信任链</a>。</p>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Architecture</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -7731,11 +7731,11 @@ HTTPS 通信成立
 </ul>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Architecture</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -7808,11 +7808,11 @@ HTTPS 通信成立
 </ul>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Architecture</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -7893,11 +7893,11 @@ HTTPS 通信成立
 </ul>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Architecture</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -7927,11 +7927,11 @@ HTTPS 通信成立
 </ul>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Architecture</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -8030,11 +8030,11 @@ HTTPS 通信成立
 </ul>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Architecture</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -8239,11 +8239,11 @@ HTTPS 通信成立
 </ul>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -8490,11 +8490,11 @@ flowchart TD
 </ul>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
   <entry>
@@ -8771,11 +8771,11 @@ flowchart TD
 </ul>
 ]]></content>
       <categories>
-        <category>Manulism Work</category>
+        <category>工作笔记</category>
       </categories>
       <tags>
-        <tag>Manulism Work</tag>
         <tag>Domain Knowledge</tag>
+        <tag>工作笔记</tag>
       </tags>
   </entry>
 </search>

@@ -761,13 +761,6 @@
   </url>
   
   <url>
-    <loc>https://luischen.github.io/tags/Manulism-Work/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://luischen.github.io/tags/Home/</loc>
     <lastmod>2026-08-13</lastmod>
     <changefreq>weekly</changefreq>
@@ -783,6 +776,13 @@
   
   <url>
     <loc>https://luischen.github.io/tags/Domain-Knowledge/</loc>
+    <lastmod>2026-08-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://luischen.github.io/tags/%E5%B7%A5%E4%BD%9C%E7%AC%94%E8%AE%B0/</loc>
     <lastmod>2026-08-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -819,7 +819,7 @@
   </url>
   
   <url>
-    <loc>https://luischen.github.io/categories/Manulism-Work/</loc>
+    <loc>https://luischen.github.io/categories/%E5%B7%A5%E4%BD%9C%E7%AC%94%E8%AE%B0/</loc>
     <lastmod>2026-08-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
