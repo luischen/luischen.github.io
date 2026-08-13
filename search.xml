@@ -6183,19 +6183,9 @@
       </tags>
   </entry>
   <entry>
-    <title>09 系统补充知识</title>
+    <title>系统补充知识</title>
     <url>/2026/08/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/</url>
-    <content><![CDATA[<hr>
-<p>title: 系统补充知识<br>area: domain-knowledge<br>kind: technical-note<br>topic: curve-quality-analysis-supplement<br>status: active<br>parent:</p>
-<ul>
-<li>‘[曲线分析系统领域知识](&#x2F;20_Domain_Knowledge&#x2F;22 曲线质量分析&#x2F;00 曲线分析系统领域知识&#x2F;)’<br>upstream:</li>
-<li>‘[曲线分析系统技术领域知识](&#x2F;20_Domain_Knowledge&#x2F;22 曲线质量分析&#x2F;02 曲线分析系统技术领域知识&#x2F;)’</li>
-<li>‘[曲线分析系统菜单工作流程](&#x2F;20_Domain_Knowledge&#x2F;22 曲线质量分析&#x2F;03 曲线分析系统菜单工作流程&#x2F;)’<br>related:</li>
-<li>‘[曲线分析系统领域知识扩展](&#x2F;20_Domain_Knowledge&#x2F;22 曲线质量分析&#x2F;01 曲线分析系统领域知识扩展&#x2F;)’</li>
-<li>‘[数采清单](&#x2F;20_Domain_Knowledge&#x2F;21 工业数据接入&#x2F;01 数采清单&#x2F;)’</li>
-</ul>
-<hr>
-<h2 id="特征配置中col-item-的解释逻辑"><a href="#特征配置中col-item-的解释逻辑" class="headerlink" title="特征配置中col_item 的解释逻辑"></a>特征配置中col_item 的解释逻辑</h2><p>示例数据：<br><code>AA002,AA003,AA005,,&amp;AA004,AA011,AA016,AA017,AB001,AB002,AA018,AA015</code></p>
+    <content><![CDATA[<h2 id="特征配置中col-item-的解释逻辑"><a href="#特征配置中col-item-的解释逻辑" class="headerlink" title="特征配置中col_item 的解释逻辑"></a>特征配置中col_item 的解释逻辑</h2><p>示例数据：<br><code>AA002,AA003,AA005,,&amp;AA004,AA011,AA016,AA017,AB001,AB002,AA018,AA015</code></p>
 <p>这段 <code>col_item</code> 会先用 <code>&amp;</code> 分成“公共采集项”和“螺栓采集项”两部分：</p>
 <figure class="highlight autohotkey"><table><tr><td class="code"><pre><code class="hljs autohotkey"><span class="hljs-built_in">AA002,</span>AA003,AA005,,<br>&amp;<br><span class="hljs-built_in">AA004,</span>AA011,AA016,AA017,AB001,AB002,AA018,AA015<br></code></pre></td></tr></table></figure>
 
