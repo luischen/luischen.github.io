@@ -1,0 +1,937 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luis Chen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="1. 一句话理解多智能体架构不是“把很多模型放在一起”，而是把一个复杂任务拆成多个职责明确的智能体，让它们通过路由、分工、通信和汇总来协作完成目标。 它的价值不在于智能体数量多，而在于：  每个智能体只负责自己最擅长的子任务 上下文和记忆可以分层管理 复杂任务可以被拆解、调度、复用和追踪 主入口可以把用户体验保持成一个统一窗口  2. 为什么需要多智能体单智能体适合边界清楚、链路短、工具少的任务；">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多智能体架构">
+<meta property="og:url" content="https://luischen.github.io/2026/07/01/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%A4%9A%E6%99%BA%E8%83%BD%E4%BD%93%E6%9E%B6%E6%9E%84/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="1. 一句话理解多智能体架构不是“把很多模型放在一起”，而是把一个复杂任务拆成多个职责明确的智能体，让它们通过路由、分工、通信和汇总来协作完成目标。 它的价值不在于智能体数量多，而在于：  每个智能体只负责自己最擅长的子任务 上下文和记忆可以分层管理 复杂任务可以被拆解、调度、复用和追踪 主入口可以把用户体验保持成一个统一窗口  2. 为什么需要多智能体单智能体适合边界清楚、链路短、工具少的任务；">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-07-01T04:05:11.000Z">
+<meta property="article:modified_time" content="2026-07-01T06:12:34.000Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="Manulism Work">
+<meta property="article:tag" content="Domain Knowledge">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>多智能体架构 - Next Station</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"luischen.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Next Station</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="多智能体架构"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-07-01 12:05" pubdate>
+          2026年7月1日 中午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          42 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">多智能体架构</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="1-一句话理解"><a href="#1-一句话理解" class="headerlink" title="1. 一句话理解"></a>1. 一句话理解</h2><p>多智能体架构不是“把很多模型放在一起”，而是把一个复杂任务拆成多个职责明确的智能体，让它们通过路由、分工、通信和汇总来协作完成目标。</p>
+<p>它的价值不在于智能体数量多，而在于：</p>
+<ul>
+<li>每个智能体只负责自己最擅长的子任务</li>
+<li>上下文和记忆可以分层管理</li>
+<li>复杂任务可以被拆解、调度、复用和追踪</li>
+<li>主入口可以把用户体验保持成一个统一窗口</li>
+</ul>
+<h2 id="2-为什么需要多智能体"><a href="#2-为什么需要多智能体" class="headerlink" title="2. 为什么需要多智能体"></a>2. 为什么需要多智能体</h2><p>单智能体适合边界清楚、链路短、工具少的任务；一旦任务同时涉及多个业务域、多个系统、多个知识源，单个智能体就容易出现下面这些问题：</p>
+<ul>
+<li>上下文越来越长，推理成本和延迟上升</li>
+<li>工具调用越堆越多，边界变得混乱</li>
+<li>一个提示词要同时覆盖太多职责，维护困难</li>
+<li>结果正确但不可控，难以追踪每一步是怎么得出的</li>
+</ul>
+<p>多智能体的思路，就是把“一个大而全的脑袋”拆成“一个协调者 + 多个领域专家”。</p>
+<h2 id="3-常见架构"><a href="#3-常见架构" class="headerlink" title="3. 常见架构"></a>3. 常见架构</h2><p>常见的多智能体架构可以先分成两类：</p>
+<ol>
+<li>扁平架构</li>
+<li>层级架构</li>
+</ol>
+<p>这两类不是绝对对立，实际工程里经常混合使用。比较稳妥的理解是：</p>
+<ul>
+<li>扁平架构更像“路由器 + 专家池”</li>
+<li>层级架构更像“总控代理 + 下属代理”</li>
+</ul>
+<h3 id="3-1-扁平架构"><a href="#3-1-扁平架构" class="headerlink" title="3.1 扁平架构"></a>3.1 扁平架构</h3><p>扁平架构里，每个智能体相互独立，主入口主要负责识别用户意图并路由到合适的智能体。智能体完成任务后，通常直接把结果返回给主入口，再由主入口统一输出给用户。</p>
+<p>可以把它理解成医院的导医台：</p>
+<ul>
+<li>导医台负责问诊入口和分流</li>
+<li>各科室负责具体问题</li>
+<li>用户最终只需要面对一个入口</li>
+</ul>
+<h4 id="适用特点"><a href="#适用特点" class="headerlink" title="适用特点"></a>适用特点</h4><ul>
+<li>领域边界清晰</li>
+<li>每个子智能体职责单一</li>
+<li>任务不需要跨多个子智能体持续协商</li>
+<li>主要诉求是“快速找到最合适的专家”</li>
+</ul>
+<h4 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h4><ul>
+<li>结构简单</li>
+<li>易于扩展新的专家智能体</li>
+<li>子智能体之间耦合低</li>
+<li>路由逻辑清楚，便于排查问题</li>
+</ul>
+<h4 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h4><ul>
+<li>各智能体之间缺少天然协同</li>
+<li>任务跨域时，主入口要承担较多整合工作</li>
+<li>如果路由判断不准，就会把任务送错地方</li>
+</ul>
+<h3 id="3-2-层级架构"><a href="#3-2-层级架构" class="headerlink" title="3.2 层级架构"></a>3.2 层级架构</h3><p>层级架构里，主入口不仅负责路由，还负责思考、拆解、决策和汇总，更像一个“总协调者”。</p>
+<p>用户提出问题后，主入口会先理解整体目标，再拆出多个子任务，分配给不同的智能体；子智能体完成任务后把结果交回主入口，主入口决定是继续执行、重新分派，还是直接反馈用户。</p>
+<p>可以把它理解成陪诊人员：</p>
+<ul>
+<li>陪诊人员先理解用户整体诉求</li>
+<li>再根据情况找不同科室</li>
+<li>最后把检查结果整合起来给出下一步建议</li>
+</ul>
+<h4 id="适用特点-1"><a href="#适用特点-1" class="headerlink" title="适用特点"></a>适用特点</h4><ul>
+<li>任务复杂，且往往需要多轮推进</li>
+<li>子任务之间存在依赖关系</li>
+<li>需要主入口统一保留用户意图和整体目标</li>
+<li>结果需要整合、复核或继续派生任务</li>
+</ul>
+<h4 id="优点-1"><a href="#优点-1" class="headerlink" title="优点"></a>优点</h4><ul>
+<li>用户只需面对一个统一入口</li>
+<li>主入口可以做全局协调</li>
+<li>能把跨域信息整合成更完整的结果</li>
+<li>更适合工业场景里的连续诊断和串联分析</li>
+</ul>
+<h4 id="缺点-1"><a href="#缺点-1" class="headerlink" title="缺点"></a>缺点</h4><ul>
+<li>主入口上下文容易变大</li>
+<li>任务链路变长后，响应会变慢</li>
+<li>如果设计不好，主入口会变成“什么都管、什么都懂一点”的瓶颈</li>
+<li>容易出现上下文污染</li>
+</ul>
+<h2 id="4-架构示意"><a href="#4-架构示意" class="headerlink" title="4. 架构示意"></a>4. 架构示意</h2><h3 id="4-1-扁平架构"><a href="#4-1-扁平架构" class="headerlink" title="4.1 扁平架构"></a>4.1 扁平架构</h3><pre><code class=" mermaid">%%&#123;init: &#123;&quot;theme&quot;:&quot;base&quot;,&quot;themeVariables&quot;:&#123;&quot;fontFamily&quot;:&quot;Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif&quot;,&quot;primaryColor&quot;:&quot;#E0F2FE&quot;,&quot;primaryTextColor&quot;:&quot;#0F172A&quot;,&quot;primaryBorderColor&quot;:&quot;#38BDF8&quot;,&quot;lineColor&quot;:&quot;#64748B&quot;,&quot;secondaryColor&quot;:&quot;#ECFDF5&quot;,&quot;tertiaryColor&quot;:&quot;#FFF7ED&quot;&#125;&#125;&#125;%%
+flowchart TD
+  U[用户]:::user --&gt; G[主入口&lt;br/&gt;Router]:::router
+
+  subgraph P[专家池]
+    direction LR
+    A[智能体 A&lt;br/&gt;领域专家]:::expert
+    B[智能体 B&lt;br/&gt;领域专家]:::expert
+    C[智能体 C&lt;br/&gt;领域专家]:::expert
+  end
+
+  G --&gt; A
+  G --&gt; B
+  G --&gt; C
+  A --&gt; G
+  B --&gt; G
+  C --&gt; G
+  G --&gt; R[统一结果输出]:::result
+  R --&gt; U
+
+  classDef user fill:#111827,color:#FFFFFF,stroke:#111827,stroke-width:1px;
+  classDef router fill:#DBEAFE,color:#1D4ED8,stroke:#3B82F6,stroke-width:2px;
+  classDef expert fill:#ECFDF5,color:#047857,stroke:#10B981,stroke-width:1.5px;
+  classDef result fill:#FEF3C7,color:#92400E,stroke:#F59E0B,stroke-width:2px;
+</code></pre>
+
+<h3 id="4-2-层级架构"><a href="#4-2-层级架构" class="headerlink" title="4.2 层级架构"></a>4.2 层级架构</h3><pre><code class=" mermaid">%%&#123;init: &#123;&quot;theme&quot;:&quot;base&quot;,&quot;themeVariables&quot;:&#123;&quot;fontFamily&quot;:&quot;Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif&quot;,&quot;primaryColor&quot;:&quot;#F5F3FF&quot;,&quot;primaryTextColor&quot;:&quot;#0F172A&quot;,&quot;primaryBorderColor&quot;:&quot;#8B5CF6&quot;,&quot;lineColor&quot;:&quot;#64748B&quot;,&quot;secondaryColor&quot;:&quot;#EEF2FF&quot;,&quot;tertiaryColor&quot;:&quot;#F8FAFC&quot;&#125;&#125;&#125;%%
+flowchart TD
+  U[用户]:::user --&gt; M[主代理&lt;br/&gt;总协调者]:::manager
+
+  M --&gt; P&#123;任务拆解&#125;:::decision
+
+  subgraph W[执行层]
+    direction LR
+    A[子智能体 A&lt;br/&gt;领域专家]:::worker
+    B[子智能体 B&lt;br/&gt;领域专家]:::worker
+    C[子智能体 C&lt;br/&gt;领域专家]:::worker
+  end
+
+  P --&gt; A
+  P --&gt; B
+  P --&gt; C
+  A --&gt; M
+  B --&gt; M
+  C --&gt; M
+
+  M --&gt; D&#123;是否继续分派&#125;:::decision
+  D --&gt;|是| P
+  D --&gt;|否| O[结果汇总&lt;br/&gt;最终答复]:::result
+  O --&gt; U
+
+  classDef user fill:#111827,color:#FFFFFF,stroke:#111827,stroke-width:1px;
+  classDef manager fill:#EDE9FE,color:#5B21B6,stroke:#7C3AED,stroke-width:2px;
+  classDef decision fill:#FDE68A,color:#92400E,stroke:#F59E0B,stroke-width:2px;
+  classDef worker fill:#E0E7FF,color:#3730A3,stroke:#6366F1,stroke-width:1.5px;
+  classDef result fill:#DCFCE7,color:#166534,stroke:#22C55E,stroke-width:2px;
+</code></pre>
+
+<h2 id="5-通信与记忆"><a href="#5-通信与记忆" class="headerlink" title="5. 通信与记忆"></a>5. 通信与记忆</h2><p>多智能体系统里，通信不是简单地“把消息转发出去”，而是要控制哪些信息该共享、哪些信息必须隔离。</p>
+<p>比较稳妥的做法是：</p>
+<ul>
+<li>主智能体保留全局目标和任务进度</li>
+<li>子智能体保留自己领域内的短期记忆和工具上下文</li>
+<li>子任务返回结果时，尽量返回“结论 + 关键证据 + 风险提示”，而不是整段原始对话</li>
+<li>子会话最好通过裁剪后的上下文派生，而不是完整复制主会话</li>
+</ul>
+<p>这能减少两个问题：</p>
+<ul>
+<li>上下文污染</li>
+<li>不必要的记忆膨胀</li>
+</ul>
+<h3 id="5-1-会话派生"><a href="#5-1-会话派生" class="headerlink" title="5.1 会话派生"></a>5.1 会话派生</h3><p>在一些实现里，主会话会通过派生子会话的方式，把经过裁剪的上下文传给子智能体。这样既能共享关键记忆，又能避免把无关历史带进子任务。</p>
+<p>这个机制特别适合工业场景，因为工业场景里经常会出现：</p>
+<ul>
+<li>某个设备、产线、工艺参数需要连续追踪</li>
+<li>用户会在前后几轮对话里不断补充细节</li>
+<li>子智能体只需要和自己任务有关的那部分上下文</li>
+</ul>
+<h2 id="6-工业场景里的典型组织方式"><a href="#6-工业场景里的典型组织方式" class="headerlink" title="6. 工业场景里的典型组织方式"></a>6. 工业场景里的典型组织方式</h2><p>在工业系统中，多智能体通常不是“全域通用”地铺开，而是围绕业务域做组织。</p>
+<p>常见模式是：</p>
+<ul>
+<li>一个主智能体负责统一入口、协调和汇总</li>
+<li>多个领域智能体分别负责拧紧、产线性能、设备报警、知识库查询、报表生成等任务</li>
+<li>子智能体尽量绑定自己的领域工具和领域记忆</li>
+<li>主智能体负责跨域关联和最终解释</li>
+</ul>
+<p>这种结构特别适合下面这类场景：</p>
+<ul>
+<li>用户先问一个具体设备问题</li>
+<li>后续又要追溯报警、产能、质量或工艺原因</li>
+<li>一个结论需要多个系统的证据拼起来才能成立</li>
+</ul>
+<h3 id="6-1-工业例子"><a href="#6-1-工业例子" class="headerlink" title="6.1 工业例子"></a>6.1 工业例子</h3><p>假设用户先问“某把枪的异常螺栓特别多”，再继续问“这把设备的报警记录是什么”。</p>
+<p>在层级架构里，主代理可以：</p>
+<ol>
+<li>识别出这不是孤立问题，而是一个跨域诊断任务</li>
+<li>把报警查询、拧紧数据查询、产线性能分析拆给不同子智能体</li>
+<li>汇总多个结果后判断是否存在关联</li>
+<li>再给出建议，而不是只返回单点查询结果</li>
+</ol>
+<p>这类任务如果只靠扁平架构，也能做，但主入口要自己承担更多整合逻辑。</p>
+<h2 id="7-选型建议"><a href="#7-选型建议" class="headerlink" title="7. 选型建议"></a>7. 选型建议</h2><h3 id="7-1-什么时候选扁平架构"><a href="#7-1-什么时候选扁平架构" class="headerlink" title="7.1 什么时候选扁平架构"></a>7.1 什么时候选扁平架构</h3><ul>
+<li>业务域边界清楚</li>
+<li>每个智能体职责很单一</li>
+<li>用户主要是“找对专家”</li>
+<li>任务链路短，结果不需要多轮协商</li>
+</ul>
+<h3 id="7-2-什么时候选层级架构"><a href="#7-2-什么时候选层级架构" class="headerlink" title="7.2 什么时候选层级架构"></a>7.2 什么时候选层级架构</h3><ul>
+<li>任务需要跨多个系统和领域</li>
+<li>需要把结果串起来分析</li>
+<li>需要持续跟踪同一个任务上下文</li>
+<li>主入口需要对最终结果负责</li>
+</ul>
+<h3 id="7-3-工业系统里更常见的落点"><a href="#7-3-工业系统里更常见的落点" class="headerlink" title="7.3 工业系统里更常见的落点"></a>7.3 工业系统里更常见的落点</h3><p>工业场景里，层级架构通常更有优势，因为它更适合：</p>
+<ul>
+<li>统一入口</li>
+<li>分域处理</li>
+<li>结果整合</li>
+<li>追溯诊断</li>
+</ul>
+<p>但如果只是“查询某个单点信息”，扁平架构会更轻、更稳、更容易维护。</p>
+<h2 id="8-设计原则"><a href="#8-设计原则" class="headerlink" title="8. 设计原则"></a>8. 设计原则</h2><h3 id="8-1-职责单一"><a href="#8-1-职责单一" class="headerlink" title="8.1 职责单一"></a>8.1 职责单一</h3><p>每个智能体最好只负责一个清晰领域，不要把“查询、诊断、建议、执行、审批”全塞进一个智能体里。</p>
+<h3 id="8-2-明确边界"><a href="#8-2-明确边界" class="headerlink" title="8.2 明确边界"></a>8.2 明确边界</h3><p>要清楚每个智能体能做什么、不能做什么、数据从哪里来、结果如何验收。</p>
+<h3 id="8-3-控制上下文"><a href="#8-3-控制上下文" class="headerlink" title="8.3 控制上下文"></a>8.3 控制上下文</h3><p>上下文不是越多越好。能摘要就摘要，能裁剪就裁剪，能局部传递就局部传递。</p>
+<h3 id="8-4-结果可追踪"><a href="#8-4-结果可追踪" class="headerlink" title="8.4 结果可追踪"></a>8.4 结果可追踪</h3><p>多智能体系统不是只追求“答对”，还要能解释：</p>
+<ul>
+<li>哪个智能体处理了什么</li>
+<li>用了哪些数据</li>
+<li>结果为什么成立</li>
+<li>哪些地方仍然不确定</li>
+</ul>
+<h3 id="8-5-允许人工收口"><a href="#8-5-允许人工收口" class="headerlink" title="8.5 允许人工收口"></a>8.5 允许人工收口</h3><p>在工业场景里，最后一层收口经常仍然要保留人工确认，尤其是涉及：</p>
+<ul>
+<li>风险判断</li>
+<li>规则冲突</li>
+<li>生产异常</li>
+<li>需要操作执行的动作</li>
+</ul>
+<h2 id="9-常见风险"><a href="#9-常见风险" class="headerlink" title="9. 常见风险"></a>9. 常见风险</h2><h3 id="9-1-上下文污染"><a href="#9-1-上下文污染" class="headerlink" title="9.1 上下文污染"></a>9.1 上下文污染</h3><p>主代理在多轮任务中接收的信息太多，容易把无关历史带入当前判断。</p>
+<h3 id="9-2-调度过深"><a href="#9-2-调度过深" class="headerlink" title="9.2 调度过深"></a>9.2 调度过深</h3><p>链路太长会导致响应变慢，也会让排障变难。</p>
+<h3 id="9-3-过度拆分"><a href="#9-3-过度拆分" class="headerlink" title="9.3 过度拆分"></a>9.3 过度拆分</h3><p>智能体拆得过细，反而会增加通信成本，降低可维护性。</p>
+<h3 id="9-4-路由失准"><a href="#9-4-路由失准" class="headerlink" title="9.4 路由失准"></a>9.4 路由失准</h3><p>用户意图识别不准时，任务会落到错误的子智能体，导致结果偏离预期。</p>
+<h3 id="9-5-记忆失控"><a href="#9-5-记忆失控" class="headerlink" title="9.5 记忆失控"></a>9.5 记忆失控</h3><p>如果没有摘要、裁剪和过期机制，长期运行后记忆会越来越重，系统变得难以管理。</p>
+<h2 id="10-与工业智能体的关系"><a href="#10-与工业智能体的关系" class="headerlink" title="10. 与工业智能体的关系"></a>10. 与工业智能体的关系</h2><p>多智能体架构本质上是工业智能体的一种组织方式。</p>
+<p>工业智能体的重点，不只是“会不会聊天”，而是能不能把多个系统、多个领域、多个任务串成一个可控的执行链路。</p>
+<p>因此，多智能体常常和下面这些能力一起出现：</p>
+<ul>
+<li>统一入口</li>
+<li>工具调用</li>
+<li>子任务路由</li>
+<li>共享记忆</li>
+<li>结果汇总</li>
+<li>追踪与复盘</li>
+</ul>
+<p>如果再往下一层走，它还会和技能沉淀、知识库、数据管道和权限控制结合起来，形成真正可运营的工业智能体体系。</p>
+<h2 id="11-结论"><a href="#11-结论" class="headerlink" title="11. 结论"></a>11. 结论</h2><ul>
+<li>多智能体架构的核心是分工，不是堆数量</li>
+<li>扁平架构适合“路由 + 专家池”</li>
+<li>层级架构适合“总控 + 子任务编排”</li>
+<li>工业场景里，层级架构通常更适合跨域诊断和连续分析</li>
+<li>真正要控制的是上下文、记忆、通信成本和结果可追踪性</li>
+<li>最终目标不是让智能体看起来更复杂，而是让系统更可控、更可复用、更容易落地</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Manulism-Work/" class="category-chain-item">Manulism Work</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Manulism-Work/">#Manulism Work</a>
+      
+        <a href="/tags/Domain-Knowledge/">#Domain Knowledge</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>多智能体架构</div>
+      <div>https://luischen.github.io/2026/07/01/manulism-work/20_Domain_Knowledge/29 AI与智能体/01 工业智能体/01 多智能体架构/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luis Chen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年7月1日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/README/" title="HTTPS 知识索引">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">HTTPS 知识索引</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/30/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93/00%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93%E6%80%BB%E8%A7%88/" title="工业智能体总览">
+                        <span class="hidden-mobile">工业智能体总览</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

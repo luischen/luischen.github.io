@@ -1,0 +1,895 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luis Chen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="1. 一句话理解AI Native 是一种设计原则，意思是系统从一开始就围绕 AI 来组织入口、工具、数据和反馈闭环。智能体是这种原则下最常见的落地形态之一。 它和传统 App 的核心差别，不是“有没有大模型”，而是“系统的中心到底是功能，还是目标完成”。 2. 三类系统的差别   维度 传统 App AI Powered AI Native &#x2F; 智能体    核心组织方式 功能入口 +">
+<meta property="og:type" content="article">
+<meta property="og:title" content="工业智能体总览">
+<meta property="og:url" content="https://luischen.github.io/2026/06/30/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93/00%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93%E6%80%BB%E8%A7%88/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="1. 一句话理解AI Native 是一种设计原则，意思是系统从一开始就围绕 AI 来组织入口、工具、数据和反馈闭环。智能体是这种原则下最常见的落地形态之一。 它和传统 App 的核心差别，不是“有没有大模型”，而是“系统的中心到底是功能，还是目标完成”。 2. 三类系统的差别   维度 传统 App AI Powered AI Native &#x2F; 智能体    核心组织方式 功能入口 +">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-30T09:49:01.000Z">
+<meta property="article:modified_time" content="2026-07-01T03:27:49.000Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="Manulism Work">
+<meta property="article:tag" content="Domain Knowledge">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>工业智能体总览 - Next Station</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"luischen.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Next Station</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="工业智能体总览"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-06-30 17:49" pubdate>
+          2026年6月30日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          24 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">工业智能体总览</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="1-一句话理解"><a href="#1-一句话理解" class="headerlink" title="1. 一句话理解"></a>1. 一句话理解</h2><p>AI Native 是一种设计原则，意思是系统从一开始就围绕 AI 来组织入口、工具、数据和反馈闭环。智能体是这种原则下最常见的落地形态之一。</p>
+<p>它和传统 App 的核心差别，不是“有没有大模型”，而是“系统的中心到底是功能，还是目标完成”。</p>
+<h2 id="2-三类系统的差别"><a href="#2-三类系统的差别" class="headerlink" title="2. 三类系统的差别"></a>2. 三类系统的差别</h2><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>传统 App</th>
+<th>AI Powered</th>
+<th>AI Native &#x2F; 智能体</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心组织方式</td>
+<td>功能入口 + 固定流程</td>
+<td>功能不变，局部接入 AI</td>
+<td>目标完成 + 工具编排 + 反馈闭环</td>
+</tr>
+<tr>
+<td>用户角色</td>
+<td>用户自己点点点完成任务</td>
+<td>用户主导，AI 提供局部帮助</td>
+<td>用户给目标，AI 主动拆解并执行</td>
+</tr>
+<tr>
+<td>系统能力</td>
+<td>固定功能</td>
+<td>固定功能 + AI 问答&#x2F;生成</td>
+<td>工具调用、规划、校验、反思</td>
+</tr>
+<tr>
+<td>成功标准</td>
+<td>功能能否稳定可用</td>
+<td>AI 是否“有帮助”</td>
+<td>任务是否真正完成，且可复用、可追踪</td>
+</tr>
+</tbody></table>
+<h2 id="3-智能体的工程闭环"><a href="#3-智能体的工程闭环" class="headerlink" title="3. 智能体的工程闭环"></a>3. 智能体的工程闭环</h2><p>从公开官方文档看，并没有一个统一、强制的“智能体四要素”标准。更稳妥的做法，是把智能体理解为一个工程闭环：感知、规划、执行、反思。</p>
+<p><code>决策</code> 不必单独作为一级环节，通常可以并入 <code>规划</code>；只有在业务上需要单独强调审批、风控或规则判定时，再把它提出来。</p>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>更准确的理解</th>
+<th>组织里的常见对应</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>感知</td>
+<td>识别任务、上下文、目标和约束</td>
+<td>产品经理 &#x2F; 业务方</td>
+</tr>
+<tr>
+<td>规划</td>
+<td>拆解步骤、选择工具、安排执行顺序</td>
+<td>技术负责人 &#x2F; 架构师</td>
+</tr>
+<tr>
+<td>执行</td>
+<td>调用系统、工具和接口完成动作</td>
+<td>开发人员 &#x2F; 自动化脚本</td>
+</tr>
+<tr>
+<td>反思</td>
+<td>校验结果、回溯原因、形成复盘闭环</td>
+<td>评审会 &#x2F; 复盘机制</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>小更正：这里的 “review meeting” 更适合翻成“评审会&#x2F;复盘机制”，它不是单独一个环节本身，而是反思环节的组织机制。</p>
+</blockquote>
+<h2 id="4-工业智能体实现路径"><a href="#4-工业智能体实现路径" class="headerlink" title="4. 工业智能体实现路径"></a>4. 工业智能体实现路径</h2><p>当前阶段更适合先做“业务系统 + AI 外挂层”的改造，再根据数据和复用情况决定是否走更深层的数据驱动路线。</p>
+<h3 id="4-1-路线-A：业务系统-AI-外挂层"><a href="#4-1-路线-A：业务系统-AI-外挂层" class="headerlink" title="4.1 路线 A：业务系统 + AI 外挂层"></a>4.1 路线 A：业务系统 + AI 外挂层</h3><table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1. 现有业务系统</td>
+<td>保留原有业务流程和系统边界</td>
+</tr>
+<tr>
+<td>2. API 抽取</td>
+<td>从现有系统中整理出稳定接口，例如 Swagger &#x2F; OpenAPI</td>
+</tr>
+<tr>
+<td>3. Tool 封装</td>
+<td>将单个能力原子化，便于组合和复用</td>
+</tr>
+<tr>
+<td>4. MCP Server</td>
+<td>标准化能力出口，方便跨应用连接</td>
+</tr>
+<tr>
+<td>5. Skill Creator</td>
+<td>把高价值业务能力沉淀成可复用技能</td>
+</tr>
+<tr>
+<td>6. OpenWebUI</td>
+<td>作为用户真正接触到的产品入口载体</td>
+</tr>
+</tbody></table>
+<p>这个路线的关键，不是先追求大模型多聪明，而是先把既有系统的能力拆成稳定、可组合、可复用的工具。</p>
+<p>在这条链路里，<code>Skill Creator</code> 既是一个能力，也是一个技能：它既可以指“创建 Skill 的平台&#x2F;方法能力”，也可以指“把创建 Skill 这件事本身沉淀成可复用技能”。这里更适合把它理解为一个把业务经验结构化、模板化、产品化的环节。</p>
+<p><code>OpenWebUI</code> 则是产品入口的载体，负责承接用户交互和分发能力，不承担核心业务定义本身。</p>
+<p>工业场景里，工时、收益、复用率和落地周期都强依赖场景成熟度、权限治理和数据质量。</p>
+<p><em>短期来看，这条路线在工时上会增加20- 30%的工作量。</em></p>
+<h3 id="4-2-路线-B：数据驱动"><a href="#4-2-路线-B：数据驱动" class="headerlink" title="4.2 路线 B：数据驱动"></a>4.2 路线 B：数据驱动</h3><p>更激进、也更长期的方式，是让原来的业务系统不再承担主入口角色，而是先完成数据建模，再通过 AI 直接建立面向任务的应用。</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1. 需求调研</td>
+<td>明确业务目标、对象范围和约束条件</td>
+</tr>
+<tr>
+<td>2. 数采建模</td>
+<td>先把数据结构和指标口径定义清楚</td>
+</tr>
+<tr>
+<td>3. 数据管道</td>
+<td>建立可持续采集、清洗和流转机制</td>
+</tr>
+<tr>
+<td>4. Tool 层</td>
+<td>基于建模结果沉淀可调用的业务工具</td>
+</tr>
+<tr>
+<td>5. MCP Server</td>
+<td>形成统一接入层和复用层</td>
+</tr>
+<tr>
+<td>6. Skill</td>
+<td>形成面向任务的最终能力封装</td>
+</tr>
+</tbody></table>
+<p>这条路的前提是需求比较明确，并且工业类 <code>Skill Creator</code> 已经就绪。它更像“先把数据底座搭好，再让 AI 在数据底座上工作”。</p>
+<p>如果数据治理基础成熟，这条路的总工作量有机会比传统软件开发更省，但省下来的主要不是前期调研，而是后续重复开发和多套系统维护的成本。</p>
+<p><em>长期来看，这条路线可以节省约50%的开发成本。</em></p>
+<h3 id="4-3-边界结论"><a href="#4-3-边界结论" class="headerlink" title="4.3 边界结论"></a>4.3 边界结论</h3><p>在当前这条实现链路里，只有 <code>Skill</code> 需要人工参与定义，其余环节都可以通过规范、封装、协议或生成方式完成。</p>
+<ul>
+<li><code>Tool</code> 是单个可调用能力，强调接口、入参、出参和执行结果。</li>
+<li><code>MCP Server</code> 是把多个能力以标准协议暴露出来的运行时&#x2F;服务层。</li>
+<li><code>Skill</code> 是面向任务的人工定义说明，负责写清楚“做什么、边界是什么、结果怎么算好”，也是最需要人工判断的部分。</li>
+<li><code>Skill Creator</code> 负责把业务经验转成技能资产，降低 Skill 的生产和维护成本。</li>
+<li><code>OpenWebUI</code> 负责把能力稳定地呈现给用户，承接真实使用入口。</li>
+</ul>
+<p>也就是说，最合适的分工是：</p>
+<ol>
+<li><code>API -&gt; Tool -&gt; MCP Server</code> 主要由工程化和自动化完成。</li>
+<li><code>Skill</code> 由业务、产品、领域专家参与定义。</li>
+<li><code>Skill Creator</code> 辅助完成技能沉淀和复用。</li>
+<li>人工只保留在 <code>Skill</code> 这一层做意图、边界和验收标准确认。</li>
+</ol>
+<h2 id="5-补充知识"><a href="#5-补充知识" class="headerlink" title="5. 补充知识"></a>5. 补充知识</h2><h3 id="5-1-OpenClaw"><a href="#5-1-OpenClaw" class="headerlink" title="5.1 OpenClaw"></a>5.1 OpenClaw</h3><p>OpenClaw 官方文档把它定义为一个 <code>self-hosted gateway</code>，连接聊天应用与 AI coding agents。它的官方描述重点是：</p>
+<ul>
+<li><code>tool use</code></li>
+<li><code>sessions</code></li>
+<li><code>memory</code></li>
+<li><code>multi-agent routing</code></li>
+</ul>
+<p>官方首页还明确写到，它是 <code>agent-native</code> 的，并且提供统一 Gateway 作为会话、路由和通道连接的单一事实来源。</p>
+<p>参考：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://openclaw.ai/">OpenClaw 官方首页</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.openclaw.ai/">OpenClaw 官方文档概览</a></li>
+</ul>
+<h3 id="5-2-Hermes"><a href="#5-2-Hermes" class="headerlink" title="5.2 Hermes"></a>5.2 Hermes</h3><p>Hermes 对应的 GitHub 仓库是 <a target="_blank" rel="noopener" href="https://github.com/NousResearch/hermes-agent"><code>NousResearch/hermes-agent</code></a>。仓库 README 把它定义为 <code>The agent that grows with you</code>，也就是一个会随着使用持续积累和改进的智能体。</p>
+<p>从 README 里能直接提炼出的几个关键点是：</p>
+<ul>
+<li>它有一个内建学习闭环，会根据经验生成 <code>skills</code></li>
+<li>它会在使用过程中改进已有技能，而不是只把技能当静态配置</li>
+<li>它会保存和检索过往对话，把跨会话记忆纳入工作流</li>
+<li>它支持多种模型接入，不把自己锁定在单一模型提供商上</li>
+<li>它既能跑在本地终端，也能通过桌面端、Telegram、Discord、Slack、WhatsApp、Signal 等入口使用</li>
+<li>它支持计划任务、并行子代理和远程运行环境，说明它不是单纯聊天壳，而是偏执行型的代理框架</li>
+</ul>
+<p>从笔记角度看，Hermes 最有价值的点不是“又一个聊天入口”，而是它把 <code>skills</code>、<code>memory</code>、<code>automation</code> 和 <code>subagents</code> 这几件事绑成了一个闭环，这和工业智能体里强调的“可复用能力沉淀”很贴近。</p>
+<p>参考：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/NousResearch/hermes-agent">Hermes Agent GitHub 仓库</a></li>
+</ul>
+<h3 id="5-3-术语补充"><a href="#5-3-术语补充" class="headerlink" title="5.3 术语补充"></a>5.3 术语补充</h3><ul>
+<li><code>Skill Creator</code> 是一个能力，也是一个智能体技能。</li>
+<li><code>OpenWebUI</code> 是作为产品入口的一个载体。</li>
+</ul>
+<h2 id="6-结论"><a href="#6-结论" class="headerlink" title="6. 结论"></a>6. 结论</h2><ul>
+<li>AI Native 是设计原则，智能体是常见落地形态。</li>
+<li>短期最稳妥的是“业务系统 + AI 外挂层”。</li>
+<li>长期更强的是“数据驱动”，但前提是数据底座和标准化能力先成熟。</li>
+<li>在当前链路里，人工参与点应尽量收敛到 <code>Skill</code>，而 <code>Skill Creator</code> 负责放大技能的生产效率。</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Manulism-Work/" class="category-chain-item">Manulism Work</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Manulism-Work/">#Manulism Work</a>
+      
+        <a href="/tags/Domain-Knowledge/">#Domain Knowledge</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>工业智能体总览</div>
+      <div>https://luischen.github.io/2026/06/30/manulism-work/20_Domain_Knowledge/29 AI与智能体/01 工业智能体/00 工业智能体总览/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luis Chen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年6月30日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/07/01/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%A4%9A%E6%99%BA%E8%83%BD%E4%BD%93%E6%9E%B6%E6%9E%84/" title="多智能体架构">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">多智能体架构</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/30/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/02%20%E5%B7%A5%E4%B8%9A%E7%AE%97%E6%B3%95/00%20%E8%83%BD%E8%80%97%E5%AF%BB%E4%BC%98%E7%AE%97%E6%B3%95/" title="能耗寻优算法">
+                        <span class="hidden-mobile">能耗寻优算法</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

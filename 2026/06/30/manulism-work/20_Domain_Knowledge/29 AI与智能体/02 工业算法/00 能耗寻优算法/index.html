@@ -1,0 +1,967 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luis Chen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="1. 一句话说清楚这套算法本质上是在做一个带约束的非线性最优化：  目标：让涂装车间空调系统的总能耗尽可能低 变量：温度、湿度及相关环境设定 约束：温湿度范围、合理性约束、工艺边界 方法：多起点随机初始化 + 可行方向法 + 约束一维搜索   关键点：不是暴力穷举，而是“先找对方向，再找合适步长”。   2. 当前算法怎么跑2.1 主流程                        1. 随机生">
+<meta property="og:type" content="article">
+<meta property="og:title" content="能耗寻优算法">
+<meta property="og:url" content="https://luischen.github.io/2026/06/30/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/02%20%E5%B7%A5%E4%B8%9A%E7%AE%97%E6%B3%95/00%20%E8%83%BD%E8%80%97%E5%AF%BB%E4%BC%98%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="1. 一句话说清楚这套算法本质上是在做一个带约束的非线性最优化：  目标：让涂装车间空调系统的总能耗尽可能低 变量：温度、湿度及相关环境设定 约束：温湿度范围、合理性约束、工艺边界 方法：多起点随机初始化 + 可行方向法 + 约束一维搜索   关键点：不是暴力穷举，而是“先找对方向，再找合适步长”。   2. 当前算法怎么跑2.1 主流程                        1. 随机生">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-30T02:47:19.000Z">
+<meta property="article:modified_time" content="2026-06-30T03:43:50.000Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="Manulism Work">
+<meta property="article:tag" content="Domain Knowledge">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>能耗寻优算法 - Next Station</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"luischen.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Next Station</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="能耗寻优算法"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-06-30 10:47" pubdate>
+          2026年6月30日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          17 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">能耗寻优算法</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="1-一句话说清楚"><a href="#1-一句话说清楚" class="headerlink" title="1. 一句话说清楚"></a>1. 一句话说清楚</h2><p>这套算法本质上是在做一个<strong>带约束的非线性最优化</strong>：</p>
+<ul>
+<li>目标：让涂装车间空调系统的总能耗尽可能低</li>
+<li>变量：温度、湿度及相关环境设定</li>
+<li>约束：温湿度范围、合理性约束、工艺边界</li>
+<li>方法：<strong>多起点随机初始化 + 可行方向法 + 约束一维搜索</strong></li>
+</ul>
+<blockquote>
+<p>关键点：不是暴力穷举，而是“先找对方向，再找合适步长”。</p>
+</blockquote>
+<hr>
+<h2 id="2-当前算法怎么跑"><a href="#2-当前算法怎么跑" class="headerlink" title="2. 当前算法怎么跑"></a>2. 当前算法怎么跑</h2><h3 id="2-1-主流程"><a href="#2-1-主流程" class="headerlink" title="2.1 主流程"></a>2.1 主流程</h3><div style="margin:18px 0; padding:16px; border:1px solid var(--background-modifier-border); border-radius:18px; background:linear-gradient(180deg, rgba(59,130,246,0.08), rgba(16,185,129,0.04)); box-shadow:0 8px 24px rgba(15,23,42,0.08);">
+  <table style="width:100%; border-collapse:separate; border-spacing:0 12px; table-layout:fixed;">
+    <tr>
+      <td colspan="3" style="padding:14px 16px; text-align:center; border-radius:16px; border:1px solid rgba(37,99,235,0.22); background:rgba(59,130,246,0.12); font-weight:700;">
+        1. 随机生成多个初始点
+      </td>
+    </tr>
+    <tr>
+      <td colspan="3" style="text-align:center; color:#3b82f6; font-size:22px; line-height:1;">↓</td>
+    </tr>
+    <tr>
+      <td colspan="3" style="padding:14px 16px; text-align:center; border-radius:16px; border:1px solid var(--background-modifier-border); background:rgba(255,255,255,0.65); font-weight:700;">
+        当前点是否靠近约束边界
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:16px; vertical-align:top; border-radius:16px; border:1px solid rgba(34,197,94,0.24); background:rgba(34,197,94,0.10);">
+        <div style="display:inline-block; margin-bottom:8px; padding:4px 10px; border-radius:999px; background:rgba(34,197,94,0.16); color:#166534; font-weight:700;">否</div>
+        <div style="line-height:1.7;">直接使用负梯度作为可行方向，沿着能耗下降最快的方向前进。</div>
+      </td>
+      <td style="width:16px;"></td>
+      <td style="padding:16px; vertical-align:top; border-radius:16px; border:1px solid rgba(245,158,11,0.24); background:rgba(245,158,11,0.10);">
+        <div style="display:inline-block; margin-bottom:8px; padding:4px 10px; border-radius:999px; background:rgba(245,158,11,0.18); color:#92400e; font-weight:700;">是</div>
+        <div style="line-height:1.7;">先做 KKT 条件判断；若约束已成为主导因素，则用单纯形法求一个仍然可行的下降方向。</div>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="3" style="text-align:center; color:#3b82f6; font-size:22px; line-height:1;">↓</td>
+    </tr>
+    <tr>
+      <td colspan="3" style="padding:14px 16px; text-align:center; border-radius:16px; border:1px solid rgba(99,102,241,0.22); background:rgba(99,102,241,0.10); font-weight:700;">
+        2. 带约束的一维搜索，确定最优步长
+      </td>
+    </tr>
+    <tr>
+      <td colspan="3" style="text-align:center; color:#3b82f6; font-size:22px; line-height:1;">↓</td>
+    </tr>
+    <tr>
+      <td colspan="3" style="padding:14px 16px; text-align:center; border-radius:16px; border:1px solid var(--background-modifier-border); background:rgba(15,23,42,0.05); font-weight:700;">
+        3. 是否收敛
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:16px; vertical-align:top; border-radius:16px; border:1px solid rgba(239,68,68,0.22); background:rgba(239,68,68,0.08);">
+        <div style="display:inline-block; margin-bottom:8px; padding:4px 10px; border-radius:999px; background:rgba(239,68,68,0.16); color:#991b1b; font-weight:700;">否</div>
+        <div style="line-height:1.7;">回到约束判断，继续更新方向和步长。</div>
+      </td>
+      <td style="width:16px;"></td>
+      <td style="padding:16px; vertical-align:top; border-radius:16px; border:1px solid rgba(16,185,129,0.22); background:rgba(16,185,129,0.08);">
+        <div style="display:inline-block; margin-bottom:8px; padding:4px 10px; border-radius:999px; background:rgba(16,185,129,0.16); color:#065f46; font-weight:700;">是</div>
+        <div style="line-height:1.7;">输出当前最优温湿度设定，作为本轮优化结果。</div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<h3 id="2-2-关键模块"><a href="#2-2-关键模块" class="headerlink" title="2.2 关键模块"></a>2.2 关键模块</h3><table>
+  <thead>
+    <tr>
+      <th>模块</th>
+      <th>作用</th>
+      <th>一句话理解</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>多起点初始化</td>
+      <td>降低陷入局部最优的概率</td>
+      <td>先在可行域里撒点，再分别优化</td>
+    </tr>
+    <tr>
+      <td>可行方向判断</td>
+      <td>决定下一步往哪里走</td>
+      <td>既要能降能耗，也不能走出约束</td>
+    </tr>
+    <tr>
+      <td>KKT 条件</td>
+      <td>判断当前约束是否已起主导作用</td>
+      <td>约束附近用更精细的局部判断</td>
+    </tr>
+    <tr>
+      <td>单纯形法</td>
+      <td>求约束下的局部下降方向</td>
+      <td>把“找方向”转成线性规划</td>
+    </tr>
+    <tr>
+      <td>一维搜索</td>
+      <td>在给定方向上找最佳步长</td>
+      <td>先缩区间，再用黄金分割精调</td>
+    </tr>
+  </tbody>
+</table>
+---
+
+<h2 id="3-算法核心逻辑"><a href="#3-算法核心逻辑" class="headerlink" title="3. 算法核心逻辑"></a>3. 算法核心逻辑</h2><h3 id="3-1-无约束时"><a href="#3-1-无约束时" class="headerlink" title="3.1 无约束时"></a>3.1 无约束时</h3><p>如果当前点不靠近约束边界，直接用<strong>负梯度方向</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">direction = -∇f(x)<br></code></pre></td></tr></table></figure>
+
+<p>意思很简单：朝着能耗下降最快的方向走。</p>
+<h3 id="3-2-有约束时"><a href="#3-2-有约束时" class="headerlink" title="3.2 有约束时"></a>3.2 有约束时</h3><p>如果当前点已经接近约束边界，单纯的负梯度可能会把点带出可行域，所以需要先做两步：</p>
+<ol>
+<li>用 <strong>KKT 条件</strong> 判断当前活跃约束是否成立</li>
+<li>若成立，用 <strong>单纯形法</strong> 求一个仍然可行、同时能下降目标值的方向</li>
+</ol>
+<h3 id="3-3-步长怎么选"><a href="#3-3-步长怎么选" class="headerlink" title="3.3 步长怎么选"></a>3.3 步长怎么选</h3><p>有了方向以后，不是直接一步跳过去，而是在该方向上做<strong>带约束的一维搜索</strong>：</p>
+<ul>
+<li>先确定一个可行区间</li>
+<li>再用黄金分割法缩小区间</li>
+<li>最终取区间中点或最小点附近作为下一迭代点</li>
+</ul>
+<hr>
+<h2 id="4-这个方法为什么有效"><a href="#4-这个方法为什么有效" class="headerlink" title="4. 这个方法为什么有效"></a>4. 这个方法为什么有效</h2><ol>
+<li><p><strong>比穷举快很多</strong></p>
+<ul>
+<li>原始问题如果直接遍历四个变量的组合，计算量会爆炸</li>
+<li>可行方向法把搜索空间压缩成“局部迭代”</li>
+</ul>
+</li>
+<li><p><strong>比纯梯度下降更稳</strong></p>
+<ul>
+<li>纯梯度下降容易越界</li>
+<li>引入 KKT 和单纯形法后，边界附近也能安全推进</li>
+</ul>
+</li>
+<li><p><strong>比单次起点更不容易卡住</strong></p>
+<ul>
+<li>通过 10 个随机起点并行优化，降低局部最优风险</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="5-神经网络怎么升级"><a href="#5-神经网络怎么升级" class="headerlink" title="5. 神经网络怎么升级"></a>5. 神经网络怎么升级</h2><p>如果想做得更“精确”和“前沿”，最推荐的方向不是直接拿神经网络替代全部优化，而是做成<strong>神经网络 + 约束优化的混合框架</strong>。</p>
+<h3 id="5-1-推荐方案：监督学习-surrogate-可微优化"><a href="#5-1-推荐方案：监督学习-surrogate-可微优化" class="headerlink" title="5.1 推荐方案：监督学习 surrogate + 可微优化"></a>5.1 推荐方案：监督学习 surrogate + 可微优化</h3><p>把当前的能耗方程替换成一个神经网络近似模型：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">输入: 温度、湿度、环境温度、季节、产线负荷、设备状态...<br>输出: 预测能耗<br></code></pre></td></tr></table></figure>
+
+<p>然后在这个可微模型上继续做优化：</p>
+<ul>
+<li>用网络拟合“设定值 -&gt; 能耗”的非线性关系</li>
+<li>用投影梯度、可微约束层或外层优化器保证安全边界</li>
+<li>在线只做推理和少量优化，速度更快</li>
+</ul>
+<h3 id="5-2-更前沿的方向"><a href="#5-2-更前沿的方向" class="headerlink" title="5.2 更前沿的方向"></a>5.2 更前沿的方向</h3><ol>
+<li><p><strong>Physics-informed &#x2F; monotonic network</strong></p>
+<ul>
+<li>把一些物理先验写进网络结构</li>
+<li>例如：某些变量变化应满足单调性或平滑性</li>
+<li>优点是外推更稳，不容易学歪</li>
+</ul>
+</li>
+<li><p><strong>不确定性建模</strong></p>
+<ul>
+<li>用 ensemble、Bayesian NN 或 dropout 估计置信区间</li>
+<li>在模型不确定时自动收敛到更保守的设定</li>
+</ul>
+</li>
+<li><p><strong>强化学习 &#x2F; 离线强化学习</strong></p>
+<ul>
+<li>适合长期策略优化</li>
+<li>但对数据量、仿真环境和安全约束要求更高</li>
+<li>更适合作为后续阶段，不建议一开始就直接上</li>
+</ul>
+</li>
+</ol>
+<h3 id="5-3-我更推荐的落地顺序"><a href="#5-3-我更推荐的落地顺序" class="headerlink" title="5.3 我更推荐的落地顺序"></a>5.3 我更推荐的落地顺序</h3><p><strong>第一阶段</strong></p>
+<ul>
+<li>先用现有可行方向法做基线</li>
+<li>同时训练一个能耗预测网络做辅助评估</li>
+</ul>
+<p><strong>第二阶段</strong></p>
+<ul>
+<li>用神经网络替代手工能耗方程</li>
+<li>在网络上做约束优化</li>
+</ul>
+<p><strong>第三阶段</strong></p>
+<ul>
+<li>加入不确定性估计和在线自适应</li>
+<li>逐步引入更前沿的安全强化学习</li>
+</ul>
+<hr>
+<h2 id="6-E2E-使用场景"><a href="#6-E2E-使用场景" class="headerlink" title="6. E2E 使用场景"></a>6. E2E 使用场景</h2><p>可以把它理解成一个“涂装车间空调自动寻优闭环”：</p>
+<div style="margin:18px 0; padding:18px; border:1px solid var(--background-modifier-border); border-radius:20px; background:linear-gradient(180deg, rgba(14,165,233,0.08), rgba(59,130,246,0.04)); box-shadow:0 10px 28px rgba(15,23,42,0.08);">
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; align-items:stretch;">
+    <div style="padding:14px 16px; border-radius:16px; background:rgba(255,255,255,0.62); border:1px solid rgba(59,130,246,0.20);">
+      <div style="font-weight:700; margin-bottom:6px; color:#0f172a;">1. 传感器 / PLC</div>
+      <div style="line-height:1.65;">采集温湿度、天气、负荷、设备状态。</div>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:center; font-size:22px; color:#3b82f6;">→</div>
+    <div style="padding:14px 16px; border-radius:16px; background:rgba(255,255,255,0.62); border:1px solid rgba(59,130,246,0.20);">
+      <div style="font-weight:700; margin-bottom:6px; color:#0f172a;">2. 特征层</div>
+      <div style="line-height:1.65;">把原始信号整理成结构化特征。</div>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:center; font-size:22px; color:#3b82f6;">→</div>
+    <div style="padding:14px 16px; border-radius:16px; background:rgba(255,255,255,0.62); border:1px solid rgba(59,130,246,0.20);">
+      <div style="font-weight:700; margin-bottom:6px; color:#0f172a;">3. 能耗模型</div>
+      <div style="line-height:1.65;">预测不同设定值下的能耗。</div>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:center; font-size:22px; color:#3b82f6;">→</div>
+    <div style="padding:14px 16px; border-radius:16px; background:rgba(255,255,255,0.62); border:1px solid rgba(59,130,246,0.20);">
+      <div style="font-weight:700; margin-bottom:6px; color:#0f172a;">4. 优化器</div>
+      <div style="line-height:1.65;">在约束内选择最优温湿度设定。</div>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:center; font-size:22px; color:#3b82f6;">→</div>
+    <div style="padding:14px 16px; border-radius:16px; background:rgba(255,255,255,0.62); border:1px solid rgba(59,130,246,0.20);">
+      <div style="font-weight:700; margin-bottom:6px; color:#0f172a;">5. 控制系统</div>
+      <div style="line-height:1.65;">下发控制指令，并持续监控实际效果。</div>
+    </div>
+  </div>
+
+  <div style="margin-top:14px; padding:12px 14px; border-radius:14px; background:rgba(15,23,42,0.05); border:1px dashed rgba(15,23,42,0.18); font-size:0.95rem; line-height:1.7;">
+    闭环最终会把“模型预测”与“现场反馈”连起来，形成持续修正的自优化系统。
+  </div>
+
+
+<h3 id="6-1-典型在线流程"><a href="#6-1-典型在线流程" class="headerlink" title="6.1 典型在线流程"></a>6.1 典型在线流程</h3><ol>
+<li>采集当前环境和产线状态</li>
+<li>生成候选温湿度设定</li>
+<li>通过能耗模型预测每个候选点的代价</li>
+<li>用可行方向法或神经网络优化器选出最优点</li>
+<li>下发到空调&#x2F;风机控制系统</li>
+<li>持续监控效果，发现异常则回退</li>
+</ol>
+<h3 id="6-2-适合落地的业务边界"><a href="#6-2-适合落地的业务边界" class="headerlink" title="6.2 适合落地的业务边界"></a>6.2 适合落地的业务边界</h3><ul>
+<li>适合：涂装车间空调、风机、除湿与温控联动</li>
+<li>不适合：没有历史数据、控制链路不可闭环、无法实时采集工况的场景</li>
+</ul>
+<hr>
+<h2 id="7-能耗节约大概能到多少"><a href="#7-能耗节约大概能到多少" class="headerlink" title="7. 能耗节约大概能到多少"></a>7. 能耗节约大概能到多少</h2><p>当前方案已经验证过<strong>约 15% 的节能效果</strong>。</p>
+<p>如果把它扩展成完整的 E2E 系统，可	以这样估计：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th align="right">预期节能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>现有可行方向法</td>
+<td align="right">已验证约 15%</td>
+</tr>
+<tr>
+<td>只做工程化落地</td>
+<td align="right">10% - 15%</td>
+</tr>
+<tr>
+<td>加入神经网络 surrogate + 在线自适应</td>
+<td align="right">15% - 20%</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>这个区间是推测值，不是统一实测结果。真实收益会受季节、产线负荷、设备老化和控制频率影响。</p>
+</blockquote>
+<hr>
+<h2 id="8-最短结论"><a href="#8-最短结论" class="headerlink" title="8. 最短结论"></a>8. 最短结论</h2><ul>
+<li>这套方法的本质是：<strong>多起点可行方向法</strong></li>
+<li>方向选择上：<strong>无约束用负梯度，有约束用 KKT + 单纯形法</strong></li>
+<li>步长选择上：<strong>带约束一维搜索 + 黄金分割</strong></li>
+<li>更前沿的升级方向：<strong>神经网络 surrogate + 约束优化 + 不确定性控制</strong></li>
+<li>已验证节能：<strong>约 15%</strong></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Manulism-Work/" class="category-chain-item">Manulism Work</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Manulism-Work/">#Manulism Work</a>
+      
+        <a href="/tags/Domain-Knowledge/">#Domain Knowledge</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>能耗寻优算法</div>
+      <div>https://luischen.github.io/2026/06/30/manulism-work/20_Domain_Knowledge/29 AI与智能体/02 工业算法/00 能耗寻优算法/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luis Chen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年6月30日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/30/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93/00%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93%E6%80%BB%E8%A7%88/" title="工业智能体总览">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">工业智能体总览</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/24/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/02%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/" title="曲线分析系统技术领域知识">
+                        <span class="hidden-mobile">曲线分析系统技术领域知识</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

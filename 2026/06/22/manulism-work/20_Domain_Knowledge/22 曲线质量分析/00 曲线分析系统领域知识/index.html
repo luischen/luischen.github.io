@@ -1,0 +1,1087 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luis Chen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="这是一份面向拧紧工艺的曲线分析系统领域笔记。系统核心对象是时序数据曲线，重点围绕螺栓拧紧过程中的扭矩、角度、判定、参考曲线、基础模型、策略和规则展开。 一句话定义曲线分析系统的本质，是把设备在一次拧紧过程中的时序曲线，转换成可解释的质量结论。 它做的不是单纯“看曲线”，而是把一条曲线放进业务上下文里判断：  这是不是一颗有效螺栓的有效曲线 它和历史参考曲线是否一致 它是否触发了特征规则或模型判定">
+<meta property="og:type" content="article">
+<meta property="og:title" content="曲线分析系统领域知识">
+<meta property="og:url" content="https://luischen.github.io/2026/06/22/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/00%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="这是一份面向拧紧工艺的曲线分析系统领域笔记。系统核心对象是时序数据曲线，重点围绕螺栓拧紧过程中的扭矩、角度、判定、参考曲线、基础模型、策略和规则展开。 一句话定义曲线分析系统的本质，是把设备在一次拧紧过程中的时序曲线，转换成可解释的质量结论。 它做的不是单纯“看曲线”，而是把一条曲线放进业务上下文里判断：  这是不是一颗有效螺栓的有效曲线 它和历史参考曲线是否一致 它是否触发了特征规则或模型判定">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-22T09:43:21.000Z">
+<meta property="article:modified_time" content="2026-07-13T09:24:54.000Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="Manulism Work">
+<meta property="article:tag" content="Domain Knowledge">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>曲线分析系统领域知识 - Next Station</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"luischen.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Next Station</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="曲线分析系统领域知识"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-06-22 17:43" pubdate>
+          2026年6月22日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          40 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">曲线分析系统领域知识</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>这是一份面向拧紧工艺的曲线分析系统领域笔记。系统核心对象是时序数据曲线，重点围绕螺栓拧紧过程中的扭矩、角度、判定、参考曲线、基础模型、策略和规则展开。</p>
+<h2 id="一句话定义"><a href="#一句话定义" class="headerlink" title="一句话定义"></a>一句话定义</h2><p>曲线分析系统的本质，是把设备在一次拧紧过程中的时序曲线，转换成可解释的质量结论。</p>
+<p>它做的不是单纯“看曲线”，而是把一条曲线放进业务上下文里判断：</p>
+<ul>
+<li>这是不是一颗有效螺栓的有效曲线</li>
+<li>它和历史参考曲线是否一致</li>
+<li>它是否触发了特征规则或模型判定</li>
+<li>这次拧紧的异常点属于什么风险标签</li>
+<li>该设备、该工位、该产线近一段时间的质量趋势如何</li>
+</ul>
+<h2 id="系统在业务上的定位"><a href="#系统在业务上的定位" class="headerlink" title="系统在业务上的定位"></a>系统在业务上的定位</h2><p>曲线分析系统服务于拧紧工艺质量控制，常见使用场景是：</p>
+<ol>
+<li>生产现场采集扭矩&#x2F;角度等时序数据</li>
+<li>系统把这些时序数据和设备、工位、车型、分类号、工艺号等业务信息关联起来</li>
+<li>系统运行判定策略，输出合格与否、风险类别、异常分数、模型判定结果</li>
+<li>质量人员在诊断中心、曲线中心、标准曲线中心查看曲线和结果</li>
+<li>工程人员通过配置、训练、标注、参考曲线维护，不断修正判定能力</li>
+</ol>
+<h2 id="核心业务对象"><a href="#核心业务对象" class="headerlink" title="核心业务对象"></a>核心业务对象</h2><h3 id="1-曲线"><a href="#1-曲线" class="headerlink" title="1. 曲线"></a>1. 曲线</h3><p>一次拧紧过程对应一条曲线，通常包含：</p>
+<ul>
+<li><code>curveId</code>：曲线唯一标识</li>
+<li><code>startTime</code> &#x2F; <code>endTime</code>：拧紧开始和结束时间</li>
+<li><code>equipCode</code>：设备编码</li>
+<li><code>classificationNumber</code>：分类号，通常对应工艺&#x2F;产品维度</li>
+<li>扭矩时序</li>
+<li>角度时序</li>
+<li>结果扭矩、结果角度</li>
+<li>拧紧状态，常见 <code>OK</code> &#x2F; <code>NOK</code></li>
+</ul>
+<p>曲线既是展示对象，也是判定对象。</p>
+<h3 id="2-参考曲线"><a href="#2-参考曲线" class="headerlink" title="2. 参考曲线"></a>2. 参考曲线</h3><p>参考曲线是“标准样板曲线”，用于业务人员对比当前曲线是否偏离基准。</p>
+<p>参考曲线除了主曲线本身，还可以配置上下边界范围，用于展示标准带。</p>
+<h3 id="3-特征模型"><a href="#3-特征模型" class="headerlink" title="3. 特征模型"></a>3. 特征模型</h3><p>特征模型是系统的基础计算单元之一，关注“取什么特征”和“如何取特征”。</p>
+<p>它不负责最终判定，也不直接输出合格&#x2F;不合格，而是把曲线加工成可供策略使用的特征结果。它更关心的是从时序里提炼出什么可度量的特征值，例如：</p>
+<ul>
+<li>最大扭矩</li>
+<li>最小扭矩</li>
+<li>平均扭矩</li>
+<li>峰值位置</li>
+<li>角度变化量</li>
+<li>某些阶段的斜率、斜率变化、平台时长</li>
+</ul>
+<p>在业务上，特征模型的职责是“计算特征”，不是“给结论”。</p>
+<h3 id="4-分析模型"><a href="#4-分析模型" class="headerlink" title="4. 分析模型"></a>4. 分析模型</h3><p>分析模型也是系统的基础计算单元之一，负责利用机器学习模型做一轮计算，得到异常分值或类似的中间结果。</p>
+<p>它不负责最终判定，最终的业务结论仍然要交给策略去做。</p>
+<p>在当前业务里，分析模型的价值主要体现在：</p>
+<ul>
+<li>运行一次机器学习推理</li>
+<li>输出异常分值、loss 或类似中间量</li>
+<li>为后续策略判定提供输入</li>
+</ul>
+<h3 id="5-神经网络模型"><a href="#5-神经网络模型" class="headerlink" title="5. 神经网络模型"></a>5. 神经网络模型</h3><p>神经网络模型也是系统的基础模型之一，但它的引入方式和前两类模型不太一样，通常是通过模型平台接入系统。</p>
+<p>它既可以在预置模型的基础上继续训练和适配，也可以完全自主开发后再训练、接入和使用。</p>
+<p>从业务上看，它的特点是：</p>
+<ul>
+<li>来源于模型平台</li>
+<li>支持预置模型二次训练</li>
+<li>支持完全自研模型训练</li>
+<li>通过策略被封装成可用于曲线判定的能力</li>
+</ul>
+<h3 id="6-策略"><a href="#6-策略" class="headerlink" title="6. 策略"></a>6. 策略</h3><p>策略本质上是对模型的封装，一般一个策略对应一个模型。</p>
+<p>它的职责不是做最终组合判定，而是把某个模型能力包装成一个可被曲线调用的判定单元。</p>
+<p>业务上可以拆成三类封装方式：</p>
+<ul>
+<li>策略的特征判定连接特征模型的结果</li>
+<li>策略的机器学习判定连接分析模型的结果</li>
+<li>策略的神经网络判定连接模型平台的神经网络模型结果</li>
+</ul>
+<p>一条曲线可以同时应用多个策略。</p>
+<p>多个策略跑完以后，最终怎么组合这些策略结果，不是策略本身要解决的，而是规则定义要解决的。</p>
+<p>从这个角度看，策略是“模型能力的封装层”，规则定义才是“结果组合与最终结论层”。</p>
+<h3 id="7-规则"><a href="#7-规则" class="headerlink" title="7. 规则"></a>7. 规则</h3><p>规则是策略结果的组合与最终结论层，负责把多个策略的输出变成一条曲线的业务判断。</p>
+<p>一条曲线可以同时应用多个策略，所以系统通常需要一层规则来处理：</p>
+<ul>
+<li>多个策略结果如何聚合</li>
+<li>哪些策略是必选的，哪些策略是可选的</li>
+<li>各策略结果之间是“与”“或”“优先级”还是其他组合方式</li>
+<li>最终业务结论如何落地为通过、异常、风险等级或其他结果</li>
+</ul>
+<p>从业务上看，规则不是模型，也不是策略的简单别名，而是“策略结果如何合成最终结论”的定义层。</p>
+<h2 id="业务架构图"><a href="#业务架构图" class="headerlink" title="业务架构图"></a>业务架构图</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:stretch;">
+  <div style="border:1px solid var(--background-modifier-border);border-radius:12px;padding:12px;background:var(--background-primary);">
+    <div style="font-weight:600;margin-bottom:6px;">设备 / 拧紧节点</div>
+    <div>产生扭矩、角度等时序数据。</div>
+  </div>
+  <div style="border:1px solid var(--background-modifier-border);border-radius:12px;padding:12px;background:var(--background-primary);">
+    <div style="font-weight:600;margin-bottom:6px;">时序数据采集</div>
+    <div>根据设备与采集项映射获取原始曲线点。</div>
+  </div>
+  <div style="border:1px solid var(--background-modifier-border);border-radius:12px;padding:12px;background:var(--background-primary);">
+    <div style="font-weight:600;margin-bottom:6px;">数据中心</div>
+    <div>承载业务数据、配置、历史、标签和映射关系。</div>
+  </div>
+  <div style="border:1px solid var(--background-modifier-border);border-radius:12px;padding:12px;background:var(--background-primary);">
+    <div style="font-weight:600;margin-bottom:6px;">分析中心</div>
+    <div>负责曲线查看、策略调用、规则组合和结果呈现。</div>
+  </div>
+  <div style="border:1px solid var(--background-modifier-border);border-radius:12px;padding:12px;background:var(--background-primary);">
+    <div style="font-weight:600;margin-bottom:6px;">模型管理</div>
+    <div>统一管理特征模型、分析模型、神经网络模型及模型平台接入。</div>
+  </div>
+  <div style="border:1px solid var(--background-modifier-border);border-radius:12px;padding:12px;background:var(--background-primary);">
+    <div style="font-weight:600;margin-bottom:6px;">参考曲线管理</div>
+    <div>维护标准样板曲线和参考区间。</div>
+  </div>
+  <div style="border:1px solid var(--background-modifier-border);border-radius:12px;padding:12px;background:var(--background-primary);">
+    <div style="font-weight:600;margin-bottom:6px;">策略 / 规则</div>
+    <div>策略封装模型能力，规则组合多个策略结果并给出最终结论。</div>
+  </div>
+</div>
+
+<div style="margin-top:12px;overflow-x:auto;">
+  <table style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th style="border:1px solid var(--background-modifier-border);padding:8px;text-align:left;">流向</th>
+        <th style="border:1px solid var(--background-modifier-border);padding:8px;text-align:left;">业务含义</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="border:1px solid var(--background-modifier-border);padding:8px;">设备 / 节点 → 时序数据采集</td>
+        <td style="border:1px solid var(--background-modifier-border);padding:8px;">拿到拧紧过程中的原始曲线数据。</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid var(--background-modifier-border);padding:8px;">时序数据采集 → 数据中心</td>
+        <td style="border:1px solid var(--background-modifier-border);padding:8px;">完成业务上下文关联、映射和历史沉淀。</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid var(--background-modifier-border);padding:8px;">数据中心 → 分析中心</td>
+        <td style="border:1px solid var(--background-modifier-border);padding:8px;">提供曲线查询、模型调用和结果展示所需数据。</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid var(--background-modifier-border);padding:8px;">分析中心 → 策略 / 规则</td>
+        <td style="border:1px solid var(--background-modifier-border);padding:8px;">先由策略封装模型结果，再由规则合成最终结论。</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 id="主要业务流程"><a href="#主要业务流程" class="headerlink" title="主要业务流程"></a>主要业务流程</h2><h3 id="1-曲线采集与入库"><a href="#1-曲线采集与入库" class="headerlink" title="1. 曲线采集与入库"></a>1. 曲线采集与入库</h3><p>拧紧过程产生的扭矩、角度等时序数据，由边缘节点或在线节点提供。</p>
+<p>系统会把设备和采集项做映射，再根据：</p>
+<ul>
+<li>设备编码</li>
+<li>分类号</li>
+<li>曲线 ID</li>
+<li>开始结束时间</li>
+</ul>
+<p>去查询对应时序数据。</p>
+<p>业务上，这一步的目标不是“拿到原始点”，而是为后续判定准备一条完整的拧紧过程数据。</p>
+<h3 id="2-曲线查看"><a href="#2-曲线查看" class="headerlink" title="2. 曲线查看"></a>2. 曲线查看</h3><p>在曲线中心，用户可以选择若干条曲线进行查看。</p>
+<p>系统会做这些事：</p>
+<ul>
+<li>补齐设备特征信息</li>
+<li>拉取扭矩和角度时序</li>
+<li>按指定方式对齐曲线</li>
+<li>组合成前端可直接绘图的数据结构</li>
+<li>叠加参考曲线和参考区间</li>
+</ul>
+<p>常见的对齐方式包括：</p>
+<ul>
+<li>不对齐</li>
+<li>起点对齐</li>
+<li>终点对齐</li>
+<li>结果扭矩对齐</li>
+<li>结果角度对齐</li>
+</ul>
+<p>这说明系统对“曲线如何比较”是有明确业务口径的，不是简单的折线展示。</p>
+<h3 id="3-曲线判定"><a href="#3-曲线判定" class="headerlink" title="3. 曲线判定"></a>3. 曲线判定</h3><p>曲线判定是整个系统最核心的质量动作。</p>
+<p>它的输入通常包含：</p>
+<ul>
+<li>曲线时序数据</li>
+<li>设备编码</li>
+<li>分类号</li>
+<li>策略配置</li>
+<li>参考数据或模型配置</li>
+</ul>
+<p>判定后输出：</p>
+<ul>
+<li>结果是否通过</li>
+<li>判定规则</li>
+<li>判定因子</li>
+<li>风险标签</li>
+</ul>
+<p>系统通常体现出两条主线：</p>
+<h4 id="特征判定"><a href="#特征判定" class="headerlink" title="特征判定"></a>特征判定</h4><p>特征判定更贴近工艺工程语言。</p>
+<p>流程是：</p>
+<ol>
+<li>从曲线提取特征</li>
+<li>根据规则表达式判断</li>
+<li>把判定变量和结果可解释地存下来</li>
+</ol>
+<p>典型用途：</p>
+<ul>
+<li>某类工艺动作是否满足控制窗口</li>
+<li>某个阶段扭矩变化是否异常</li>
+</ul>
+<h4 id="模型判定"><a href="#模型判定" class="headerlink" title="模型判定"></a>模型判定</h4><p>模型判定更偏数据驱动。</p>
+<p>流程是：</p>
+<ol>
+<li>组织扭矩&#x2F;角度时序</li>
+<li>送到外部模型服务</li>
+<li>获取模型输出和 loss</li>
+<li>用阈值做最终判断</li>
+</ol>
+<p>它适合处理更复杂、更难用规则描述的异常形态。</p>
+<h3 id="4-参考曲线管理"><a href="#4-参考曲线管理" class="headerlink" title="4. 参考曲线管理"></a>4. 参考曲线管理</h3><p>参考曲线不是静态附件，而是一套可运营资产。</p>
+<p>业务动作包括：</p>
+<ul>
+<li>手动指定参考曲线</li>
+<li>基于训练数据训练参考曲线</li>
+<li>修改参考曲线上下限配置</li>
+<li>删除参考曲线</li>
+<li>查看参考曲线历史</li>
+</ul>
+<p>参考曲线的存在说明系统不仅做“异常发现”，还承担“标准沉淀”职责。</p>
+<h3 id="5-诊断中心"><a href="#5-诊断中心" class="headerlink" title="5. 诊断中心"></a>5. 诊断中心</h3><p>诊断中心是面向质量管理者的汇总界面。</p>
+<p>它做的主要事情是：</p>
+<ul>
+<li>只列出已部署分析模型的组织&#x2F;产线&#x2F;工位&#x2F;设备</li>
+<li>查看某个分析关系的最近诊断记录</li>
+<li>查询趋势</li>
+<li>导出诊断明细</li>
+<li>维护诊断视图配置</li>
+</ul>
+<p>从业务上看，这里更关注“管理视角”而不是单条曲线细节。</p>
+<h3 id="6-模型管理"><a href="#6-模型管理" class="headerlink" title="6. 模型管理"></a>6. 模型管理</h3><p>模型管理模块负责“把特征模型、分析模型、神经网络模型以及模型平台接入统一管理起来”。</p>
+<p>主要动作包括：</p>
+<ul>
+<li>导入模型定义</li>
+<li>导入模型关系</li>
+<li>导出模型配置</li>
+<li>维护特征模型配置</li>
+<li>维护分析模型配置</li>
+<li>维护神经网络模型接入配置</li>
+<li>修改模型阈值配置</li>
+<li>查看历史</li>
+<li>批量训练模型</li>
+<li>手工计算某时刻之后的数据</li>
+<li>查看训练结果</li>
+<li>获取最小可置信循环周期</li>
+</ul>
+<p>这表示模型管理不仅是配置中心，也是训练运营中心和模型平台接入中心。</p>
+<h2 id="端到端业务链路"><a href="#端到端业务链路" class="headerlink" title="端到端业务链路"></a>端到端业务链路</h2><pre><code class=" mermaid">sequenceDiagram
+    participant U as 用户
+    participant A as 分析中心/前端
+    participant N as 在线节点
+    participant D as 数据中心
+    participant M as 模型/策略服务
+
+    U-&gt;&gt;A: 发起曲线查询
+    A-&gt;&gt;N: 查询时序数据
+    N-&gt;&gt;D: 查询并返回原始时序数据
+    D--&gt;&gt;N: 返回时序点
+    N--&gt;&gt;A: 返回曲线数据
+    A--&gt;&gt;U: 展示曲线
+
+    Note over N,M: 节点收到数据后立即触发计算线程
+    N-&gt;&gt;M: 调用模型策略服务进行计算
+    M--&gt;&gt;N: 返回模型输出、策略结果和规则结果
+    N-&gt;&gt;D: 同步计算结果、历史和标签
+</code></pre>
+
+<h2 id="关键业务功能地图"><a href="#关键业务功能地图" class="headerlink" title="关键业务功能地图"></a>关键业务功能地图</h2><h3 id="曲线中心"><a href="#曲线中心" class="headerlink" title="曲线中心"></a>曲线中心</h3><ul>
+<li>单条曲线查看</li>
+<li>多条曲线对比</li>
+<li>参考曲线叠加</li>
+<li>曲线导出</li>
+<li>曲线人工标记风险</li>
+<li>事件曲线查看</li>
+</ul>
+<h3 id="标准曲线中心"><a href="#标准曲线中心" class="headerlink" title="标准曲线中心"></a>标准曲线中心</h3><ul>
+<li>参考曲线列表</li>
+<li>指定某条曲线为参考曲线</li>
+<li>配置参考曲线区间</li>
+<li>训练参考曲线</li>
+<li>删除参考曲线</li>
+<li>查看训练损失</li>
+</ul>
+<h3 id="诊断中心"><a href="#诊断中心" class="headerlink" title="诊断中心"></a>诊断中心</h3><ul>
+<li>组织层级筛选已部署模型对象</li>
+<li>查看诊断详情</li>
+<li>查看趋势</li>
+<li>导出诊断明细</li>
+<li>调整诊断视图设置</li>
+</ul>
+<h3 id="模型管理"><a href="#模型管理" class="headerlink" title="模型管理"></a>模型管理</h3><ul>
+<li>特征模型管理</li>
+<li>分析模型管理</li>
+<li>神经网络模型接入</li>
+<li>模型定义导入导出</li>
+<li>模型关系导入导出</li>
+<li>模型配置编辑</li>
+<li>模型训练</li>
+<li>手工补算</li>
+<li>训练结果查看</li>
+</ul>
+<h2 id="主要业务规则"><a href="#主要业务规则" class="headerlink" title="主要业务规则"></a>主要业务规则</h2><h3 id="1-曲线查询依赖设备映射和在线节点"><a href="#1-曲线查询依赖设备映射和在线节点" class="headerlink" title="1. 曲线查询依赖设备映射和在线节点"></a>1. 曲线查询依赖设备映射和在线节点</h3><p>曲线能不能查到，不只看有没有 <code>curveId</code>，还要看：</p>
+<ul>
+<li>设备有没有配置采集项映射</li>
+<li>采集项对应的在线节点是否可用</li>
+<li>在线节点是否能返回时序数据</li>
+</ul>
+<p>所以“有曲线”不代表“能展示曲线”。</p>
+<h3 id="2-曲线对齐是业务解释的重要部分"><a href="#2-曲线对齐是业务解释的重要部分" class="headerlink" title="2. 曲线对齐是业务解释的重要部分"></a>2. 曲线对齐是业务解释的重要部分</h3><p>同一条曲线可以按不同口径对齐：</p>
+<ul>
+<li>起点</li>
+<li>终点</li>
+<li>结果扭矩点</li>
+<li>结果角度点</li>
+</ul>
+<p>这说明曲线对比不是纯数学问题，而是工艺解释问题。</p>
+<h3 id="3-参考曲线的上下限是配置化的"><a href="#3-参考曲线的上下限是配置化的" class="headerlink" title="3. 参考曲线的上下限是配置化的"></a>3. 参考曲线的上下限是配置化的</h3><p>系统支持两类边界思路：</p>
+<ul>
+<li>绝对值补偿</li>
+<li>按比例扩展</li>
+</ul>
+<p>上限&#x2F;下限可以分别采用“阈值”或“补偿”逻辑。</p>
+<h3 id="4-模型诊断阈值来自训练结果"><a href="#4-模型诊断阈值来自训练结果" class="headerlink" title="4. 模型诊断阈值来自训练结果"></a>4. 模型诊断阈值来自训练结果</h3><p>模型训练后会得到训练样本的最大值和最小值，再结合配置计算阈值。</p>
+<p>业务含义是：</p>
+<ul>
+<li>训练阶段沉淀“正常样本边界”</li>
+<li>配置阶段决定边界如何外扩或固定</li>
+<li>诊断阶段按最终阈值判定异常</li>
+</ul>
+<h3 id="5-特征判定强调可解释性"><a href="#5-特征判定强调可解释性" class="headerlink" title="5. 特征判定强调可解释性"></a>5. 特征判定强调可解释性</h3><p>特征判定的规则是表达式化的，结果会把规则和因子翻译成更贴近业务的语言。</p>
+<p>这意味着：</p>
+<ul>
+<li>工艺人员能看懂为什么判异常</li>
+<li>质量人员能追溯判定依据</li>
+</ul>
+<h3 id="6-人工标注和系统判定并存"><a href="#6-人工标注和系统判定并存" class="headerlink" title="6. 人工标注和系统判定并存"></a>6. 人工标注和系统判定并存</h3><p>系统保留用户对曲线的人工风险标注能力。</p>
+<p>业务意义是：</p>
+<ul>
+<li>让业务专家修正系统判断</li>
+<li>为后续模型训练提供标签</li>
+<li>对“规则外”异常保留人工入口</li>
+</ul>
+<h2 id="领域术语速查"><a href="#领域术语速查" class="headerlink" title="领域术语速查"></a>领域术语速查</h2><ul>
+<li><code>curveId</code>：一次拧紧过程的曲线标识</li>
+<li><code>relId</code>：历史标识字段，当前笔记不把它当作独立领域对象</li>
+<li><code>relCode</code>：关系编码字段，通常用于内部关联或兼容旧实现</li>
+<li><code>classificationNumber</code>：曲线分类号</li>
+<li><code>styleNo</code>：拧紧程序号</li>
+<li><code>tightenStatus</code>：控制器拧紧状态</li>
+<li><code>dgnsFactor</code>：诊断因子或异常分数</li>
+<li><code>dgnsResult</code>：诊断结果</li>
+<li><code>dgnsCategory</code>：诊断类别</li>
+<li><code>riskCode</code>：风险码，常用于人工标注</li>
+<li><code>strategy</code>：判定策略</li>
+<li><code>refCurve</code>：参考曲线</li>
+<li><code>trainResult</code>：训练结果</li>
+</ul>
+<h2 id="业务理解"><a href="#业务理解" class="headerlink" title="业务理解"></a>业务理解</h2><p>这个系统可以理解为：</p>
+<ol>
+<li>它不是“曲线浏览器”，而是“质量判定引擎 + 业务看板 + 配置训练平台”。</li>
+<li>拧紧工艺是它当前最完整的业务落点。</li>
+<li>系统的价值不在单条曲线，而在曲线、规则、基础模型、标签、历史、趋势的闭环。</li>
+<li>业务运营方式是配置驱动的，很多能力都能通过导入、导出、训练、补算来维护。</li>
+</ol>
+<h2 id="业务边界与结果层次"><a href="#业务边界与结果层次" class="headerlink" title="业务边界与结果层次"></a>业务边界与结果层次</h2><h3 id="1-业务边界"><a href="#1-业务边界" class="headerlink" title="1. 业务边界"></a>1. 业务边界</h3><p>曲线分析系统的业务边界可以概括为：基于时序数据的工艺质量分析。</p>
+<p>它适用于质量数据表现为一条或者多条曲线的场景，关注的不是数据本身的存储，而是围绕曲线所形成的工艺质量判定、比较和追溯。</p>
+<h3 id="2-结果层次"><a href="#2-结果层次" class="headerlink" title="2. 结果层次"></a>2. 结果层次</h3><p>系统的结果层次可以分为四层：</p>
+<ol>
+<li>特征输出和模型输出</li>
+<li>判定策略输出</li>
+<li>规则层聚合输出</li>
+<li>最终质量结论</li>
+</ol>
+<p>其中，特征输出和模型输出都属于判定因子，是中间数据。</p>
+<p>判定策略作为业务层的代理，把中间数据转换成单维度的判定结果。</p>
+<p>规则层负责整合多个判定结果，并对单个质量对象做出最终判定。</p>
+<h3 id="3-业务表达"><a href="#3-业务表达" class="headerlink" title="3. 业务表达"></a>3. 业务表达</h3><p>从业务语言上看，这套系统关注的是：</p>
+<ul>
+<li>一条或多条曲线是否反映出某个质量对象的工艺状态</li>
+<li>每个策略给出的单维度结果是什么</li>
+<li>多个结果合在一起之后，最终质量结论是什么</li>
+</ul>
+<p>因此，它不是单纯的曲线展示系统，也不是单纯的模型计算系统，而是面向工艺质量的判定与汇总结论系统。</p>
+<h2 id="扩展知识"><a href="#扩展知识" class="headerlink" title="扩展知识"></a>扩展知识</h2><ul>
+<li>[01 曲线分析系统领域知识扩展](&#x2F;01 曲线分析系统领域知识扩展&#x2F;)</li>
+</ul>
+<h2 id="可以继续延伸的-Obsidian-链接"><a href="#可以继续延伸的-Obsidian-链接" class="headerlink" title="可以继续延伸的 Obsidian 链接"></a>可以继续延伸的 Obsidian 链接</h2><ul>
+<li><a href="/%E6%9B%B2%E7%BA%BF%E5%88%A4%E5%AE%9A%E6%B5%81%E7%A8%8B/">曲线判定流程</a></li>
+<li><a href="/%E5%8F%82%E8%80%83%E6%9B%B2%E7%BA%BF%E7%AE%A1%E7%90%86/">参考曲线管理</a></li>
+<li><a href="/%E5%88%86%E6%9E%90%E6%A8%A1%E5%9E%8B%E4%B8%8E%E9%98%88%E5%80%BC/">分析模型与阈值</a></li>
+<li><a href="/%E7%89%B9%E5%BE%81%E8%A7%84%E5%88%99%E5%88%A4%E5%AE%9A/">特征规则判定</a></li>
+<li><a href="/%E8%AF%8A%E6%96%AD%E4%B8%AD%E5%BF%83%E4%B8%9A%E5%8A%A1%E8%A7%86%E5%9B%BE/">诊断中心业务视图</a></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Manulism-Work/" class="category-chain-item">Manulism Work</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Manulism-Work/">#Manulism Work</a>
+      
+        <a href="/tags/Domain-Knowledge/">#Domain Knowledge</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>曲线分析系统领域知识</div>
+      <div>https://luischen.github.io/2026/06/22/manulism-work/20_Domain_Knowledge/22 曲线质量分析/00 曲线分析系统领域知识/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luis Chen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年6月22日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/22/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/01%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E6%89%A9%E5%B1%95/" title="曲线分析系统领域知识扩展">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">曲线分析系统领域知识扩展</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/04%20%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%8E%A5/" title="数据对接">
+                        <span class="hidden-mobile">数据对接</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

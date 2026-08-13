@@ -1,0 +1,1100 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luis Chen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="title: 时间性能系统领域知识area: domain-knowledgekind: domain-overviewtopic: time-performance-analysisstatus: activechildren:  ‘[时间性能系统技术领域知识](&#x2F;20_Domain_Knowledge&#x2F;23 时间性能分析&#x2F;01 时间性能系统技术领域知识&amp;#x2F">
+<meta property="og:type" content="article">
+<meta property="og:title" content="00 时间性能系统领域知识">
+<meta property="og:url" content="https://luischen.github.io/2026/06/23/manulism-work/20_Domain_Knowledge/23%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/00%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="title: 时间性能系统领域知识area: domain-knowledgekind: domain-overviewtopic: time-performance-analysisstatus: activechildren:  ‘[时间性能系统技术领域知识](&#x2F;20_Domain_Knowledge&#x2F;23 时间性能分析&#x2F;01 时间性能系统技术领域知识&amp;#x2F">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-23T08:16:59.000Z">
+<meta property="article:modified_time" content="2026-06-24T07:52:00.000Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="Manulism Work">
+<meta property="article:tag" content="Domain Knowledge">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>00 时间性能系统领域知识 - Next Station</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"luischen.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Next Station</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="00 时间性能系统领域知识"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-06-23 16:16" pubdate>
+          2026年6月23日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          39 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">00 时间性能系统领域知识</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <hr>
+<p>title: 时间性能系统领域知识<br>area: domain-knowledge<br>kind: domain-overview<br>topic: time-performance-analysis<br>status: active<br>children:</p>
+<ul>
+<li>‘[时间性能系统技术领域知识](&#x2F;20_Domain_Knowledge&#x2F;23 时间性能分析&#x2F;01 时间性能系统技术领域知识&#x2F;)’<br>upstream:</li>
+<li>‘[工业数据接入](&#x2F;20_Domain_Knowledge&#x2F;21 工业数据接入&#x2F;00 接入模式&#x2F;)’</li>
+<li>‘[工业智能平台总体架构](&#x2F;10_Architecture&#x2F;11 平台总览&#x2F;工业智能平台总体架构&#x2F;)’</li>
+<li>‘[数据能力估算](&#x2F;10_Architecture&#x2F;13 架构参考&#x2F;数据能力估算&#x2F;)’<br>related:</li>
+<li>‘[曲线质量分析](&#x2F;20_Domain_Knowledge&#x2F;22 曲线质量分析&#x2F;00 曲线分析系统领域知识&#x2F;)’</li>
+<li>‘[预测性维护](&#x2F;20_Domain_Knowledge&#x2F;24 预测性维护&#x2F;00 PDM业务领域知识笔记&#x2F;)’</li>
+</ul>
+<hr>
+<h2 id="2-核心业务对象"><a href="#2-核心业务对象" class="headerlink" title="2. 核心业务对象"></a>2. 核心业务对象</h2><h3 id="2-1-研究对象"><a href="#2-1-研究对象" class="headerlink" title="2.1 研究对象"></a>2.1 研究对象</h3><p>研究对象是分析的基本组织单元，常见可以是：</p>
+<ul>
+<li>产线</li>
+<li>产线下的工位</li>
+<li>工艺流下的子单元</li>
+</ul>
+<p>研究对象通常具有层级关系，系统会按层级把数据汇总到不同管理层面。</p>
+<h3 id="2-2-节拍"><a href="#2-2-节拍" class="headerlink" title="2.2 节拍"></a>2.2 节拍</h3><p>节拍不是简单的时间段，而是带业务语义的时间片段。</p>
+<p>节拍通常有两类：</p>
+<ul>
+<li>主节拍：代表一个完整业务周期</li>
+<li>子节拍：代表主节拍内部的动作、阶段或工艺步骤</li>
+</ul>
+<p>一个节拍至少要能说明：</p>
+<ul>
+<li>它什么时候开始</li>
+<li>它什么时候结束</li>
+<li>它属于哪个研究对象</li>
+<li>它对应什么工艺或动作</li>
+<li>它的理论上限和下限是什么</li>
+</ul>
+<h3 id="2-3-理论基准"><a href="#2-3-理论基准" class="headerlink" title="2.3 理论基准"></a>2.3 理论基准</h3><p>理论基准代表“正常情况下应该花多少时间”。</p>
+<p>理论基准通常分三部分：</p>
+<ul>
+<li>总节拍基准</li>
+<li>工作时间基准</li>
+<li>工艺时间基准</li>
+</ul>
+<p>从业务上看，它不是“理想化的空想值”，而是用来衡量实际生产偏差的参照物。</p>
+<h3 id="2-4-实际节拍"><a href="#2-4-实际节拍" class="headerlink" title="2.4 实际节拍"></a>2.4 实际节拍</h3><p>实际节拍是现场真实发生的结果，包含：</p>
+<ul>
+<li>实际持续时间</li>
+<li>理论基准</li>
+<li>报警占用</li>
+<li>故障损失</li>
+<li>非必要等待</li>
+<li>风险标识</li>
+</ul>
+<p>实际节拍是后续分析报表的基础事实。</p>
+<hr>
+<h2 id="3-节拍分段的业务逻辑"><a href="#3-节拍分段的业务逻辑" class="headerlink" title="3. 节拍分段的业务逻辑"></a>3. 节拍分段的业务逻辑</h2><h3 id="3-1-节拍分段不是固定切法，而是配置驱动"><a href="#3-1-节拍分段不是固定切法，而是配置驱动" class="headerlink" title="3.1 节拍分段不是固定切法，而是配置驱动"></a>3.1 节拍分段不是固定切法，而是配置驱动</h3><p>节拍如何切分，取决于生产线、工位、工艺、产品型号、工具、序列号等多种条件。</p>
+<p>这意味着同一条线在不同产品、不同工况、不同工艺下，节拍边界可能不同。</p>
+<h3 id="3-2-节拍的层级结构"><a href="#3-2-节拍的层级结构" class="headerlink" title="3.2 节拍的层级结构"></a>3.2 节拍的层级结构</h3><p>系统里，主节拍和子节拍共同构成完整的生产时间结构：</p>
+<ul>
+<li>主节拍代表完整业务周期</li>
+<li>子节拍代表主节拍内的动作拆解</li>
+</ul>
+<p>后续所有统计和分析，最终都要回到主节拍，才能形成统一口径。</p>
+<h3 id="3-3-研究对象与工位的关系"><a href="#3-3-研究对象与工位的关系" class="headerlink" title="3.3 研究对象与工位的关系"></a>3.3 研究对象与工位的关系</h3><p>系统不是直接把分析对象理解为“设备”，而是通过工位、节点、产线关系把现场数据归集到研究对象。</p>
+<p>这说明系统更关注业务管理单元，而不是单纯关注设备点位。</p>
+<h3 id="3-4-设计时长与动态时长"><a href="#3-4-设计时长与动态时长" class="headerlink" title="3.4 设计时长与动态时长"></a>3.4 设计时长与动态时长</h3><p>并不是所有工艺都能用一个固定数值描述。</p>
+<p>有些节拍会受到以下因素影响：</p>
+<ul>
+<li>产品型号</li>
+<li>棒长或物料规格</li>
+<li>模具状态</li>
+<li>工艺流变化</li>
+<li>不同工况下的补偿逻辑</li>
+</ul>
+<p>因此系统允许把理论时间拆成“基础时间 + 补偿时间”的形式，并支持按业务规则动态取值。</p>
+<hr>
+<h2 id="4-理论基准的两种来源"><a href="#4-理论基准的两种来源" class="headerlink" title="4. 理论基准的两种来源"></a>4. 理论基准的两种来源</h2><h3 id="4-1-长周期基准"><a href="#4-1-长周期基准" class="headerlink" title="4.1 长周期基准"></a>4.1 长周期基准</h3><p>长周期基准来自历史生产数据，更像“经验稳定值”。</p>
+<p>它的特点是：</p>
+<ul>
+<li>来自一段时间内的真实生产表现</li>
+<li>重点不是极值，而是稳定性</li>
+<li>目标是找到跨工位一致性较好的基准</li>
+</ul>
+<p>工业上，这类基准更适合成熟产线，用来反映长期稳定状态下的合理节拍。</p>
+<h3 id="4-2-设计基准"><a href="#4-2-设计基准" class="headerlink" title="4.2 设计基准"></a>4.2 设计基准</h3><p>设计基准来自工艺设计和配置逻辑，更像“标准理论值”。</p>
+<p>它的特点是：</p>
+<ul>
+<li>反映工艺设计意图</li>
+<li>不依赖大量历史数据</li>
+<li>适合新产线、新工艺、初期导入场景</li>
+</ul>
+<p>工业上，这类基准更适合回答“这个工艺本来应该怎样运行”。</p>
+<h3 id="4-3-两类基准的区别"><a href="#4-3-两类基准的区别" class="headerlink" title="4.3 两类基准的区别"></a>4.3 两类基准的区别</h3><p>可以把它们理解成两种不同的知识来源：</p>
+<ul>
+<li>长周期基准：统计经验型，更适合持续优化</li>
+<li>设计基准：工艺规则型，更适合工艺标准制定</li>
+</ul>
+<hr>
+<h2 id="5-实际节拍的解释逻辑"><a href="#5-实际节拍的解释逻辑" class="headerlink" title="5. 实际节拍的解释逻辑"></a>5. 实际节拍的解释逻辑</h2><h3 id="5-1-报警是故障证据，但不是全部损失"><a href="#5-1-报警是故障证据，但不是全部损失" class="headerlink" title="5.1 报警是故障证据，但不是全部损失"></a>5.1 报警是故障证据，但不是全部损失</h3><p>系统会把节拍窗口内真实发生的报警提取出来，作为故障损失分析的直接证据。</p>
+<p>这一步的业务意义在于：</p>
+<ul>
+<li>报警时间不能直接等同于全部损失</li>
+<li>但报警是最重要的故障证据之一</li>
+<li>需要结合节拍窗口进行裁剪、合并和过滤</li>
+</ul>
+<h3 id="5-2-故障损失和非必要等待的拆分"><a href="#5-2-故障损失和非必要等待的拆分" class="headerlink" title="5.2 故障损失和非必要等待的拆分"></a>5.2 故障损失和非必要等待的拆分</h3><p>系统会先看节拍实际消耗与理论基准之间的差值，再根据报警时长进行拆分：</p>
+<ul>
+<li>先判断差值是否为负</li>
+<li>再判断差值是否落在报警时长以内</li>
+<li>超出报警时长的部分，归入非必要等待</li>
+</ul>
+<p>这背后的业务理解是：</p>
+<ul>
+<li>故障损失更像“明确可归因的异常停顿”</li>
+<li>非必要等待更像“流程协同、节奏匹配、搬运、排队等造成的额外耗时”</li>
+</ul>
+<h3 id="5-3-四个关键时间口径"><a href="#5-3-四个关键时间口径" class="headerlink" title="5.3 四个关键时间口径"></a>5.3 四个关键时间口径</h3><p>系统在管理上常用四个口径描述节拍损失结构：</p>
+<ul>
+<li>工作时间：真正用于生产推进的时间</li>
+<li>必要等待：工艺上不得不等待的时间</li>
+<li>非必要等待：流程或协同造成的额外等待</li>
+<li>故障时间：设备、报警、质量、维护等引起的损失</li>
+</ul>
+<p>这四个口径不是互相独立的物理事实，而是从节拍事实中拆出来的管理视角。</p>
+<h3 id="5-4-节拍损失拆解图"><a href="#5-4-节拍损失拆解图" class="headerlink" title="5.4 节拍损失拆解图"></a>5.4 节拍损失拆解图</h3><p>这张图把一个节拍的时间结构拆成了四层：工作时间、必要等待、非必要等待和故障时间。<br>它的作用不是展示数学公式，而是帮助业务人员快速看出，实际节拍为什么会偏离理论节拍。<br>这里要特别注意，理论节拍和工作时间不在一个维度上：</p>
+<ul>
+<li>理论节拍是参考基准线，用来衡量是否偏离</li>
+<li>工作时间、必要等待、非必要等待、故障时间是实际节拍的构成项</li>
+</ul>
+<p>读这张图时，建议优先关注三件事：</p>
+<ul>
+<li>左边的工作时间，是不是足够稳定</li>
+<li>中间的等待时间，是不是存在流程衔接问题</li>
+<li>右边的故障时间，是不是存在明显的异常停顿</li>
+</ul>
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 14px 0 8px;">
+  <tr>
+    <td style="border:1px solid #999; padding:14px; background:#eef6ff; width:100%; font-weight:600;">理论节拍（参考基线）</td>
+  </tr>
+</table>
+
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 0 0 10px;">
+  <tr>
+    <td style="border:1px solid #bbb; padding:12px; background:#fff;">实际节拍</td>
+  </tr>
+</table>
+
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 0 0 18px;">
+  <tr>
+    <td style="border:1px solid #ccc; padding:10px; background:#fff;">工作时间</td>
+    <td style="border:1px solid #ccc; padding:10px; background:#fff7e6;">必要等待</td>
+    <td style="border:1px solid #ccc; padding:10px; background:#fff1f0;">非必要等待</td>
+    <td style="border:1px solid #ccc; padding:10px; background:#ffe8e6;">故障时间</td>
+  </tr>
+</table>
+
+<p>图里的关系可以这样理解：</p>
+<ul>
+<li>理论节拍：说明这是一条参考基线，不参与实际节拍构成</li>
+<li>实际节拍：说明这是现场真实发生的总耗时</li>
+<li>工作时间：说明这部分时间是价值推进的核心部分</li>
+<li>必要等待：说明这部分时间是工艺上必须接受的停留</li>
+<li>非必要等待：说明这部分时间多半来自上下游节奏不一致</li>
+<li>故障时间：说明这部分时间需要优先排查设备、报警和质量问题</li>
+</ul>
+<hr>
+<h2 id="6-瓶颈识别的业务逻辑"><a href="#6-瓶颈识别的业务逻辑" class="headerlink" title="6. 瓶颈识别的业务逻辑"></a>6. 瓶颈识别的业务逻辑</h2><h3 id="6-1-瓶颈不是一个点，而是一种损失结构"><a href="#6-1-瓶颈不是一个点，而是一种损失结构" class="headerlink" title="6.1 瓶颈不是一个点，而是一种损失结构"></a>6.1 瓶颈不是一个点，而是一种损失结构</h3><p>时间性能系统的瓶颈识别，不是只找“最慢的地方”，而是看整个损失结构：</p>
+<ul>
+<li>哪个研究对象的有效利用最差</li>
+<li>哪个研究对象的故障损失最高</li>
+<li>哪个研究对象的等待损失最高</li>
+<li>哪个研究对象的理论与实际偏差最大</li>
+</ul>
+<p>所以瓶颈判断通常不是单一结论，而是多指标共同支持的结果。</p>
+<h3 id="6-2-瓶颈工位的典型判断思路"><a href="#6-2-瓶颈工位的典型判断思路" class="headerlink" title="6.2 瓶颈工位的典型判断思路"></a>6.2 瓶颈工位的典型判断思路</h3><p>一个工位是否构成瓶颈，通常要看：</p>
+<ul>
+<li>是否长时间占用关键资源</li>
+<li>是否持续拖慢上游或下游节拍</li>
+<li>是否在班次、周期或月度统计里反复出现</li>
+<li>是否伴随大量故障或等待</li>
+</ul>
+<h3 id="6-3-瓶颈工艺的典型判断思路"><a href="#6-3-瓶颈工艺的典型判断思路" class="headerlink" title="6.3 瓶颈工艺的典型判断思路"></a>6.3 瓶颈工艺的典型判断思路</h3><p>一个工艺是否构成瓶颈，通常要看：</p>
+<ul>
+<li>工艺动作是否过长</li>
+<li>工艺顺序是否不平衡</li>
+<li>理论工艺时间是否明显高于同类工艺</li>
+<li>该工艺是否引起大量等待或故障</li>
+</ul>
+<h3 id="6-4-瓶颈原因的三层结构"><a href="#6-4-瓶颈原因的三层结构" class="headerlink" title="6.4 瓶颈原因的三层结构"></a>6.4 瓶颈原因的三层结构</h3><p>工业现场的瓶颈通常来自三层原因：</p>
+<ol>
+<li>设备层</li>
+<li>工艺层</li>
+<li>协同层</li>
+</ol>
+<p>设备层常见原因包括：</p>
+<ul>
+<li>报警</li>
+<li>停机</li>
+<li>维修</li>
+<li>互锁</li>
+</ul>
+<p>工艺层常见原因包括：</p>
+<ul>
+<li>节拍设计不合理</li>
+<li>工艺顺序不均衡</li>
+<li>参数波动</li>
+<li>工艺切换成本高</li>
+</ul>
+<p>协同层常见原因包括：</p>
+<ul>
+<li>搬运等待</li>
+<li>排队等待</li>
+<li>上下游节奏不匹配</li>
+<li>物料供应不及时</li>
+<li>信息同步滞后</li>
+</ul>
+<hr>
+<h2 id="7-报表体系的业务含义"><a href="#7-报表体系的业务含义" class="headerlink" title="7. 报表体系的业务含义"></a>7. 报表体系的业务含义</h2><p>系统不是只做一个报表，而是从不同角度看同一件事。</p>
+<h3 id="7-1-节拍分布"><a href="#7-1-节拍分布" class="headerlink" title="7.1 节拍分布"></a>7.1 节拍分布</h3><p>节拍分布关注的是单个节拍的波动情况，回答：</p>
+<ul>
+<li>节拍稳定不稳定</li>
+<li>是否有极端异常</li>
+<li>大多数数据落在哪个区间</li>
+</ul>
+<p>适合判断：</p>
+<ul>
+<li>工艺是否稳定</li>
+<li>现场是否存在波动性风险</li>
+</ul>
+<h3 id="7-2-负载分析"><a href="#7-2-负载分析" class="headerlink" title="7.2 负载分析"></a>7.2 负载分析</h3><p>负载分析关注的是时间被花在什么地方：</p>
+<ul>
+<li>工艺时间</li>
+<li>搬运时间</li>
+<li>浪费时间</li>
+</ul>
+<p>它更适合回答：</p>
+<ul>
+<li>时间到底花在创造价值上，还是花在无效消耗上</li>
+</ul>
+<h3 id="7-3-瓶颈分析"><a href="#7-3-瓶颈分析" class="headerlink" title="7.3 瓶颈分析"></a>7.3 瓶颈分析</h3><p>瓶颈分析更聚焦于：</p>
+<ul>
+<li>故障损失高不高</li>
+<li>非必要等待高不高</li>
+<li>必要等待是否过长</li>
+<li>整体有效利用率是否偏低</li>
+</ul>
+<p>它更适合回答：</p>
+<ul>
+<li>哪些地方最值得优先改善</li>
+</ul>
+<hr>
+<h2 id="8-时间性能系统的领域知识模型"><a href="#8-时间性能系统的领域知识模型" class="headerlink" title="8. 时间性能系统的领域知识模型"></a>8. 时间性能系统的领域知识模型</h2><table>
+  <thead>
+    <tr>
+      <th>阶段</th>
+      <th>输入</th>
+      <th>输出</th>
+      <th>业务含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>节拍定义</td>
+      <td>工位、工艺、偏移、上下限、规则、设计时长</td>
+      <td>可切分的节拍结构</td>
+      <td>定义节拍边界和解释方式</td>
+    </tr>
+    <tr>
+      <td>理论基准</td>
+      <td>历史表现或设计规则</td>
+      <td>理论总节拍、工作时间、工艺时间</td>
+      <td>定义“正常应该是多少”</td>
+    </tr>
+    <tr>
+      <td>实际节拍</td>
+      <td>时序数据、报警、现场白名单</td>
+      <td>实际节拍结果</td>
+      <td>还原真实生产过程</td>
+    </tr>
+    <tr>
+      <td>损失拆分</td>
+      <td>实际节拍、理论基准、报警时长</td>
+      <td>故障时间、等待时间、工作时间</td>
+      <td>解释损失来自哪里</td>
+    </tr>
+    <tr>
+      <td>瓶颈识别</td>
+      <td>节拍结果、损失结构、班次、周期</td>
+      <td>瓶颈工位、瓶颈工艺、瓶颈原因</td>
+      <td>判断优先改善点</td>
+    </tr>
+    <tr>
+      <td>管理输出</td>
+      <td>多维统计结果</td>
+      <td>报表、对比、趋势</td>
+      <td>支撑管理决策和持续优化</td>
+    </tr>
+  </tbody>
+</table>
+---
+
+<h2 id="9-对系统建设最重要的业务认知"><a href="#9-对系统建设最重要的业务认知" class="headerlink" title="9. 对系统建设最重要的业务认知"></a>9. 对系统建设最重要的业务认知</h2><p>这部分是对前文的归纳，不再展开新的概念，而是把前面的结论收拢成三条最关键的判断原则。</p>
+<h3 id="9-1-先看损失集中度"><a href="#9-1-先看损失集中度" class="headerlink" title="9.1 先看损失集中度"></a>9.1 先看损失集中度</h3><p>瓶颈的本质不是单点速度慢，而是损失在某个位置持续集中。优先看哪里最常出现故障、等待和偏差，而不是只看谁“最慢”。</p>
+<h3 id="9-2-再看原因层级"><a href="#9-2-再看原因层级" class="headerlink" title="9.2 再看原因层级"></a>9.2 再看原因层级</h3><p>同一个瓶颈，通常会同时受到设备、工艺、协同三层因素影响。判断时应先分层，再归因，避免把结果当原因。</p>
+<h3 id="9-3-最后看基准选择"><a href="#9-3-最后看基准选择" class="headerlink" title="9.3 最后看基准选择"></a>9.3 最后看基准选择</h3><p>不同场景要用不同基准。成熟产线更关注长周期基准，新工艺更关注设计基准，二者的差异本身也是重要的管理信息。</p>
+<hr>
+<h2 id="10-后续优化方向"><a href="#10-后续优化方向" class="headerlink" title="10. 后续优化方向"></a>10. 后续优化方向</h2><p>这一章不是再讲原理，而是把后续建设拆成五个更具体的优化方向。每个方向都对应一类管理动作，也对应一张更适合沟通的业务图。</p>
+<h3 id="10-1-建立瓶颈原因树"><a href="#10-1-建立瓶颈原因树" class="headerlink" title="10.1 建立瓶颈原因树"></a>10.1 建立瓶颈原因树</h3><p>目标是把“瓶颈在哪里”继续追问到“为什么会在这里”。<br>建议把原因分成三层：结果层、原因层、证据层，这样业务人员可以沿着树往下追，而不是只看一个结论。</p>
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 12px 0 16px;">
+  <tr>
+    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">瓶颈结论</td>
+  </tr>
+</table>
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 0 0 8px;">
+  <tr>
+    <td style="border:1px solid #ccc; padding:10px; background:#fff7e6;">故障类</td>
+    <td style="border:1px solid #ccc; padding:10px; background:#fff7e6;">等待类</td>
+    <td style="border:1px solid #ccc; padding:10px; background:#fff7e6;">工艺类</td>
+    <td style="border:1px solid #ccc; padding:10px; background:#fff7e6;">协同类</td>
+  </tr>
+</table>
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 0 0 18px;">
+  <tr>
+    <td style="border:1px solid #ddd; padding:10px; background:#fff;">报警</td>
+    <td style="border:1px solid #ddd; padding:10px; background:#fff;">排队</td>
+    <td style="border:1px solid #ddd; padding:10px; background:#fff;">工艺切换</td>
+    <td style="border:1px solid #ddd; padding:10px; background:#fff;">上下游节奏不匹配</td>
+  </tr>
+</table>
+
+<p>这类图适合用在管理讨论中，先把问题归类，再去找证据，最后再决定先改哪一类。</p>
+<h3 id="10-2-强化基准分层"><a href="#10-2-强化基准分层" class="headerlink" title="10.2 强化基准分层"></a>10.2 强化基准分层</h3><p>目标是明确“用哪一条线作为参考”。<br>建议把基准分成三层，并在图表中固定显示它们的适用场景，避免成熟产线、新工艺、短期波动混在一起比较。</p>
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 12px 0 18px;">
+  <tr>
+    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">设计基准</td>
+    <td style="border:1px solid #999; padding:12px; background:#f7f7f7;">长周期基准</td>
+    <td style="border:1px solid #999; padding:12px; background:#f7f7f7;">短周期参考</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #ddd; padding:10px;">回答“应该怎样运行”</td>
+    <td style="border:1px solid #ddd; padding:10px;">回答“长期平均表现如何”</td>
+    <td style="border:1px solid #ddd; padding:10px;">回答“近期是否波动”</td>
+  </tr>
+</table>
+
+<p>这张图的重点是把“标准值”和“观察值”分开，避免把工艺设计、长期经验和短期扰动放到同一个口径里比较。</p>
+<h3 id="10-3-提高瓶颈结论的可信度"><a href="#10-3-提高瓶颈结论的可信度" class="headerlink" title="10.3 提高瓶颈结论的可信度"></a>10.3 提高瓶颈结论的可信度</h3><p>目标是让瓶颈结论不只是“看起来像”，而是“有足够证据支持”。<br>判断可信度时，建议同时看三件事：是否重复出现、是否多指标一致、是否能被现场验证。</p>
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 12px 0 18px;">
+  <tr>
+    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">重复出现</td>
+    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">多指标一致</td>
+    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">现场可验证</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #ddd; padding:10px;">在多个班次、周期里都出现</td>
+    <td style="border:1px solid #ddd; padding:10px;">故障、等待、节拍偏差指向同一位置</td>
+    <td style="border:1px solid #ddd; padding:10px;">能在现场动作、报警或工艺记录里找到对应证据</td>
+  </tr>
+</table>
+
+<p>这类图适合用来判断一个瓶颈是否值得优先治理，避免把偶发问题误判成长期问题。</p>
+<h3 id="10-4-强化子节拍的业务解释"><a href="#10-4-强化子节拍的业务解释" class="headerlink" title="10.4 强化子节拍的业务解释"></a>10.4 强化子节拍的业务解释</h3><p>目标是让每个子节拍不只是一个切分结果，而是一个能被业务人员理解的动作单元。<br>建议把子节拍和工艺动作、设备状态、管理含义放在同一张图里，帮助现场从“时间段”理解到“业务动作”。</p>
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 12px 0 18px;">
+  <tr>
+    <td style="border:1px solid #999; padding:12px; background:#f7f7f7;">子节拍</td>
+    <td style="border:1px solid #999; padding:12px; background:#f7f7f7;">对应动作</td>
+    <td style="border:1px solid #999; padding:12px; background:#f7f7f7;">管理含义</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #ddd; padding:10px;">开始段</td>
+    <td style="border:1px solid #ddd; padding:10px;">准备、定位、启动</td>
+    <td style="border:1px solid #ddd; padding:10px;">是否存在前置准备过长</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #ddd; padding:10px;">执行段</td>
+    <td style="border:1px solid #ddd; padding:10px;">核心加工、输送、装配</td>
+    <td style="border:1px solid #ddd; padding:10px;">是否是效率主区段</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #ddd; padding:10px;">结束段</td>
+    <td style="border:1px solid #ddd; padding:10px;">收尾、复位、等待释放</td>
+    <td style="border:1px solid #ddd; padding:10px;">是否存在收尾拖尾</td>
+  </tr>
+</table>
+
+<h3 id="10-5-从报表走向诊断面板"><a href="#10-5-从报表走向诊断面板" class="headerlink" title="10.5 从报表走向诊断面板"></a>10.5 从报表走向诊断面板</h3><p>目标是把“结果展示”升级成“诊断展示”。<br>诊断面板不只显示数值，还要把基准、实际、损失和上下文放在一起，方便快速定位。</p>
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 12px 0 18px;">
+  <tr>
+    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">当前节拍</td>
+    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">理论节拍</td>
+    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">故障损失</td>
+    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">等待损失</td>
+    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">工艺损失</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #ddd; padding:10px;">现在到底怎么样</td>
+    <td style="border:1px solid #ddd; padding:10px;">应该是多少</td>
+    <td style="border:1px solid #ddd; padding:10px;">哪里停了</td>
+    <td style="border:1px solid #ddd; padding:10px;">哪里等了</td>
+    <td style="border:1px solid #ddd; padding:10px;">哪里慢在工艺上</td>
+  </tr>
+</table>
+
+<p>诊断面板的价值在于把“看报表”变成“看问题”，让管理动作更直接。</p>
+<hr>
+<h2 id="11-一句话总结"><a href="#11-一句话总结" class="headerlink" title="11. 一句话总结"></a>11. 一句话总结</h2><p>时间性能系统的核心，是把产线时序数据转化成一套可解释的节拍知识，通过理论基准、损失拆分和瓶颈归因，把“哪里慢”进一步变成“为什么慢、慢在哪里、该先改什么”。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Manulism-Work/" class="category-chain-item">Manulism Work</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Manulism-Work/">#Manulism Work</a>
+      
+        <a href="/tags/Domain-Knowledge/">#Domain Knowledge</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>00 时间性能系统领域知识</div>
+      <div>https://luischen.github.io/2026/06/23/manulism-work/20_Domain_Knowledge/23 时间性能分析/00 时间性能系统领域知识/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luis Chen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年6月23日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/00%20PDM%E4%B8%9A%E5%8A%A1%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/" title="PDM业务领域知识笔记">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">PDM业务领域知识笔记</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/22/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/01%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E6%89%A9%E5%B1%95/" title="曲线分析系统领域知识扩展">
+                        <span class="hidden-mobile">曲线分析系统领域知识扩展</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

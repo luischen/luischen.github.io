@@ -224,15 +224,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2019/08/27/%E4%B8%80%E4%B8%AASlash%E5%BC%95%E5%8F%91%E7%9A%84ClassNotFound%E8%A1%80%E6%A1%88/" target="_self">
-          一个Slash引发的ClassNotFound血案
+        <a href="/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E8%BD%AF%E4%BB%B6%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF/" target="_self">
+          软件版本信息
         </a>
       </h1>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2019/08/27/%E4%B8%80%E4%B8%AASlash%E5%BC%95%E5%8F%91%E7%9A%84ClassNotFound%E8%A1%80%E6%A1%88/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E8%BD%AF%E4%BB%B6%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF/" target="_self">
         <div>
-          公司开发了一款Web应用，开发架构基于Spring Boot，通过jar包的方式发布到服务器并通过命令行运行在内置的Tomcat上。上线将近一年，一切都是那么的风平浪静，然而一切的平静被上周的一次现场算法回访打破。 我们的数据分析人员本意只是想查看一下历史数据来确认算法的表现符合预期，结果发现历史数据查询页面怎么点都没有反应，而其他页面都是正常的，服务重启后一切恢复正常。 问题重现虽然问题通过服务
+          操作系统 Ubuntu 22.04 LTS+    数据存储 InfluxDB 1.7.7    MySQL 8.0.30    ClickHouse  23   容器技术 Docker 27.5.1    Docker Compose version v2.36.2   开发语言 Java 1.8    Vue 2    Nodejs V24.15.    Python 3.10.17
         </div>
       </a>
 
@@ -240,8 +240,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2019-08-27 10:30" pubdate>
-              2019-08-27
+            <time datetime="2026-06-17 16:22" pubdate>
+              2026-06-17
             </time>
           </div>
         
@@ -256,7 +256,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" class="category-chain-item">技术总结</a>
+  <a href="/categories/Manulism-Work/" class="category-chain-item">Manulism Work</a>
   
   
 
@@ -271,7 +271,9 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E5%BC%80%E5%8F%91%E6%8A%80%E6%9C%AF/">#开发技术</a>
+              <a href="/tags/Manulism-Work/">#Manulism Work</a>
+            
+              <a href="/tags/Architecture/">#Architecture</a>
             
           </div>
         
@@ -285,15 +287,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2019/07/17/%E7%BB%9F%E8%AE%A1%E4%BA%8C%E8%BF%9B%E5%88%B61%E7%9A%84%E4%BB%A3%E7%A0%81%E8%A7%A3%E8%AF%BB/" target="_self">
-          统计二进制1的代码解读
+        <a href="/2026/06/17/manulism-work/10_Architecture/11%20%E5%B9%B3%E5%8F%B0%E6%80%BB%E8%A7%88/%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E5%B9%B3%E5%8F%B0%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84/" target="_self">
+          工业智能平台总体架构
         </a>
       </h1>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2019/07/17/%E7%BB%9F%E8%AE%A1%E4%BA%8C%E8%BF%9B%E5%88%B61%E7%9A%84%E4%BB%A3%E7%A0%81%E8%A7%A3%E8%AF%BB/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/17/manulism-work/10_Architecture/11%20%E5%B9%B3%E5%8F%B0%E6%80%BB%E8%A7%88/%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E5%B9%B3%E5%8F%B0%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84/" target="_self">
         <div>
-          为了适应边缘计算的需求决定投入学习Go语言的浪潮，用了10年的java突然要去接受一个风格完全不一样的语言感觉真是太刺激了。 在看《Go语言圣经》的时候看到里面的一个计算二进制中1的个数的程序popcount，觉得挺有意思就拿出来分享一下吧。 程序代码总计也没几行，可以说很一目了然了：
+          1. 文档概述工业平台以“边缘采集与推理 + 平台服务 + 模型训练 + 数据智能 + 业务应用”为核心思路，面向制造现场的数据接入、时间性能分析、工艺质量分析、设备预测性维护、数据管理和智能助手应用需求，构建可扩展、可部署、可运维、可集成的工业智能平台。 平台总体目标包括：  统一接入：通过数据采集与数据集成能力连接设备、产线、工位、外部业务系统与第三方应用。 统一治理：通过 Nacos、服务网
         </div>
       </a>
 
@@ -301,8 +303,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2019-07-17 16:42" pubdate>
-              2019-07-17
+            <time datetime="2026-06-17 15:46" pubdate>
+              2026-06-17
             </time>
           </div>
         
@@ -317,7 +319,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" class="category-chain-item">技术总结</a>
+  <a href="/categories/Manulism-Work/" class="category-chain-item">Manulism Work</a>
   
   
 
@@ -332,9 +334,9 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/Golang/">#Golang</a>
+              <a href="/tags/Manulism-Work/">#Manulism Work</a>
             
-              <a href="/tags/%E7%AE%97%E6%B3%95/">#算法</a>
+              <a href="/tags/Architecture/">#Architecture</a>
             
           </div>
         
@@ -348,15 +350,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2019/07/12/%E4%B8%80%E6%AC%A1%E6%80%A7%E8%83%BD%E4%BA%8B%E6%95%85%E7%9A%84%E5%A4%84%E7%90%86%E5%92%8C%E6%80%BB%E7%BB%93/" target="_self">
-          一次性能事故的处理和总结
+        <a href="/2026/06/17/manulism-work/00_Home/%E7%9F%A5%E8%AF%86%E6%95%B4%E7%90%86%E9%A1%BA%E5%BA%8F/" target="_self">
+          知识整理顺序
         </a>
       </h1>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2019/07/12/%E4%B8%80%E6%AC%A1%E6%80%A7%E8%83%BD%E4%BA%8B%E6%95%85%E7%9A%84%E5%A4%84%E7%90%86%E5%92%8C%E6%80%BB%E7%BB%93/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/17/manulism-work/00_Home/%E7%9F%A5%E8%AF%86%E6%95%B4%E7%90%86%E9%A1%BA%E5%BA%8F/" target="_self">
         <div>
-          前几天做了一个工况统计的功能，查询最近7天的数据然后分析数据的分布。 从一开始接到这个需求就感觉哪里有点不对劲，上线一周后终于迎来了一次爆发：页面响应慢，多次查询后服务不可用。
+          架构  架构演进  工业平台架构  架构参考  架构和开发  HTTPS ，x509的流程，快速部署nginx + https的智能体    领域知识  数据接入  数采清单  数采卡  数据采集插件  数据对接平台（airbyte，nodered）    时间性能分析  预测性维护  曲线质量分析  AI与智能体  能耗    项目沉淀  项目管理和团队管理  工业AI项目交付方法  汽车制造项
         </div>
       </a>
 
@@ -364,8 +366,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2019-07-12 13:39" pubdate>
-              2019-07-12
+            <time datetime="2026-06-17 10:30" pubdate>
+              2026-06-17
             </time>
           </div>
         
@@ -380,7 +382,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" class="category-chain-item">技术总结</a>
+  <a href="/categories/Manulism-Work/" class="category-chain-item">Manulism Work</a>
   
   
 
@@ -395,7 +397,9 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">#性能优化</a>
+              <a href="/tags/Manulism-Work/">#Manulism Work</a>
+            
+              <a href="/tags/Home/">#Home</a>
             
           </div>
         
@@ -409,15 +413,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2018/01/02/%E5%9F%BA%E4%BA%8Ejsplumb%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE%E5%AE%9E%E7%8E%B0/" target="_self">
-          基于jsplumb的流程图实现
+        <a href="/2026/06/16/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93%E7%9F%A5%E8%AF%86%E6%B2%89%E6%B7%80/" target="_self">
+          AI 与智能体基础知识沉淀
         </a>
       </h1>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2018/01/02/%E5%9F%BA%E4%BA%8Ejsplumb%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE%E5%AE%9E%E7%8E%B0/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/16/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93%E7%9F%A5%E8%AF%86%E6%B2%89%E6%B7%80/" target="_self">
         <div>
-          在系统开发中经常需要展示一些流程，这时候需要用到流程图组件，但是在Echarts这些开源的可视化软件中居然没有流程图的支持。这时候我们的解决方案只能是用div和箭头图片自己实现一些简单的连接，如果流程稍微复杂一点，考虑兼顾功能和美观就需要投入大量的人力和精力进行一些造轮子的动作。 jsplumb的出现一定程度上解决了我们的烦恼。
+          阅读导引这篇笔记把 AI、智能体、ChatBI、知识库、RAG、提示工程和模型实践相关内容整理成可复用知识。 核心观点1. 工业 AI 的知识库重点不只是 RAG，而是可验证传统 RAG 常见链路是“问题 → 向量检索 → Top-K Chunk → LLM 回答”。但在工业场景里，仅能回答还不够，关键是：  回答能否追溯到明确来源； 检索结果是否经过重排和验证； 答案是否能解释边界条件和不确定性
         </div>
       </a>
 
@@ -425,8 +429,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2018-01-02 13:33" pubdate>
-              2018-01-02
+            <time datetime="2026-06-16 19:48" pubdate>
+              2026-06-16
             </time>
           </div>
         
@@ -441,7 +445,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/" class="category-chain-item">技术总结</a>
+  <a href="/categories/Manulism-Work/" class="category-chain-item">Manulism Work</a>
   
   
 
@@ -456,9 +460,9 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E5%BC%80%E5%8F%91%E6%8A%80%E6%9C%AF/">#开发技术</a>
+              <a href="/tags/Manulism-Work/">#Manulism Work</a>
             
-              <a href="/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/">#可视化</a>
+              <a href="/tags/Domain-Knowledge/">#Domain Knowledge</a>
             
           </div>
         
@@ -472,15 +476,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2017/09/01/%E5%BE%AE%E4%BF%A1%E7%99%BB%E5%BD%95%E9%9B%86%E6%88%90/" target="_self">
-          微信登录集成
+        <a href="/2026/06/16/manulism-work/10_Architecture/12%20%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B/%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B%E8%84%89%E7%BB%9C/" target="_self">
+          架构演进脉络
         </a>
       </h1>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2017/09/01/%E5%BE%AE%E4%BF%A1%E7%99%BB%E5%BD%95%E9%9B%86%E6%88%90/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/16/manulism-work/10_Architecture/12%20%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B/%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B%E8%84%89%E7%BB%9C/" target="_self">
         <div>
-          平台上线快一年了，注册人数却始终不见起色，看着下面这注册走势可把大伙儿急的。一着急一上火就刷朋友圈，朋友圈，朋友圈？灵感来了有没有？  如果我们可以支持微信登录，那么微信日活5.7亿岂不都是我们的潜在客户了？不用多久升职加薪，当上总经理，出任CEO，迎娶白富美，走上人生巅峰。想想还有点小激动呢。
+          title: 架构演进脉络section: 架构知识created: 2026-06-16status: activearea: architecturekind: evolutiontopic: industrial-platform-evolutionparent:  ‘[工业智能平台总体架构](&#x2F;10_Architecture&#x2F;11 平台总览&#x2F;工业智能平台总体
         </div>
       </a>
 
@@ -488,8 +492,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2017-09-01 13:36" pubdate>
-              2017-09-01
+            <time datetime="2026-06-16 19:21" pubdate>
+              2026-06-16
             </time>
           </div>
         
@@ -504,7 +508,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" class="category-chain-item">解决方案</a>
+  <a href="/categories/Manulism-Work/" class="category-chain-item">Manulism Work</a>
   
   
 
@@ -519,9 +523,9 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E5%BA%94%E7%94%A8%E6%8A%80%E6%9C%AF/">#应用技术</a>
+              <a href="/tags/Manulism-Work/">#Manulism Work</a>
             
-              <a href="/tags/%E7%B3%BB%E7%BB%9F%E9%9B%86%E6%88%90/">#系统集成</a>
+              <a href="/tags/Architecture/">#Architecture</a>
             
           </div>
         
@@ -533,7 +537,7 @@
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/page/5/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/#board">4</a><a class="page-number" href="/page/5/#board">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/#board">7</a><a class="extend next" rel="next" href="/page/7/#board"><i class="iconfont icon-arrowright"></i></a>
+      <a class="extend prev" rel="prev" href="/page/5/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/#board">4</a><a class="page-number" href="/page/5/#board">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/#board">7</a><a class="page-number" href="/page/8/#board">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/13/#board">13</a><a class="extend next" rel="next" href="/page/7/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
 

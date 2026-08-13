@@ -1,0 +1,924 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luis Chen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="04 数据对接1. 说明这份文档总结了两种常见的数据对接思路，以及它们更适合的场景：  Node-RED 更偏向流程编排、可视化连接和快速验证。 Airbyte 更偏向数据集成骨架、数据迁移和平台化同步。  2. Node-REDNode-RED 是一种基于流程的编程工具，通过可视化编辑把 IOT 设备、API 和在线服务连接起来，形成事件驱动的应用。它基于 Node.js 构建，因此带有事件驱动">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据对接">
+<meta property="og:url" content="https://luischen.github.io/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/04%20%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%8E%A5/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="04 数据对接1. 说明这份文档总结了两种常见的数据对接思路，以及它们更适合的场景：  Node-RED 更偏向流程编排、可视化连接和快速验证。 Airbyte 更偏向数据集成骨架、数据迁移和平台化同步。  2. Node-REDNode-RED 是一种基于流程的编程工具，通过可视化编辑把 IOT 设备、API 和在线服务连接起来，形成事件驱动的应用。它基于 Node.js 构建，因此带有事件驱动">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-18T07:03:38.000Z">
+<meta property="article:modified_time" content="2026-07-20T07:07:34.000Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="Manulism Work">
+<meta property="article:tag" content="Domain Knowledge">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>数据对接 - Next Station</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"luischen.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Next Station</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="数据对接"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-06-18 15:03" pubdate>
+          2026年6月18日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          22 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">数据对接</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="04-数据对接"><a href="#04-数据对接" class="headerlink" title="04 数据对接"></a>04 数据对接</h1><h2 id="1-说明"><a href="#1-说明" class="headerlink" title="1. 说明"></a>1. 说明</h2><p>这份文档总结了两种常见的数据对接思路，以及它们更适合的场景：</p>
+<ul>
+<li>Node-RED 更偏向流程编排、可视化连接和快速验证。</li>
+<li>Airbyte 更偏向数据集成骨架、数据迁移和平台化同步。</li>
+</ul>
+<h2 id="2-Node-RED"><a href="#2-Node-RED" class="headerlink" title="2. Node-RED"></a>2. Node-RED</h2><p>Node-RED 是一种基于流程的编程工具，通过可视化编辑把 IOT 设备、API 和在线服务连接起来，形成事件驱动的应用。<br>它基于 Node.js 构建，因此带有事件驱动和非阻塞的特性。</p>
+<h3 id="2-1-基本工作方式"><a href="#2-1-基本工作方式" class="headerlink" title="2.1 基本工作方式"></a>2.1 基本工作方式</h3><p>它的使用方式很直接：</p>
+<ol>
+<li>启动 Node-RED 服务。</li>
+<li>访问 <code>http://localhost:1880</code> 进入管理页面。</li>
+<li>从左侧节点面板拖拽节点到编辑区。</li>
+<li>通过连线把节点组织成流程。</li>
+<li>双击节点编辑参数。</li>
+<li>点击右上角部署按钮让流程运行。</li>
+</ol>
+<div style="overflow-x:auto; margin:12px 0 18px 0; padding-bottom:6px;">
+  <div style="display:flex; flex-wrap:nowrap; align-items:center; gap:8px; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px; min-width:max-content;">
+    <div style="padding:10px 12px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff; font-size:13px;">IOT 设备 / API / 在线服务</div>
+    <div style="font-size:22px; color:#777;">→</div>
+    <div style="padding:10px 12px; border:1px solid #b9d8c0; border-radius:10px; background:#effaf1; font-size:13px;">Node-RED 编辑区</div>
+    <div style="font-size:22px; color:#777;">→</div>
+    <div style="padding:10px 12px; border:1px solid #e2c6a6; border-radius:10px; background:#fff7ed; font-size:13px;">连线编排流程</div>
+    <div style="font-size:22px; color:#777;">→</div>
+    <div style="padding:10px 12px; border:1px solid #d8b9d8; border-radius:10px; background:#fbf2fb; font-size:13px;">点击 Deploy</div>
+    <div style="font-size:22px; color:#777;">→</div>
+    <div style="padding:10px 12px; border:1px solid #d4d4d4; border-radius:10px; background:#f7f7f7; font-size:13px;">运行与 Dashboard 展示</div>
+  </div>
+</div>
+
+<h3 id="2-2-简单流程示例"><a href="#2-2-简单流程示例" class="headerlink" title="2.2 简单流程示例"></a>2.2 简单流程示例</h3><p>一个简单流程可以由四个节点组成：</p>
+<ul>
+<li><code>Inject Node</code>：周期触发，每 10 秒生成一个事件。</li>
+<li><code>Change Node</code>：给 <code>payload</code> 赋随机值。</li>
+<li><code>Function Node</code>：准备折线图所需数据。</li>
+<li><code>Chart Node</code>：展示折线图。</li>
+</ul>
+<div style="overflow-x:auto; margin:12px 0 18px 0; padding-bottom:6px;">
+  <div style="display:flex; flex-wrap:nowrap; align-items:stretch; gap:8px; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px; min-width:max-content;">
+    <div style="flex:0 0 120px; padding:10px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">Inject Node</div>
+      <div style="font-size:12px; margin-top:5px;">周期触发</div>
+    </div>
+    <div style="align-self:center; font-size:22px; color:#777;">→</div>
+    <div style="flex:0 0 120px; padding:10px; border:1px solid #b9d8c0; border-radius:10px; background:#effaf1; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">Change Node</div>
+      <div style="font-size:12px; margin-top:5px;">设置 payload</div>
+    </div>
+    <div style="align-self:center; font-size:22px; color:#777;">→</div>
+    <div style="flex:0 0 120px; padding:10px; border:1px solid #e2c6a6; border-radius:10px; background:#fff7ed; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">Function Node</div>
+      <div style="font-size:12px; margin-top:5px;">整理图表数据</div>
+    </div>
+    <div style="align-self:center; font-size:22px; color:#777;">→</div>
+    <div style="flex:0 0 120px; padding:10px; border:1px solid #d8b9d8; border-radius:10px; background:#fbf2fb; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">Chart Node</div>
+      <div style="font-size:12px; margin-top:5px;">折线图展示</div>
+    </div>
+  </div>
+</div>
+
+<h3 id="2-3-OPC-UA-数据流程"><a href="#2-3-OPC-UA-数据流程" class="headerlink" title="2.3 OPC-UA 数据流程"></a>2.3 OPC-UA 数据流程</h3><p>OPC-UA 流程可以继续扩展为：</p>
+<ul>
+<li>使用 <code>node-opcua</code> 搭建 UA 服务器。</li>
+<li>在 Node-RED 中安装 <code>node-red-contrib-opcua</code> 节点。</li>
+<li>通过 <code>Inject Node</code> 开始监听。</li>
+<li>通过 <code>OpcUa-Item Node</code> 配置要监听的节点 ID 和数据类型。</li>
+<li>通过 <code>OpcUa-Client Node</code> 连接 UA 服务器并交互。</li>
+<li>通过 <code>Switch Node</code> 分流数据。</li>
+<li>使用 <code>Debug Node</code>、<code>Function Node</code>、<code>Chart Node</code> 完成调试和展示。</li>
+</ul>
+<div style="overflow-x:auto; margin:12px 0 18px 0; padding-bottom:6px;">
+  <div style="display:flex; flex-wrap:nowrap; align-items:center; gap:8px; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px; min-width:max-content;">
+    <div style="padding:9px 11px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff; font-size:13px;">Inject Node</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:9px 11px; border:1px solid #b9d8c0; border-radius:10px; background:#effaf1; font-size:13px;">OpcUa-Item Node</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:9px 11px; border:1px solid #e2c6a6; border-radius:10px; background:#fff7ed; font-size:13px;">OpcUa-Client Node</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:9px 11px; border:1px solid #d8b9d8; border-radius:10px; background:#fbf2fb; font-size:13px;">Switch Node</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:9px 11px; border:1px solid #d4d4d4; border-radius:10px; background:#f7f7f7; font-size:13px;">Debug / Function / Chart</div>
+  </div>
+</div>
+
+<h3 id="2-4-适用场景"><a href="#2-4-适用场景" class="headerlink" title="2.4 适用场景"></a>2.4 适用场景</h3><p>Node-RED 更适合：</p>
+<ul>
+<li>快速搭建流程。</li>
+<li>做 IOT 设备、API、在线服务之间的连接。</li>
+<li>做简单的数据采集验证和可视化展示。</li>
+<li>做 OPC-UA 数据流的验证和调试。</li>
+</ul>
+<p>如果进一步考虑批量部署、批量管理、状态监控、性能边界和可靠性，Node-RED 更适合流程编排和原型验证，而不是直接承载完整的生产治理能力。</p>
+<h2 id="3-Airbyte"><a href="#3-Airbyte" class="headerlink" title="3. Airbyte"></a>3. Airbyte</h2><p>Airbyte 是一个开源的数据集成平台，提供数据迁移的基本骨架。<br>当工业互联网场景里存在多种来源、多种采集方式、多种目标平台时，它提供了一种高层次抽象和可扩展的方式，把数据迁移流程标准化。</p>
+<h3 id="3-1-架构组成"><a href="#3-1-架构组成" class="headerlink" title="3.1 架构组成"></a>3.1 架构组成</h3><p>Airbyte 的架构可以分成两部分：</p>
+<ul>
+<li>平台</li>
+<li>连接器</li>
+</ul>
+<p>平台由微服务组成，提供 UI、配置服务、调度服务、日志和告警等基础能力。<br>连接器负责 Source 到 Destination 的连接，并且通过 Docker 保持可扩展。</p>
+<div style="overflow-x:auto; margin:12px 0 18px 0; padding-bottom:6px;">
+  <div style="display:flex; flex-wrap:nowrap; align-items:stretch; gap:8px; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px; min-width:max-content;">
+    <div style="flex:0 0 150px; padding:10px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff;">
+      <div style="font-weight:700; font-size:14px;">平台</div>
+      <div style="font-size:12px; line-height:1.5; margin-top:5px;">UI<br>配置服务<br>调度服务<br>日志 / 告警</div>
+    </div>
+    <div style="align-self:center; font-size:22px; color:#777;">↔</div>
+    <div style="flex:0 0 150px; padding:10px; border:1px solid #b9d8c0; border-radius:10px; background:#effaf1;">
+      <div style="font-weight:700; font-size:14px;">连接器</div>
+      <div style="font-size:12px; line-height:1.5; margin-top:5px;">Source 到 Destination</div>
+    </div>
+    <div style="align-self:center; font-size:22px; color:#777;">↔</div>
+    <div style="flex:0 0 170px; padding:10px; border:1px solid #e2c6a6; border-radius:10px; background:#fff7ed;">
+      <div style="font-weight:700; font-size:14px;">Docker 扩展</div>
+      <div style="font-size:12px; line-height:1.5; margin-top:5px;">通过容器提供连接器扩展能力</div>
+    </div>
+  </div>
+</div>
+
+<h3 id="3-2-主要概念"><a href="#3-2-主要概念" class="headerlink" title="3.2 主要概念"></a>3.2 主要概念</h3><p>一次数据迁移的主要载体可以理解为一个 <code>Connection</code>。<br>一个 Connection 一般包含以下部分：</p>
+<ul>
+<li><code>Source Catalog</code></li>
+<li><code>Destination</code></li>
+<li><code>Sync Schedule</code></li>
+<li><code>Sync Mode</code></li>
+<li><code>Transformation</code></li>
+</ul>
+<div style="overflow-x:auto; margin:12px 0 18px 0; padding-bottom:6px;">
+  <div style="display:flex; flex-wrap:nowrap; align-items:center; gap:8px; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px; min-width:max-content;">
+    <div style="padding:9px 11px; border:1px solid #cfe5e5; border-radius:10px; background:#ffffff; font-size:13px;">Source Catalog</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:9px 11px; border:1px solid #cfe5e5; border-radius:10px; background:#ffffff; font-size:13px;">Destination</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:9px 11px; border:1px solid #cfe5e5; border-radius:10px; background:#ffffff; font-size:13px;">Sync Schedule</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:9px 11px; border:1px solid #cfe5e5; border-radius:10px; background:#ffffff; font-size:13px;">Sync Mode</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:9px 11px; border:1px solid #cfe5e5; border-radius:10px; background:#ffffff; font-size:13px;">Transformation</div>
+  </div>
+</div>
+
+<p>其中：</p>
+<ul>
+<li><code>Source Catalog</code> 解决数据从哪儿来，定义 Stream 和 Field。</li>
+<li><code>Destination</code> 解决数据到哪儿去。</li>
+<li><code>Sync Schedule</code> 支持手动、按时间、按 Cron 同步。</li>
+<li><code>Sync Mode</code> 包含全量刷新、增量同步等模式。</li>
+<li><code>Transformation</code> 是可选项，常用于部分数据库的数据转换。</li>
+</ul>
+<h3 id="3-3-Normalization"><a href="#3-3-Normalization" class="headerlink" title="3.3 Normalization"></a>3.3 Normalization</h3><p>Airbyte 的 Normalization 可以看作 ELT 里的 T。<br>原始数据在 Source 和 Destination 间传递时以 JSON 形式组织，如果不处理就会以一个 JSON 列落到目标数据库。<br>为了减少使用侧的处理成本，Airbyte 提供了 Raw Table 和 Destination Table 的做法。</p>
+<div style="overflow-x:auto; margin:12px 0 18px 0; padding-bottom:6px;">
+  <div style="display:flex; flex-wrap:nowrap; align-items:center; gap:8px; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px; min-width:max-content;">
+    <div style="padding:10px 12px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff; font-size:13px;">Source 数据</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:10px 12px; border:1px solid #b9d8c0; border-radius:10px; background:#effaf1; font-size:13px;">Raw Table / JSON</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:10px 12px; border:1px solid #e2c6a6; border-radius:10px; background:#fff7ed; font-size:13px;">Normalization</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:10px 12px; border:1px solid #d8b9d8; border-radius:10px; background:#fbf2fb; font-size:13px;">Destination Table</div>
+  </div>
+</div>
+
+<p>例如，原始数据可以先落到 <code>_airbyte_raw_cars</code>，再经过 Normalization 变成结构化的 <code>cars</code> 表。<br>支持 Basic Normalization 的数据库包括：</p>
+<ul>
+<li>BigQuery</li>
+<li>MSSQL Server</li>
+<li>MySQL 8+</li>
+<li>Postgres</li>
+<li>Redshift</li>
+<li>Snowflake</li>
+</ul>
+<h3 id="3-4-生产应用"><a href="#3-4-生产应用" class="headerlink" title="3.4 生产应用"></a>3.4 生产应用</h3><p>一个典型的生产方案是：</p>
+<ul>
+<li>从客户现场上位机的 Oracle 数据库同步数据到工业互联网平台的 ClickHouse。</li>
+<li>核心骨架基于 Airbyte。</li>
+<li>Airbyte 负责 Oracle 抽取并发送到 RabbitMQ。</li>
+<li>再由消息消费者完成数据转换和 ClickHouse 写入。</li>
+</ul>
+<div style="overflow-x:auto; margin:12px 0 18px 0; padding-bottom:6px;">
+  <div style="display:flex; flex-wrap:nowrap; align-items:center; gap:8px; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px; min-width:max-content;">
+    <div style="padding:9px 11px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff; font-size:13px;">Oracle Source</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:9px 11px; border:1px solid #b9d8c0; border-radius:10px; background:#effaf1; font-size:13px;">Airbyte</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:9px 11px; border:1px solid #e2c6a6; border-radius:10px; background:#fff7ed; font-size:13px;">RabbitMQ</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:9px 11px; border:1px solid #d8b9d8; border-radius:10px; background:#fbf2fb; font-size:13px;">消息消费者</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:9px 11px; border:1px solid #d4d4d4; border-radius:10px; background:#f7f7f7; font-size:13px;">ClickHouse</div>
+  </div>
+</div>
+
+<p>Airbyte 需要运行在 Docker 环境下，本地安装和连接器使用也围绕 Docker 展开。</p>
+<h2 id="4-两种方式怎么选"><a href="#4-两种方式怎么选" class="headerlink" title="4. 两种方式怎么选"></a>4. 两种方式怎么选</h2><h3 id="4-1-Node-RED-更适合的场景"><a href="#4-1-Node-RED-更适合的场景" class="headerlink" title="4.1 Node-RED 更适合的场景"></a>4.1 Node-RED 更适合的场景</h3><ul>
+<li>需要快速把多个节点串起来。</li>
+<li>需要可视化编辑和快速部署。</li>
+<li>需要做 IOT、API、在线服务之间的简单连接。</li>
+<li>需要做 OPC-UA 这类流程验证和展示。</li>
+<li>适合原型验证、流程编排、现场联调。</li>
+</ul>
+<h3 id="4-2-Airbyte-更适合的场景"><a href="#4-2-Airbyte-更适合的场景" class="headerlink" title="4.2 Airbyte 更适合的场景"></a>4.2 Airbyte 更适合的场景</h3><ul>
+<li>需要做标准化的数据集成和迁移。</li>
+<li>需要把数据从一个系统稳定同步到另一个系统。</li>
+<li>需要支持定时同步、增量同步、全量同步。</li>
+<li>需要把转换放到迁移流程后段处理。</li>
+<li>适合作为数据集成平台的骨架。</li>
+</ul>
+<h3 id="4-3-直观对比"><a href="#4-3-直观对比" class="headerlink" title="4.3 直观对比"></a>4.3 直观对比</h3><div style="overflow-x:auto; margin:12px 0 18px 0; padding-bottom:6px;">
+  <div style="display:flex; flex-wrap:nowrap; align-items:stretch; gap:12px; min-width:max-content;">
+    <div style="flex:0 0 320px; padding:14px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff;">
+      <div style="font-weight:700; margin-bottom:8px;">Node-RED</div>
+      <div style="font-size:13px; line-height:1.7;">流程编排、节点连线、快速验证、OPC-UA 调试、可视化展示</div>
+    </div>
+    <div style="flex:0 0 40px; display:flex; align-items:center; justify-content:center; font-size:24px; color:#777;">⇄</div>
+    <div style="flex:0 0 320px; padding:14px; border:1px solid #b9d8c0; border-radius:10px; background:#effaf1;">
+      <div style="font-weight:700; margin-bottom:8px;">Airbyte</div>
+      <div style="font-size:13px; line-height:1.7;">数据集成骨架、Source 到 Destination、同步调度、Normalization、平台化迁移</div>
+    </div>
+  </div>
+</div>
+
+<h2 id="5-小结"><a href="#5-小结" class="headerlink" title="5. 小结"></a>5. 小结</h2><p>这两种方式的定位并不一样：</p>
+<ul>
+<li>Node-RED 解决的是“把流程先跑起来、把节点先连起来”。</li>
+<li>Airbyte 解决的是“把数据迁移这件事标准化、平台化”。</li>
+</ul>
+<p>如果是现场联调、协议验证、快速做一个可视化流程，Node-RED 更合适。<br>如果是数据从一个系统稳定地流向另一个系统，并且希望有同步策略、连接器和规范化能力，Airbyte 更合适。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Manulism-Work/" class="category-chain-item">Manulism Work</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Manulism-Work/">#Manulism Work</a>
+      
+        <a href="/tags/Domain-Knowledge/">#Domain Knowledge</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>数据对接</div>
+      <div>https://luischen.github.io/2026/06/18/manulism-work/20_Domain_Knowledge/21 工业数据接入/04 数据对接/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luis Chen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年6月18日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/22/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/00%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/" title="曲线分析系统领域知识">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">曲线分析系统领域知识</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/02%20%E6%95%B0%E9%87%87%E5%8D%A1/" title="数采卡">
+                        <span class="hidden-mobile">数采卡</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,0 +1,1153 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Luis Chen">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="说明：本文以当前工作区内的源码实现为准。部分 README 与源码存在不一致的地方，例如 mssql-agent 的 README 会提到 MySQL，但代码实际使用的是 SQL Server；toolsnet 的 README 也更偏旧版描述，但源码已经明确了它的 HTTP 入站、Influx 写入与字段映射逻辑。  总体认知这个仓库里的每个文件夹都可以看作一个独立的工业数采插件。它们的共同目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数采插件">
+<meta property="og:url" content="https://luischen.github.io/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/03%20%E6%95%B0%E9%87%87%E6%8F%92%E4%BB%B6/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="说明：本文以当前工作区内的源码实现为准。部分 README 与源码存在不一致的地方，例如 mssql-agent 的 README 会提到 MySQL，但代码实际使用的是 SQL Server；toolsnet 的 README 也更偏旧版描述，但源码已经明确了它的 HTTP 入站、Influx 写入与字段映射逻辑。  总体认知这个仓库里的每个文件夹都可以看作一个独立的工业数采插件。它们的共同目">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-18T02:21:49.000Z">
+<meta property="article:modified_time" content="2026-07-13T09:35:16.000Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="Manulism Work">
+<meta property="article:tag" content="Domain Knowledge">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>数采插件 - Next Station</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"luischen.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Next Station</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="数采插件"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-06-18 10:21" pubdate>
+          2026年6月18日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          53 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">数采插件</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <blockquote>
+<p>说明：本文以当前工作区内的源码实现为准。部分 README 与源码存在不一致的地方，例如 <code>mssql-agent</code> 的 README 会提到 MySQL，但代码实际使用的是 SQL Server；<code>toolsnet</code> 的 README 也更偏旧版描述，但源码已经明确了它的 HTTP 入站、Influx 写入与字段映射逻辑。</p>
+</blockquote>
+<h2 id="总体认知"><a href="#总体认知" class="headerlink" title="总体认知"></a>总体认知</h2><p>这个仓库里的每个文件夹都可以看作一个独立的工业数采插件。它们的共同目标不是“采集”本身，而是把现场不同形态的数据源，统一变成可追踪、可落库、可回放的标准点位数据。</p>
+<p>这些插件的差异主要体现在四个维度：</p>
+<ol>
+<li>输入源不同：数据库、MQTT、CSV、HTTP、Access MDB、MSSQL CDC。</li>
+<li>触发方式不同：定时轮询、文件监听、消息订阅、HTTP 请求、WebSocket 查询。</li>
+<li>输出形态不同：InfluxDB、文件、HTTP 转发、RabbitMQ、TimescaleDB、浏览页面。</li>
+<li>状态管理不同：有的依赖 offset 文件，有的依赖 SQLite，有的依赖 last timestamp，有的几乎无状态。</li>
+</ol>
+<h2 id="总体架构"><a href="#总体架构" class="headerlink" title="总体架构"></a>总体架构</h2><div style="max-width: 760px; margin: 12px auto 20px auto; padding: 6px 0;">
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+    <div style="width: 100%; max-width: 520px; padding: 16px 18px; border: 1px solid #5b6b8c; border-radius: 14px; background: linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%); box-shadow: 0 6px 18px rgba(91, 107, 140, 0.08); box-sizing: border-box;">
+      <div style="font-weight: 700; font-size: 15px; color: #1f2d3d; margin-bottom: 8px; text-align: center;">现场输入源</div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; font-size: 12px; color: #334155; line-height: 1.55;">
+        <span style="padding: 4px 10px; border-radius: 999px; background: #eaf2ff;">数据库</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #eaf2ff;">MQTT</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #eaf2ff;">CSV</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #eaf2ff;">MDB</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #eaf2ff;">HTTP</span>
+      </div>
+    </div>
+    <div style="font-size: 28px; line-height: 1; color: #5b6b8c;">↓</div>
+    <div style="width: 100%; max-width: 520px; padding: 16px 18px; border: 1px solid #5b6b8c; border-radius: 14px; background: linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%); box-shadow: 0 6px 18px rgba(91, 107, 140, 0.08); box-sizing: border-box;">
+      <div style="font-weight: 700; font-size: 15px; color: #1f2d3d; margin-bottom: 8px; text-align: center;">触发与调度层</div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; font-size: 12px; color: #334155; line-height: 1.55;">
+        <span style="padding: 4px 10px; border-radius: 999px; background: #edf9ff;">定时轮询</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #edf9ff;">文件监听</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #edf9ff;">消息订阅</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #edf9ff;">HTTP 接入</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #edf9ff;">WebSocket 查询</span>
+      </div>
+    </div>
+    <div style="font-size: 28px; line-height: 1; color: #5b6b8c;">↓</div>
+    <div style="width: 100%; max-width: 520px; padding: 16px 18px; border: 1px solid #5b6b8c; border-radius: 14px; background: linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%); box-shadow: 0 6px 18px rgba(91, 107, 140, 0.08); box-sizing: border-box;">
+      <div style="font-weight: 700; font-size: 15px; color: #1f2d3d; margin-bottom: 8px; text-align: center;">解析与映射层</div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; font-size: 12px; color: #334155; line-height: 1.55;">
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f0f7ff;">字段映射</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f0f7ff;">标签补充</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f0f7ff;">时间修正</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f0f7ff;">类型转换</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f0f7ff;">offset / checkpoint</span>
+      </div>
+    </div>
+    <div style="font-size: 28px; line-height: 1; color: #5b6b8c;">↓</div>
+    <div style="width: 100%; max-width: 520px; padding: 16px 18px; border: 1px solid #5b6b8c; border-radius: 14px; background: linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%); box-shadow: 0 6px 18px rgba(91, 107, 140, 0.08); box-sizing: border-box;">
+      <div style="font-weight: 700; font-size: 15px; color: #1f2d3d; margin-bottom: 8px; text-align: center;">标准点位</div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; font-size: 12px; color: #334155; line-height: 1.55;">
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f2f8ef;">measurement</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f2f8ef;">tag</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f2f8ef;">field</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f2f8ef;">timestamp</span>
+      </div>
+    </div>
+    <div style="font-size: 28px; line-height: 1; color: #5b6b8c;">↓</div>
+    <div style="width: 100%; max-width: 520px; padding: 16px 18px; border: 1px solid #5b6b8c; border-radius: 14px; background: linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%); box-shadow: 0 6px 18px rgba(91, 107, 140, 0.08); box-sizing: border-box;">
+      <div style="font-weight: 700; font-size: 15px; color: #1f2d3d; margin-bottom: 8px; text-align: center;">输出层</div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; font-size: 12px; color: #334155; line-height: 1.55;">
+        <span style="padding: 4px 10px; border-radius: 999px; background: #fff2ea;">InfluxDB</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #fff2ea;">文件留档</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #fff2ea;">HTTP 转发</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #fff2ea;">RabbitMQ</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #fff2ea;">页面查询</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="实现形态分布"><a href="#实现形态分布" class="headerlink" title="实现形态分布"></a>实现形态分布</h2><div style="max-width: 980px; margin: 12px auto 18px auto; padding: 14px; border: 1px solid #d9e2ec; border-radius: 12px; background: #fff; box-sizing: border-box;">
+  <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">按触发方式归类</div>
+  <div style="display: flex; align-items: center; gap: 12px; margin: 10px 0;">
+    <div style="width: 140px; font-size: 13px;">定时轮询型</div>
+    <div style="flex: 1; height: 14px; background: #e9edf5; border-radius: 999px; overflow: hidden;">
+      <div style="width: 62.5%; height: 100%; background: linear-gradient(90deg, #4f7cff, #72b7ff);"></div>
+    </div>
+    <div style="width: 24px; text-align: right; font-size: 13px;">5</div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 12px; margin: 10px 0;">
+    <div style="width: 140px; font-size: 13px;">事件监听型</div>
+    <div style="flex: 1; height: 14px; background: #e9edf5; border-radius: 999px; overflow: hidden;">
+      <div style="width: 25%; height: 100%; background: linear-gradient(90deg, #38bdf8, #8ddcff);"></div>
+    </div>
+    <div style="width: 24px; text-align: right; font-size: 13px;">2</div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 12px; margin: 10px 0;">
+    <div style="width: 140px; font-size: 13px;">HTTP 服务型</div>
+    <div style="flex: 1; height: 14px; background: #e9edf5; border-radius: 999px; overflow: hidden;">
+      <div style="width: 12.5%; height: 100%; background: linear-gradient(90deg, #22c55e, #86efac);"></div>
+    </div>
+    <div style="width: 24px; text-align: right; font-size: 13px;">1</div>
+  </div>
+</div>
+
+<h2 id="插件矩阵"><a href="#插件矩阵" class="headerlink" title="插件矩阵"></a>插件矩阵</h2><table>
+  <thead>
+    <tr>
+      <th>插件</th>
+      <th>输入源</th>
+      <th>输出</th>
+      <th>适用场景</th>
+      <th>核心机制</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>bsnjdb</code></td>
+      <td>PostgreSQL 紧固数据表</td>
+      <td>InfluxDB / 文件 / RabbitMQ</td>
+      <td>Bosch 类拧紧结果、步骤、曲线的增量采集与归档</td>
+      <td>定时轮询、offset 文件、summary/step/graph 拆分、断路器、管理接口</td>
+    </tr>
+    <tr>
+      <td><code>csv-tesla</code></td>
+      <td>目录中的 CSV 文件</td>
+      <td>InfluxDB</td>
+      <td>现场设备导出的定制 CSV 曲线文件入库</td>
+      <td>文件监听、固定列号解析、曲线点展开、点位编码拼装</td>
+    </tr>
+    <tr>
+      <td><code>mqtt-influxdb</code></td>
+      <td>MQTT topic 消息</td>
+      <td>InfluxDB / 文件</td>
+      <td>设备通过 MQTT 上送 JSON 数组数据的场景</td>
+      <td>Topic 订阅、消息校验、数组展开、额外标签映射、批量写入</td>
+    </tr>
+    <tr>
+      <td><code>mssql-agent</code></td>
+      <td>SQL Server</td>
+      <td>InfluxDB</td>
+      <td>需要集中配置、定时抽取、带注册与心跳的边缘采集代理</td>
+      <td>Egg 调度、SQLite 配置缓存、动态映射、时间修正、增量 offset</td>
+    </tr>
+    <tr>
+      <td><code>mssql-cdc</code></td>
+      <td>MSSQL CDC 表</td>
+      <td>InfluxDB / WebSocket 页面</td>
+      <td>CDC 增量同步、历史点位查询、可视化监控</td>
+      <td>last_timestamp 持久化、tagid 映射、可选页面服务、Chart.js 展示</td>
+    </tr>
+    <tr>
+      <td><code>promess</code></td>
+      <td>Access MDB 文件 / MDB 目录</td>
+      <td>工作目录内的结构化输出文件</td>
+      <td>Promess 紧固机曲线文件解析、批量备份、离线转换</td>
+      <td>ADODB 读取、Cycle/Curve 分组、XML 曲线解析、按 mapping 生成输出</td>
+    </tr>
+    <tr>
+      <td><code>toolsnet</code></td>
+      <td>HTTP POST 数据报文</td>
+      <td>InfluxDB</td>
+      <td>作为数采接入网关，接收上游系统推送的拧紧报文</td>
+      <td>接口认证、请求校验、字段映射、曲线点时间展开、标签补充</td>
+    </tr>
+    <tr>
+      <td><code>toolsnetdb</code></td>
+      <td>MySQL</td>
+      <td>HTTP API / 文件</td>
+      <td>从数据库抽取结果后转发到中心服务，兼顾落盘留档</td>
+      <td>定时轮询、双 offset、单轴/多轴分流、断路器、Bearer token 转发</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="共性实现原理"><a href="#共性实现原理" class="headerlink" title="共性实现原理"></a>共性实现原理</h2><h3 id="1-配置驱动"><a href="#1-配置驱动" class="headerlink" title="1. 配置驱动"></a>1. 配置驱动</h3><p>几乎所有插件都把业务差异放进配置里：</p>
+<ul>
+<li>数据源连接信息</li>
+<li>字段映射关系</li>
+<li>目标数据库或目标接口</li>
+<li>拉取频率</li>
+<li>文件输出开关</li>
+<li>认证信息</li>
+</ul>
+<p>这样做的好处是，插件本体只保留“采集、转换、投递”的通用逻辑，现场适配主要靠配置完成。</p>
+<h3 id="2-增量处理"><a href="#2-增量处理" class="headerlink" title="2. 增量处理"></a>2. 增量处理</h3><p>为了避免重复采集，大部分插件都做了 checkpoint：</p>
+<ul>
+<li><code>bsnjdb</code> 使用 <code>offset.txt</code></li>
+<li><code>toolsnetdb</code> 使用 <code>offset1.txt</code> 和 <code>offset2.txt</code></li>
+<li><code>mssql-cdc</code> 使用 <code>last_timestamp.json</code></li>
+<li><code>mssql-agent</code> 把偏移写进 SQLite 的 <code>t_cfg_offset</code></li>
+</ul>
+<p>这类设计非常适合工业现场的“持续采集、允许断点恢复”需求。</p>
+<h3 id="3-统一点位模型"><a href="#3-统一点位模型" class="headerlink" title="3. 统一点位模型"></a>3. 统一点位模型</h3><p>无论输入是 SQL 行、MQTT JSON、CSV 行还是 MDB 结果，最终都要落到类似下面的模型：</p>
+<ul>
+<li>measurement</li>
+<li>tags</li>
+<li>fields</li>
+<li>timestamp</li>
+</ul>
+<p>在 InfluxDB 体系里，点位编码通常由设备前缀、工位、螺栓号、字段编号组合而成。这样可以把现场复杂的业务对象压缩成稳定可查询的时序键。</p>
+<h3 id="4-时间处理"><a href="#4-时间处理" class="headerlink" title="4. 时间处理"></a>4. 时间处理</h3><p>工业数采里，时间不是“附属字段”，而是组织数据的主轴。</p>
+<ul>
+<li><code>bsnjdb</code> 直接用微秒级时间范围计算 summary、step、graph 的结束时间</li>
+<li><code>csv-tesla</code> 把 CSV 中的时间字段转换成微秒时间戳</li>
+<li><code>mssql-agent</code> 做了时区&#x2F;时间偏移修正</li>
+<li><code>promess</code> 用 <code>CycleDate + StartTime + RunTime</code> 还原曲线区间</li>
+<li><code>mssql-cdc</code> 根据 <code>t_stamp</code> 和 <code>last_timestamp</code> 做增量同步</li>
+</ul>
+<h3 id="5-稳定性保护"><a href="#5-稳定性保护" class="headerlink" title="5. 稳定性保护"></a>5. 稳定性保护</h3><p>几乎每个链路都考虑了现场常见的不稳定因素：</p>
+<ul>
+<li>断路器：<code>bsnjdb</code>、<code>toolsnetdb</code></li>
+<li>全局异常捕获：<code>mqtt-influxdb</code>、<code>mssql-cdc</code></li>
+<li>日志轮转：多个项目都有</li>
+<li>优雅关闭：<code>bsnjdb</code>、<code>mssql-cdc</code></li>
+<li>配置热重载或注册同步：<code>bsnjdb</code>、<code>mssql-agent</code></li>
+</ul>
+<h2 id="插件说明"><a href="#插件说明" class="headerlink" title="插件说明"></a>插件说明</h2><h3 id="1-bsnjdb"><a href="#1-bsnjdb" class="headerlink" title="1. bsnjdb"></a>1. <code>bsnjdb</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>Bosch 类拧紧工位的数据归档</li>
+<li>需要把“概要数据 + 步骤数据 + 曲线数据”统一转成 InfluxDB 点位的场景</li>
+<li>采集后还要把原始数据保存成文件，或在时间范围上触发后续任务的场景</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li>以 <code>configure/configure.yaml</code> 中的 <code>fetch-interval</code> 定时触发。</li>
+<li>从 PostgreSQL 查询 <code>overview / step / wave</code> 三张关联表，按 <code>offset.txt</code> 做增量。</li>
+<li><code>common/processor.js</code> 会：<ul>
+<li>按 <code>resultid</code> 分组，确保 summary 只生成一次。</li>
+<li>对 summary、step、graph 三种数据分别映射。</li>
+<li>用 <code>mapping.yaml</code> 把业务字段编码成 <code>item_code</code>。</li>
+<li>把数值和字符串分流到 <code>value</code> &#x2F; <code>value_str</code>。</li>
+<li>把曲线数组按时间拆成多个点。</li>
+</ul>
+</li>
+<li><code>common/sender.js</code> 支持两种输出：<ul>
+<li>保存到 <code>wd/multi/*.txt</code></li>
+<li>通过 HTTP 写入 InfluxDB</li>
+</ul>
+</li>
+<li><code>common/notify.js</code> 在成功处理后可向 RabbitMQ 投递时间范围消息，格式是 <code>triggerCode,start,end</code>。</li>
+<li>内置 <code>opossum</code> 断路器和 HTTP 管理接口，提供 <code>/reload</code>、<code>/status</code>、<code>/health</code>。</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>这个插件本质上是一个“高完整度紧固结果转换器”。它不是简单搬运数据库行，而是把一条拧紧记录拆成三个层次的数据模型，再统一映射成时序点位。</p>
+<hr>
+<h3 id="2-csv-tesla"><a href="#2-csv-tesla" class="headerlink" title="2. csv-tesla"></a>2. <code>csv-tesla</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>设备或上位机导出的固定格式 CSV 文件</li>
+<li>需要按文件名和固定列号读取数据的离线&#x2F;准实时场景</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li><code>app.js</code> 用 <code>node-watch</code> 监听目录 <code>D:/temp</code>。</li>
+<li>新文件到达后：<ul>
+<li>从文件名中解析设备编号。</li>
+<li>调用 <code>process.js</code> 解析 CSV。</li>
+<li>调用 <code>util.js</code> 转换为 Influx 点位对象。</li>
+<li>调用 <code>writeData.js</code> 批量写入 InfluxDB。</li>
+</ul>
+</li>
+<li><code>process.js</code> 通过固定列号切分数据块：<ul>
+<li><code>buildResult</code> 处理结果区</li>
+<li><code>buildProcess</code> 处理过程区</li>
+<li><code>buildSummary</code> 处理摘要区</li>
+<li><code>buildCurve</code> 处理曲线区</li>
+<li><code>buildSequence</code> 处理事件序列区</li>
+</ul>
+</li>
+<li><code>util.js</code> 负责把 <code>&#123;time, item_code, value&#125;</code> 这种通用结构转成 Influx <code>point</code>。</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>这个插件的特点是“格式极固定”。它不做通用 CSV 解析，而是直接按业务约定的行列位置抽取，因此非常适合格式稳定的现场导出文件。</p>
+<hr>
+<h3 id="3-mqtt-influxdb"><a href="#3-mqtt-influxdb" class="headerlink" title="3. mqtt-influxdb"></a>3. <code>mqtt-influxdb</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>设备通过 MQTT 推送 JSON 报文</li>
+<li>报文中带有数组型时序数据，需要拆点后入库</li>
+<li>需要按业务字段过滤消息、并可选择保存原始报文</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li><code>index.js</code> 使用 <code>mqtt.connect</code> 建立持久会话。</li>
+<li>连接成功后订阅配置中的 topics。</li>
+<li><code>common/utils.js</code> 的 <code>parseToInfluxPoints</code> 完成核心转换：<ul>
+<li>先按 <code>msg.validates</code> 过滤消息。</li>
+<li>再读取 <code>dataArray.keyNameOfArray</code> 所指向的数组。</li>
+<li>对每个数组项提取时间、值、编码。</li>
+<li>根据值是否为数字，把字段放到 <code>value</code> 或 <code>value_str</code>。</li>
+<li>把额外业务字段映射成 Influx tag。</li>
+</ul>
+</li>
+<li><code>common/influxdb.js</code> 构造 InfluxDB 客户端并批量写点。</li>
+<li>如果配置了 <code>influxdb.file = on</code>，还会把原始消息另存成文件，便于追溯。</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>这是典型的“消息总线 -&gt; 时序库”网关。它的重点不在采集，而在于把异构 MQTT 报文统一成稳定的点位模型。</p>
+<hr>
+<h3 id="4-mssql-agent"><a href="#4-mssql-agent" class="headerlink" title="4. mssql-agent"></a>4. <code>mssql-agent</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>工厂边缘侧需要统一配置、统一注册、统一轮询的数据代理</li>
+<li>SQL Server 作为源库，InfluxDB 作为时序库</li>
+<li>需要动态映射离散业务值、维护工位映射、做时间修正的场景</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li>这是一个 Egg.js 应用。</li>
+<li><code>app.js</code> 在 <code>didReady</code> 阶段监听 <code>bind</code>、<code>refreshMap</code>、<code>refresh</code> 消息，用 messenger 在进程内同步配置和动态映射。</li>
+<li><code>app/schedule/heartbeat.js</code> 负责注册逻辑；当前源码里远端注册请求被简化为本地固定 <code>nodeId/token</code> 绑定，属于可继续接入中心服务的预留位置。</li>
+<li><code>app/schedule/collectData.js</code> 定时执行：<ul>
+<li>读取 SQLite 中的节点配置。</li>
+<li>逐表查询 SQL Server。</li>
+<li>调用 <code>mappingData.doMapping</code> 做字段映射。</li>
+<li>写入 InfluxDB。</li>
+<li>如有新的动态映射值，则同步回 SQLite 并广播更新。</li>
+</ul>
+</li>
+<li><code>configureNode.js</code> 把配置、设备映射、字段映射、偏移量统一存入 SQLite。</li>
+<li><code>dynamicMapping.js</code> 负责把离散业务值转成连续序列号，并缓存到内存中。</li>
+<li><code>timeRule.js</code> 对时间做 8 小时偏移修正。</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>它更像“可集中管理的边缘代理”，不是纯粹的采集脚本。重点在于：</p>
+<ul>
+<li>配置可以下发和缓存</li>
+<li>采集状态可以增量恢复</li>
+<li>业务值可以动态编码</li>
+<li>设备与字段映射可以独立维护</li>
+</ul>
+<hr>
+<h3 id="5-mssql-cdc"><a href="#5-mssql-cdc" class="headerlink" title="5. mssql-cdc"></a>5. <code>mssql-cdc</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>直接消费 MSSQL CDC 表</li>
+<li>需要按 <code>t_stamp</code> 增量同步到 InfluxDB</li>
+<li>想要一个轻量的浏览页面查看最近历史点位</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li><code>src/index.js</code> 读取 <code>.env</code>，决定是否启用页面服务。</li>
+<li>程序启动后：<ul>
+<li>连接 MSSQL。</li>
+<li>根据 <code>last_timestamp.json</code> 读取上次处理位置。</li>
+<li>定时轮询 CDC 表。</li>
+<li>成功后写入 InfluxDB，并更新 <code>last_timestamp.json</code>。</li>
+</ul>
+</li>
+<li><code>src/db/mssql.js</code> 用 <code>t_stamp &gt; lastTimestamp</code> 做增量查询。</li>
+<li><code>src/db/influxdb.js</code>：<ul>
+<li>从 <code>mapping.json</code> 读取 <code>tagid -&gt; item_code</code>。</li>
+<li>按不同字段类型选择 <code>value</code> 或 <code>strValue</code>。</li>
+<li>用 <code>t_stamp</code> 作为点位时间。</li>
+</ul>
+</li>
+<li><code>src/page-server/</code> 提供可选浏览服务：<ul>
+<li>WebSocket 接口返回采集项列表与最近记录</li>
+<li>前端用 Chart.js 做散点图展示</li>
+</ul>
+</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>这个插件的关键是“CDC + checkpoint + 可视化”。它既是同步器，也是一个小型历史数据观察窗口。</p>
+<hr>
+<h3 id="6-promess"><a href="#6-promess" class="headerlink" title="6. promess"></a>6. <code>promess</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>Promess 紧固机生成的 MDB &#x2F; Access 数据文件</li>
+<li>需要把离线数据库内容解析成标准化曲线输出</li>
+<li>需要批量备份或实时处理落地文件的场景</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li><code>index.js</code> 通过 <code>node-adodb</code> 打开 MDB。</li>
+<li>支持两种模式：<ul>
+<li><code>--dd</code>：监控目录，发现新 <code>.mdb</code> 文件就批处理</li>
+<li><code>--db</code>：处理单个数据库文件</li>
+</ul>
+</li>
+<li><code>common/parser.js</code> 做三件事：<ul>
+<li>按 <code>CycleId</code> 分组</li>
+<li>按 <code>mapping.json</code> 映射基本字段</li>
+<li>解析 <code>XmlCurves</code> 中的曲线点</li>
+</ul>
+</li>
+<li><code>common/influx.js</code> 负责把解析结果写成结构化行，实际上落的是工作目录中的结果文件，而不是直接写 InfluxDB。</li>
+<li><code>mapping.json</code> 里定义了：<ul>
+<li>普通字段如何映射到 <code>AAxxx / ABxxx</code></li>
+<li>曲线字段按单位匹配到 <code>BAxxx</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>它是“离线数据库解析器 + 曲线还原器”。和其他插件不同，它更偏文件加工和结果落地，核心价值在于把 MDB 里的曲线信息结构化地抽出来。</p>
+<hr>
+<h3 id="7-toolsnet"><a href="#7-toolsnet" class="headerlink" title="7. toolsnet"></a>7. <code>toolsnet</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>上位系统通过 HTTP POST 推送拧紧报文</li>
+<li>需要把报文转换成 InfluxDB 点位</li>
+<li>需要对输入做认证和字段校验</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li>这是一个 Egg.js API 服务。</li>
+<li>路由只暴露了一个资源：<code>/OpenApi/data/bolt_curve_report</code></li>
+<li><code>topics.js</code> 中的 <code>create()</code> 完成完整链路：<ul>
+<li>Basic 认证校验</li>
+<li>请求体结构校验</li>
+<li>调用 <code>ctx.service.influx.transformer.transform</code></li>
+<li>再写入 InfluxDB</li>
+</ul>
+</li>
+<li><code>app/service/influx/transformer.js</code>：<ul>
+<li>从 <code>config.fields</code> 中读取字段规则</li>
+<li>用 <code>config.mapping</code> 把 <code>ToolID</code> 转成前缀编码</li>
+<li>对普通字段直接生成点位</li>
+<li>对 <code>TorqueValue</code> &#x2F; <code>AngleValue</code> 这种曲线字段按 <code>TimeCoefficient</code> 拆成多个点</li>
+<li>用 <code>tagField</code> 生成额外 tag，如 <code>curve_id</code>、<code>sn</code></li>
+</ul>
+</li>
+<li><code>app/service/influx/writeData.js</code> 定义了写入格式，支持数值和字符串两个字段族。</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>它本质上是一个“工业报文接入 API”。和 <code>mqtt-influxdb</code> 相比，它不是订阅消息，而是提供 HTTP 接口给上游主动推送。</p>
+<hr>
+<h3 id="8-toolsnetdb"><a href="#8-toolsnetdb" class="headerlink" title="8. toolsnetdb"></a>8. <code>toolsnetdb</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>MySQL 中已有拧紧结果，需要定时抽取并转发到中心服务</li>
+<li>需要同时保留原始 JSON 文件作为留档</li>
+<li>需要把单轴和多轴数据分别处理</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li><code>index.js</code> 使用 <code>node-schedule</code> 定时触发。</li>
+<li>维护两个 offset 文件：<ul>
+<li><code>offset1.txt</code> 对应单轴</li>
+<li><code>offset2.txt</code> 对应多轴</li>
+</ul>
+</li>
+<li><code>processData(type)</code>：<ul>
+<li>按类型选择 SQL</li>
+<li>查询后如果开启 <code>target.file</code>，先落地到 <code>single/</code> 或 <code>multi/</code></li>
+<li>再通过 <code>sendToRemote()</code> 把 JSON 数组 POST 到目标 HTTP API</li>
+<li>最后更新 offset</li>
+</ul>
+</li>
+<li><code>common/processor.js</code> 只负责三件事：<ul>
+<li>单轴结果文件保存</li>
+<li>多轴结果文件保存</li>
+<li>HTTP 转发</li>
+</ul>
+</li>
+<li>这个插件也用了 <code>opossum</code> 做断路器，避免中心服务异常时把本地采集拖垮。</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>它更像“数据库中继器”。数据并不在本地深度转换，而是以较轻量的方式抽取出来，交给中心系统继续处理。</p>
+<h2 id="选型建议"><a href="#选型建议" class="headerlink" title="选型建议"></a>选型建议</h2><ul>
+<li>如果源头是 <strong>PostgreSQL 紧固结果</strong>，优先看 <code>bsnjdb</code>。</li>
+<li>如果源头是 <strong>CSV 文件</strong>，优先看 <code>csv-tesla</code>。</li>
+<li>如果源头是 <strong>MQTT JSON</strong>，优先看 <code>mqtt-influxdb</code>。</li>
+<li>如果需要 <strong>边缘代理 + 中央配置 + SQL Server</strong>，优先看 <code>mssql-agent</code>。</li>
+<li>如果需要 <strong>CDC 增量同步</strong>，优先看 <code>mssql-cdc</code>。</li>
+<li>如果数据来自 <strong>Access MDB &#x2F; Promess 曲线文件</strong>，优先看 <code>promess</code>。</li>
+<li>如果要做 <strong>HTTP 入站网关</strong>，优先看 <code>toolsnet</code>。</li>
+<li>如果要做 <strong>数据库到中心服务的中继</strong>，优先看 <code>toolsnetdb</code>。</li>
+</ul>
+<h2 id="一个更实用的结论"><a href="#一个更实用的结论" class="headerlink" title="一个更实用的结论"></a>一个更实用的结论</h2><p>这些插件虽然面向不同协议和数据源，但它们几乎都遵循同一个工程范式：</p>
+<p><strong>采集入口尽量简单，业务复杂度集中在映射层，历史连续性靠 offset 或 checkpoint，最终统一落到时序点位或结构化文件。</strong></p>
+<p>这也是它们能在工业现场长期运行的原因。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Manulism-Work/" class="category-chain-item">Manulism Work</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Manulism-Work/">#Manulism Work</a>
+      
+        <a href="/tags/Domain-Knowledge/">#Domain Knowledge</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>数采插件</div>
+      <div>https://luischen.github.io/2026/06/18/manulism-work/20_Domain_Knowledge/21 工业数据接入/03 数采插件/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Luis Chen</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年6月18日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/01%20%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95/" title="数采清单">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">数采清单</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E6%95%B0%E6%8D%AE%E8%83%BD%E5%8A%9B%E4%BC%B0%E7%AE%97/" title="数据能力估算">
+                        <span class="hidden-mobile">数据能力估算</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
