@@ -350,69 +350,6 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2026/06/17/manulism-work/00_Home/%E7%9F%A5%E8%AF%86%E6%95%B4%E7%90%86%E9%A1%BA%E5%BA%8F/" target="_self">
-          知识整理顺序
-        </a>
-      </h1>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/17/manulism-work/00_Home/%E7%9F%A5%E8%AF%86%E6%95%B4%E7%90%86%E9%A1%BA%E5%BA%8F/" target="_self">
-        <div>
-          架构  架构演进  工业平台架构  架构参考  架构和开发  HTTPS ，x509的流程，快速部署nginx + https的智能体    领域知识  数据接入  数采清单  数采卡  数据采集插件  数据对接平台（airbyte，nodered）    时间性能分析  预测性维护  曲线质量分析  AI与智能体  能耗    项目沉淀  项目管理和团队管理  工业AI项目交付方法  汽车制造项
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-06-17 10:30" pubdate>
-              2026-06-17
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E5%B7%A5%E4%BD%9C%E7%AC%94%E8%AE%B0/" class="category-chain-item">工作笔记</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Home/">#Home</a>
-            
-              <a href="/tags/%E5%B7%A5%E4%BD%9C%E7%AC%94%E8%AE%B0/">#工作笔记</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
         <a href="/2026/06/16/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93%E7%9F%A5%E8%AF%86%E6%B2%89%E6%B7%80/" target="_self">
           AI 与智能体基础知识沉淀
         </a>
@@ -484,7 +421,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2026/06/16/manulism-work/10_Architecture/12%20%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B/%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B%E8%84%89%E7%BB%9C/" target="_self">
         <div>
-          title: 架构演进脉络section: 架构知识created: 2026-06-16status: activearea: architecturekind: evolutiontopic: industrial-platform-evolutionparent:  ‘[工业智能平台总体架构](&#x2F;10_Architecture&#x2F;11 平台总览&#x2F;工业智能平台总体
+          阅读导引这篇笔记单独整理“架构演进”，避免它只被吸收到架构总览里。它关注的是：平台为什么从单体走向主从、云原生、平台化和智能化。 演进主线timeline     title 工业平台架构演进     2016 : 单体架构 : 快速验证业务和产品概念     2019 : 主从架构 : 规模部署 现场管理/执行分离     2022 : 云原生架构 : 自动化发布 按需部署和运维治理     2
         </div>
       </a>
 
@@ -524,6 +461,69 @@
             <i class="iconfont icon-tags"></i>
             
               <a href="/tags/Architecture/">#Architecture</a>
+            
+              <a href="/tags/%E5%B7%A5%E4%BD%9C%E7%AC%94%E8%AE%B0/">#工作笔记</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2026/06/16/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/00%20%E6%8E%A5%E5%85%A5%E6%A8%A1%E5%BC%8F/" target="_self">
+          接入模式
+        </a>
+      </h1>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/06/16/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/00%20%E6%8E%A5%E5%85%A5%E6%A8%A1%E5%BC%8F/" target="_self">
+        <div>
+          工业数据接入模式阅读导引这篇笔记把 BS350、NodeRed 压机采集、MES&#x2F;SAMS 接口、IOT 中间件和曲线数据上报资料放在一起理解，目标是形成可复用的数据接入设计模式。 核心结论工业数据接入不是简单的数据搬运，而是一个“现场设备语义 → 平台业务语义”的转换过程。好的接入设计要同时解决协议、频率、时间戳、数据完整性、业务主键、异常处理和验收标准。 flowchart LR
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-06-16 19:16" pubdate>
+              2026-06-16
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%B7%A5%E4%BD%9C%E7%AC%94%E8%AE%B0/" class="category-chain-item">工作笔记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Domain-Knowledge/">#Domain Knowledge</a>
             
               <a href="/tags/%E5%B7%A5%E4%BD%9C%E7%AC%94%E8%AE%B0/">#工作笔记</a>
             

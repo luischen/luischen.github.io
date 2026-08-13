@@ -2557,102 +2557,6 @@
       </tags>
   </entry>
   <entry>
-    <title>知识整理顺序</title>
-    <url>/2026/06/17/manulism-work/00_Home/%E7%9F%A5%E8%AF%86%E6%95%B4%E7%90%86%E9%A1%BA%E5%BA%8F/</url>
-    <content><![CDATA[<h3 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h3><ol>
-<li><input checked="" disabled="" type="checkbox"> 架构演进</li>
-<li><input checked="" disabled="" type="checkbox"> 工业平台架构</li>
-<li><input checked="" disabled="" type="checkbox"> 架构参考</li>
-<li><input disabled="" type="checkbox"> 架构和开发<ol>
-<li><input checked="" disabled="" type="checkbox"> HTTPS ，x509的流程，快速部署nginx + https的智能体</li>
-</ol>
-</li>
-</ol>
-<h3 id="领域知识"><a href="#领域知识" class="headerlink" title="领域知识"></a>领域知识</h3><ol>
-<li><input checked="" disabled="" type="checkbox"> 数据接入<ol>
-<li><input checked="" disabled="" type="checkbox"> 数采清单</li>
-<li><input checked="" disabled="" type="checkbox"> 数采卡</li>
-<li><input checked="" disabled="" type="checkbox"> 数据采集插件</li>
-<li><input checked="" disabled="" type="checkbox"> 数据对接平台（airbyte，nodered）</li>
-</ol>
-</li>
-<li><input checked="" disabled="" type="checkbox"> 时间性能分析</li>
-<li><input checked="" disabled="" type="checkbox"> 预测性维护</li>
-<li><input checked="" disabled="" type="checkbox"> 曲线质量分析</li>
-<li><input disabled="" type="checkbox"> AI与智能体<ol>
-<li><input checked="" disabled="" type="checkbox"> 能耗</li>
-</ol>
-</li>
-</ol>
-<h3 id="项目沉淀"><a href="#项目沉淀" class="headerlink" title="项目沉淀"></a>项目沉淀</h3><ol>
-<li><input disabled="" type="checkbox"> 项目管理和团队管理</li>
-<li><input disabled="" type="checkbox"> 工业AI项目交付方法</li>
-<li><input disabled="" type="checkbox"> 汽车制造项目</li>
-<li><input disabled="" type="checkbox"> 其他项目</li>
-</ol>
-<h3 id="信息沉淀"><a href="#信息沉淀" class="headerlink" title="信息沉淀"></a>信息沉淀</h3><ol>
-<li><input disabled="" type="checkbox"> 模板和规范</li>
-<li><input disabled="" type="checkbox"> 问题排查经验</li>
-</ol>
-]]></content>
-      <categories>
-        <category>工作笔记</category>
-      </categories>
-      <tags>
-        <tag>Home</tag>
-        <tag>工作笔记</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Manulism Work 知识库首页</title>
-    <url>/2026/06/16/manulism-work/00_Home/%E9%A6%96%E9%A1%B5/</url>
-    <content><![CDATA[<h1 id="Manulism-Work-知识库首页"><a href="#Manulism-Work-知识库首页" class="headerlink" title="Manulism Work 知识库首页"></a>Manulism Work 知识库首页</h1><blockquote>
-<p>本知识库已按“先理解源文件，再重写成流畅笔记”的标准重建。<code>OneNote/</code> 与 <code>assets/</code> 保留未清空，其它内容已重新生成。</p>
-</blockquote>
-<h2 id="推荐阅读顺序"><a href="#推荐阅读顺序" class="headerlink" title="推荐阅读顺序"></a>推荐阅读顺序</h2><ol>
-<li><a href="/%E5%B7%A5%E4%B8%9A%E5%B9%B3%E5%8F%B0%E6%9E%B6%E6%9E%84%E6%80%BB%E8%A7%88/">工业平台架构总览</a></li>
-<li>[IRUN 平台能力与边界](&#x2F;IRUN 平台能力与边界&#x2F;)</li>
-<li><a href="/%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B%E8%84%89%E7%BB%9C/">架构演进脉络</a></li>
-<li>[00 接入模式](&#x2F;00 接入模式&#x2F;)</li>
-<li><a href="/%E6%8B%A7%E7%B4%A7%E4%B8%8E%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/">拧紧与曲线质量分析</a></li>
-<li>[工业 AI 项目交付方法](&#x2F;工业 AI 项目交付方法&#x2F;)</li>
-<li><a href="/%E6%A8%A1%E6%9D%BF%E4%B8%8E%E8%A7%84%E8%8C%83%E8%B5%84%E4%BA%A7/">模板与规范资产</a></li>
-</ol>
-<h2 id="OneNote-知识沉淀"><a href="#OneNote-知识沉淀" class="headerlink" title="OneNote 知识沉淀"></a>OneNote 知识沉淀</h2><ul>
-<li><a href="/AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93%E7%9F%A5%E8%AF%86%E6%B2%89%E6%B7%80/">AI 与智能体知识沉淀</a></li>
-<li><a href="/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%E4%B8%8E%E4%B8%AD%E9%97%B4%E4%BB%B6%E7%BB%8F%E9%AA%8C/">软件工程与中间件经验</a></li>
-<li><a href="/%E6%9E%B6%E6%9E%84%E6%96%B9%E6%B3%95%E8%AE%BA/">架构方法论</a></li>
-<li><a href="/OneNote%E6%9B%B2%E7%BA%BF%E4%B8%8E%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90%E6%B2%89%E6%B7%80/">OneNote 曲线与质量分析沉淀</a></li>
-<li><a href="/%E9%A1%B9%E7%9B%AE%E7%BB%8F%E9%AA%8C%E6%B2%89%E6%B7%80/">OneNote 项目经验沉淀</a></li>
-<li><a href="/OneNote%E4%BF%9D%E7%95%99%E7%B4%A2%E5%BC%95/">OneNote 保留索引</a></li>
-</ul>
-<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
-<li><code>10_Architecture</code>：架构总览、系统边界、架构演进。</li>
-<li><code>20_Domain_Knowledge</code>：数据接入、曲线质量、预测维护、业务场景。</li>
-<li><code>30_Projects</code>：项目交付方法和项目经验。</li>
-<li><code>40_Templates_Standards</code>：模板与规范。</li>
-<li><code>50_Source_Evidence</code>：源文件证据索引，不作为主要阅读入口。</li>
-<li><code>90_Operations</code>：整理报告。</li>
-</ul>
-<h2 id="本轮范围"><a href="#本轮范围" class="headerlink" title="本轮范围"></a>本轮范围</h2><ul>
-<li>待整理</li>
-<li>架构介绍</li>
-<li>架构演进</li>
-<li>项目交付</li>
-<li>业务场景整理</li>
-<li>应用开发</li>
-</ul>
-<p>已跳过安装包、代码、运行环境和 CnosDB 调研。</p>
-]]></content>
-      <categories>
-        <category>工作笔记</category>
-      </categories>
-      <tags>
-        <tag>Home</tag>
-        <tag>工作笔记</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>工业智能平台总体架构</title>
     <url>/2026/06/17/manulism-work/10_Architecture/11%20%E5%B9%B3%E5%8F%B0%E6%80%BB%E8%A7%88/%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E5%B9%B3%E5%8F%B0%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84/</url>
     <content><![CDATA[<h2 id="1-文档概述"><a href="#1-文档概述" class="headerlink" title="1. 文档概述"></a>1. 文档概述</h2><p>工业平台以“边缘采集与推理 + 平台服务 + 模型训练 + 数据智能 + 业务应用”为核心思路，面向制造现场的数据接入、时间性能分析、工艺质量分析、设备预测性维护、数据管理和智能助手应用需求，构建可扩展、可部署、可运维、可集成的工业智能平台。</p>
@@ -3499,20 +3403,7 @@
   <entry>
     <title>架构演进脉络</title>
     <url>/2026/06/16/manulism-work/10_Architecture/12%20%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B/%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B%E8%84%89%E7%BB%9C/</url>
-    <content><![CDATA[<hr>
-<p>title: 架构演进脉络<br>section: 架构知识<br>created: 2026-06-16<br>status: active<br>area: architecture<br>kind: evolution<br>topic: industrial-platform-evolution<br>parent:</p>
-<ul>
-<li>‘[工业智能平台总体架构](&#x2F;10_Architecture&#x2F;11 平台总览&#x2F;工业智能平台总体架构&#x2F;)’<br>related:</li>
-<li>‘[工业智能平台总体架构](&#x2F;10_Architecture&#x2F;11 平台总览&#x2F;工业智能平台总体架构&#x2F;)’</li>
-<li>‘[服务器需求](&#x2F;10_Architecture&#x2F;13 架构参考&#x2F;服务器需求&#x2F;)’</li>
-<li>‘[软件版本信息](&#x2F;10_Architecture&#x2F;13 架构参考&#x2F;软件版本信息&#x2F;)’</li>
-<li>‘[工业数据接入](&#x2F;20_Domain_Knowledge&#x2F;21 工业数据接入&#x2F;00 接入模式&#x2F;)’</li>
-<li>‘[曲线质量分析](&#x2F;20_Domain_Knowledge&#x2F;22 曲线质量分析&#x2F;00 曲线分析系统领域知识&#x2F;)’</li>
-<li>‘[时间性能分析](&#x2F;20_Domain_Knowledge&#x2F;23 时间性能分析&#x2F;00 时间性能系统领域知识&#x2F;)’</li>
-<li>‘[预测性维护](&#x2F;20_Domain_Knowledge&#x2F;24 预测性维护&#x2F;00 PDM业务领域知识笔记&#x2F;)’</li>
-</ul>
-<hr>
-<h2 id="阅读导引"><a href="#阅读导引" class="headerlink" title="阅读导引"></a>阅读导引</h2><p>这篇笔记单独整理“架构演进”，避免它只被吸收到架构总览里。它关注的是：平台为什么从单体走向主从、云原生、平台化和智能化。</p>
+    <content><![CDATA[<h2 id="阅读导引"><a href="#阅读导引" class="headerlink" title="阅读导引"></a>阅读导引</h2><p>这篇笔记单独整理“架构演进”，避免它只被吸收到架构总览里。它关注的是：平台为什么从单体走向主从、云原生、平台化和智能化。</p>
 <h2 id="演进主线"><a href="#演进主线" class="headerlink" title="演进主线"></a>演进主线</h2><pre><code class=" mermaid">timeline
     title 工业平台架构演进
     2016 : 单体架构 : 快速验证业务和产品概念
@@ -6294,7 +6185,17 @@
   <entry>
     <title>09 系统补充知识</title>
     <url>/2026/08/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/</url>
-    <content><![CDATA[<h2 id="特征配置中col-item-的解释逻辑"><a href="#特征配置中col-item-的解释逻辑" class="headerlink" title="特征配置中col_item 的解释逻辑"></a>特征配置中col_item 的解释逻辑</h2><p>示例数据：<br><code>AA002,AA003,AA005,,&amp;AA004,AA011,AA016,AA017,AB001,AB002,AA018,AA015</code></p>
+    <content><![CDATA[<hr>
+<p>title: 系统补充知识<br>area: domain-knowledge<br>kind: technical-note<br>topic: curve-quality-analysis-supplement<br>status: active<br>parent:</p>
+<ul>
+<li>‘[曲线分析系统领域知识](&#x2F;20_Domain_Knowledge&#x2F;22 曲线质量分析&#x2F;00 曲线分析系统领域知识&#x2F;)’<br>upstream:</li>
+<li>‘[曲线分析系统技术领域知识](&#x2F;20_Domain_Knowledge&#x2F;22 曲线质量分析&#x2F;02 曲线分析系统技术领域知识&#x2F;)’</li>
+<li>‘[曲线分析系统菜单工作流程](&#x2F;20_Domain_Knowledge&#x2F;22 曲线质量分析&#x2F;03 曲线分析系统菜单工作流程&#x2F;)’<br>related:</li>
+<li>‘[曲线分析系统领域知识扩展](&#x2F;20_Domain_Knowledge&#x2F;22 曲线质量分析&#x2F;01 曲线分析系统领域知识扩展&#x2F;)’</li>
+<li>‘[数采清单](&#x2F;20_Domain_Knowledge&#x2F;21 工业数据接入&#x2F;01 数采清单&#x2F;)’</li>
+</ul>
+<hr>
+<h2 id="特征配置中col-item-的解释逻辑"><a href="#特征配置中col-item-的解释逻辑" class="headerlink" title="特征配置中col_item 的解释逻辑"></a>特征配置中col_item 的解释逻辑</h2><p>示例数据：<br><code>AA002,AA003,AA005,,&amp;AA004,AA011,AA016,AA017,AB001,AB002,AA018,AA015</code></p>
 <p>这段 <code>col_item</code> 会先用 <code>&amp;</code> 分成“公共采集项”和“螺栓采集项”两部分：</p>
 <figure class="highlight autohotkey"><table><tr><td class="code"><pre><code class="hljs autohotkey"><span class="hljs-built_in">AA002,</span>AA003,AA005,,<br>&amp;<br><span class="hljs-built_in">AA004,</span>AA011,AA016,AA017,AB001,AB002,AA018,AA015<br></code></pre></td></tr></table></figure>
 
@@ -6838,7 +6739,7 @@
       </tags>
   </entry>
   <entry>
-    <title>PDM业务领域知识笔记</title>
+    <title>PDM业务领域知识</title>
     <url>/2026/06/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/00%20PDM%E4%B8%9A%E5%8A%A1%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>说明：本文结合当前后端实现整理。若文档描述与系统实现存在差异，以系统实现为准。本文刻意区分“领域知识”和“系统知识”：前者回答预测性维护是什么，后者回答本系统如何承载预测性维护。</p>
 <h2 id="1-领域知识：预测性维护在解决什么问题"><a href="#1-领域知识：预测性维护在解决什么问题" class="headerlink" title="1. 领域知识：预测性维护在解决什么问题"></a>1. 领域知识：预测性维护在解决什么问题</h2><p>预测性维护的核心不是把设备故障记录下来，而是在设备状态劣化早期识别风险，让维护从“故障后处理”转向“风险前干预”。</p>
@@ -7479,7 +7380,7 @@
       </tags>
   </entry>
   <entry>
-    <title>PDM技术领域知识笔记</title>
+    <title>PDM技术领域知识</title>
     <url>/2026/06/24/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/01%20PDM%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文重点说明系统如何支撑业务落地。本文只展开架构和关键技术实现，其他算法、聚合策略和局部实现不再细写，便于后续继续补充。</p>
 <h2 id="1-系统定位"><a href="#1-系统定位" class="headerlink" title="1. 系统定位"></a>1. 系统定位</h2><p>PDM 不是单一诊断服务，而是一套围绕“特征配置、模型训练、诊断展示、事件闭环、边缘计算协同”构建的微服务体系。</p>
