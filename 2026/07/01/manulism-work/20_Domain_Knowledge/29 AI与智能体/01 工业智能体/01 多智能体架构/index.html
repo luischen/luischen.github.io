@@ -18,13 +18,13 @@
   
     <meta name="description" content="1. 一句话理解多智能体架构不是“把很多模型放在一起”，而是把一个复杂任务拆成多个职责明确的智能体，让它们通过路由、分工、通信和汇总来协作完成目标。 它的价值不在于智能体数量多，而在于：  每个智能体只负责自己最擅长的子任务 上下文和记忆可以分层管理 复杂任务可以被拆解、调度、复用和追踪 主入口可以把用户体验保持成一个统一窗口  2. 为什么需要多智能体单智能体适合边界清楚、链路短、工具少的任务；">
 <meta property="og:type" content="article">
-<meta property="og:title" content="多智能体架构">
+<meta property="og:title" content="工业多智能体架构模式">
 <meta property="og:url" content="https://luischen.github.io/2026/07/01/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%A4%9A%E6%99%BA%E8%83%BD%E4%BD%93%E6%9E%B6%E6%9E%84/index.html">
 <meta property="og:site_name" content="Next Station">
 <meta property="og:description" content="1. 一句话理解多智能体架构不是“把很多模型放在一起”，而是把一个复杂任务拆成多个职责明确的智能体，让它们通过路由、分工、通信和汇总来协作完成目标。 它的价值不在于智能体数量多，而在于：  每个智能体只负责自己最擅长的子任务 上下文和记忆可以分层管理 复杂任务可以被拆解、调度、复用和追踪 主入口可以把用户体验保持成一个统一窗口  2. 为什么需要多智能体单智能体适合边界清楚、链路短、工具少的任务；">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-01T04:05:11.000Z">
-<meta property="article:modified_time" content="2026-07-01T06:12:34.000Z">
+<meta property="article:modified_time" content="2026-08-14T03:47:15.000Z">
 <meta property="article:author" content="Luis Chen">
 <meta property="article:tag" content="Domain Knowledge">
 <meta property="article:tag" content="工作笔记">
@@ -32,7 +32,7 @@
   
   
   
-  <title>多智能体架构 - Next Station</title>
+  <title>工业多智能体架构模式 - Next Station</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -198,7 +198,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="多智能体架构"></span>
+            <span id="subtitle" data-typed-text="工业多智能体架构模式"></span>
           
         </div>
 
@@ -221,7 +221,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          5k 字
+          3k 字
         
       </span>
     
@@ -232,7 +232,7 @@
         
         
         
-          42 分钟
+          25 分钟
         
       </span>
     
@@ -270,7 +270,7 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">多智能体架构</h1>
+            <h1 style="display: none">工业多智能体架构模式</h1>
             
             
               <div class="markdown-body">
@@ -351,63 +351,44 @@
 <li>如果设计不好，主入口会变成“什么都管、什么都懂一点”的瓶颈</li>
 <li>容易出现上下文污染</li>
 </ul>
-<h2 id="4-架构示意"><a href="#4-架构示意" class="headerlink" title="4. 架构示意"></a>4. 架构示意</h2><h3 id="4-1-扁平架构"><a href="#4-1-扁平架构" class="headerlink" title="4.1 扁平架构"></a>4.1 扁平架构</h3><pre><code class=" mermaid">%%&#123;init: &#123;&quot;theme&quot;:&quot;base&quot;,&quot;themeVariables&quot;:&#123;&quot;fontFamily&quot;:&quot;Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif&quot;,&quot;primaryColor&quot;:&quot;#E0F2FE&quot;,&quot;primaryTextColor&quot;:&quot;#0F172A&quot;,&quot;primaryBorderColor&quot;:&quot;#38BDF8&quot;,&quot;lineColor&quot;:&quot;#64748B&quot;,&quot;secondaryColor&quot;:&quot;#ECFDF5&quot;,&quot;tertiaryColor&quot;:&quot;#FFF7ED&quot;&#125;&#125;&#125;%%
-flowchart TD
-  U[用户]:::user --&gt; G[主入口&lt;br/&gt;Router]:::router
+<h2 id="4-架构示意"><a href="#4-架构示意" class="headerlink" title="4. 架构示意"></a>4. 架构示意</h2><h3 id="4-1-扁平架构"><a href="#4-1-扁平架构" class="headerlink" title="4.1 扁平架构"></a>4.1 扁平架构</h3><div style="margin: 18px 0; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc;">
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; align-items: center;">
+    <div style="padding: 12px; border-radius: 8px; background: #111827; color: #ffffff; text-align: center; font-weight: 700;">用户</div>
+    <div style="padding: 12px; border: 2px solid #3b82f6; border-radius: 8px; background: #dbeafe; color: #1d4ed8; text-align: center; font-weight: 700;">主入口<br>Router</div>
+    <div style="padding: 12px; border: 2px solid #f59e0b; border-radius: 8px; background: #fef3c7; color: #92400e; text-align: center; font-weight: 700;">统一结果输出</div>
+  </div>
+  <div style="text-align: center; color: #2563eb; font-weight: 700; margin: 8px 0;">用户请求 → 主入口分发 → 专家池并行处理 → 主入口汇总 → 用户</div>
+  <div style="padding: 12px; border: 1px solid #99f6e4; border-radius: 8px; background: #ecfdf5;">
+    <div style="font-weight: 700; color: #047857; margin-bottom: 10px;">专家池</div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+      <div style="padding: 10px; border: 1px solid #10b981; border-radius: 8px; background: #ffffff; text-align: center;"><strong>智能体 A</strong><br><span style="color: #475569;">领域专家</span></div>
+      <div style="padding: 10px; border: 1px solid #10b981; border-radius: 8px; background: #ffffff; text-align: center;"><strong>智能体 B</strong><br><span style="color: #475569;">领域专家</span></div>
+      <div style="padding: 10px; border: 1px solid #10b981; border-radius: 8px; background: #ffffff; text-align: center;"><strong>智能体 C</strong><br><span style="color: #475569;">领域专家</span></div>
+    </div>
+  </div>
+</div>
 
-  subgraph P[专家池]
-    direction LR
-    A[智能体 A&lt;br/&gt;领域专家]:::expert
-    B[智能体 B&lt;br/&gt;领域专家]:::expert
-    C[智能体 C&lt;br/&gt;领域专家]:::expert
-  end
-
-  G --&gt; A
-  G --&gt; B
-  G --&gt; C
-  A --&gt; G
-  B --&gt; G
-  C --&gt; G
-  G --&gt; R[统一结果输出]:::result
-  R --&gt; U
-
-  classDef user fill:#111827,color:#FFFFFF,stroke:#111827,stroke-width:1px;
-  classDef router fill:#DBEAFE,color:#1D4ED8,stroke:#3B82F6,stroke-width:2px;
-  classDef expert fill:#ECFDF5,color:#047857,stroke:#10B981,stroke-width:1.5px;
-  classDef result fill:#FEF3C7,color:#92400E,stroke:#F59E0B,stroke-width:2px;
-</code></pre>
-
-<h3 id="4-2-层级架构"><a href="#4-2-层级架构" class="headerlink" title="4.2 层级架构"></a>4.2 层级架构</h3><pre><code class=" mermaid">%%&#123;init: &#123;&quot;theme&quot;:&quot;base&quot;,&quot;themeVariables&quot;:&#123;&quot;fontFamily&quot;:&quot;Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif&quot;,&quot;primaryColor&quot;:&quot;#F5F3FF&quot;,&quot;primaryTextColor&quot;:&quot;#0F172A&quot;,&quot;primaryBorderColor&quot;:&quot;#8B5CF6&quot;,&quot;lineColor&quot;:&quot;#64748B&quot;,&quot;secondaryColor&quot;:&quot;#EEF2FF&quot;,&quot;tertiaryColor&quot;:&quot;#F8FAFC&quot;&#125;&#125;&#125;%%
-flowchart TD
-  U[用户]:::user --&gt; M[主代理&lt;br/&gt;总协调者]:::manager
-
-  M --&gt; P&#123;任务拆解&#125;:::decision
-
-  subgraph W[执行层]
-    direction LR
-    A[子智能体 A&lt;br/&gt;领域专家]:::worker
-    B[子智能体 B&lt;br/&gt;领域专家]:::worker
-    C[子智能体 C&lt;br/&gt;领域专家]:::worker
-  end
-
-  P --&gt; A
-  P --&gt; B
-  P --&gt; C
-  A --&gt; M
-  B --&gt; M
-  C --&gt; M
-
-  M --&gt; D&#123;是否继续分派&#125;:::decision
-  D --&gt;|是| P
-  D --&gt;|否| O[结果汇总&lt;br/&gt;最终答复]:::result
-  O --&gt; U
-
-  classDef user fill:#111827,color:#FFFFFF,stroke:#111827,stroke-width:1px;
-  classDef manager fill:#EDE9FE,color:#5B21B6,stroke:#7C3AED,stroke-width:2px;
-  classDef decision fill:#FDE68A,color:#92400E,stroke:#F59E0B,stroke-width:2px;
-  classDef worker fill:#E0E7FF,color:#3730A3,stroke:#6366F1,stroke-width:1.5px;
-  classDef result fill:#DCFCE7,color:#166534,stroke:#22C55E,stroke-width:2px;
-</code></pre>
+<h3 id="4-2-层级架构"><a href="#4-2-层级架构" class="headerlink" title="4.2 层级架构"></a>4.2 层级架构</h3><div style="margin: 18px 0; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; background: #ffffff;">
+  <div style="display: grid; gap: 10px;">
+    <div style="padding: 12px; border-radius: 8px; background: #111827; color: #ffffff; text-align: center; font-weight: 700;">用户</div>
+    <div style="text-align: center; color: #7c3aed; font-weight: 700;">↓</div>
+    <div style="padding: 12px; border: 2px solid #7c3aed; border-radius: 8px; background: #ede9fe; color: #5b21b6; text-align: center; font-weight: 700;">主代理 / 总协调者</div>
+    <div style="text-align: center; color: #b45309; font-weight: 700;">↓</div>
+    <div style="padding: 12px; border: 2px solid #f59e0b; border-radius: 8px; background: #fef3c7; color: #92400e; text-align: center; font-weight: 700;">任务拆解</div>
+    <div style="padding: 12px; border: 1px solid #c7d2fe; border-radius: 8px; background: #eef2ff;">
+      <div style="font-weight: 700; color: #3730a3; margin-bottom: 10px;">执行层</div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+        <div style="padding: 10px; border: 1px solid #6366f1; border-radius: 8px; background: #ffffff; text-align: center;"><strong>子智能体 A</strong><br><span style="color: #475569;">领域专家</span></div>
+        <div style="padding: 10px; border: 1px solid #6366f1; border-radius: 8px; background: #ffffff; text-align: center;"><strong>子智能体 B</strong><br><span style="color: #475569;">领域专家</span></div>
+        <div style="padding: 10px; border: 1px solid #6366f1; border-radius: 8px; background: #ffffff; text-align: center;"><strong>子智能体 C</strong><br><span style="color: #475569;">领域专家</span></div>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div style="padding: 10px; border: 1px solid #fde68a; border-radius: 8px; background: #fffbeb;"><strong>继续分派</strong><br><span style="color: #475569;">回到任务拆解，进入下一轮执行。</span></div>
+      <div style="padding: 10px; border: 1px solid #bbf7d0; border-radius: 8px; background: #f0fdf4;"><strong>结果汇总</strong><br><span style="color: #166534;">形成最终答复并返回用户。</span></div>
+    </div>
+  </div>
+</div>
 
 <h2 id="5-通信与记忆"><a href="#5-通信与记忆" class="headerlink" title="5. 通信与记忆"></a>5. 通信与记忆</h2><p>多智能体系统里，通信不是简单地“把消息转发出去”，而是要控制哪些信息该共享、哪些信息必须隔离。</p>
 <p>比较稳妥的做法是：</p>
@@ -561,7 +542,7 @@ flowchart TD
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>多智能体架构</div>
+      <div>工业多智能体架构模式</div>
       <div>https://luischen.github.io/2026/07/01/manulism-work/20_Domain_Knowledge/29 AI与智能体/01 工业智能体/01 多智能体架构/</div>
     </div>
     <div class="license-meta">
@@ -606,9 +587,9 @@ flowchart TD
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/README/" title="HTTPS 知识索引">
+                      <a href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/README/" title="HTTPS、TLS 与 x509 专题索引">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">HTTPS 知识索引</span>
+                        <span class="hidden-mobile">HTTPS、TLS 与 x509 专题索引</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -616,8 +597,8 @@ flowchart TD
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/06/30/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93/00%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93%E6%80%BB%E8%A7%88/" title="工业智能体总览">
-                        <span class="hidden-mobile">工业智能体总览</span>
+                      <a href="/2026/06/30/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93/00%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93%E6%80%BB%E8%A7%88/" title="工业智能体能力总览">
+                        <span class="hidden-mobile">工业智能体能力总览</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

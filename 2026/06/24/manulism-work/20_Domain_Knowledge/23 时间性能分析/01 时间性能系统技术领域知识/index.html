@@ -16,15 +16,15 @@
   <meta name="author" content="Luis Chen">
   <meta name="keywords" content="">
   
-    <meta name="description" content="title: 时间性能系统技术领域知识area: domain-knowledgekind: technical-detailtopic: time-performance-analysis-technicalparent:  ‘[时间性能系统领域知识](&#x2F;20_Domain_Knowledge&#x2F;23 时间性能分析&#x2F;00 时间性能系统领域知识&#x2F;)’upst">
+    <meta name="description" content="作为业务领域知识的补充，本文聚焦系统架构、关键算法、数据口径与后续实现方向。内容保持在“可指导实现”的层面，不展开到方法级细节。术语沿用业务文档中的定义，但本文只说明实现映射，不重复展开业务语义。  1. 技术定位时间性能系统的技术目标，是把产线时序数据加工成可解释的节拍知识，再进一步沉淀为瓶颈诊断与改善分析的标准输出。系统不是单纯计算某个时长，而是要形成一条稳定的数据链路：  从原始时序数据中">
 <meta property="og:type" content="article">
-<meta property="og:title" content="01 时间性能系统技术领域知识">
+<meta property="og:title" content="时间性能分析系统技术实现知识">
 <meta property="og:url" content="https://luischen.github.io/2026/06/24/manulism-work/20_Domain_Knowledge/23%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/01%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/index.html">
 <meta property="og:site_name" content="Next Station">
-<meta property="og:description" content="title: 时间性能系统技术领域知识area: domain-knowledgekind: technical-detailtopic: time-performance-analysis-technicalparent:  ‘[时间性能系统领域知识](&#x2F;20_Domain_Knowledge&#x2F;23 时间性能分析&#x2F;00 时间性能系统领域知识&#x2F;)’upst">
+<meta property="og:description" content="作为业务领域知识的补充，本文聚焦系统架构、关键算法、数据口径与后续实现方向。内容保持在“可指导实现”的层面，不展开到方法级细节。术语沿用业务文档中的定义，但本文只说明实现映射，不重复展开业务语义。  1. 技术定位时间性能系统的技术目标，是把产线时序数据加工成可解释的节拍知识，再进一步沉淀为瓶颈诊断与改善分析的标准输出。系统不是单纯计算某个时长，而是要形成一条稳定的数据链路：  从原始时序数据中">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-06-24T04:16:21.000Z">
-<meta property="article:modified_time" content="2026-06-24T07:58:56.000Z">
+<meta property="article:modified_time" content="2026-08-14T03:44:31.000Z">
 <meta property="article:author" content="Luis Chen">
 <meta property="article:tag" content="Domain Knowledge">
 <meta property="article:tag" content="工作笔记">
@@ -32,7 +32,7 @@
   
   
   
-  <title>01 时间性能系统技术领域知识 - Next Station</title>
+  <title>时间性能分析系统技术实现知识 - Next Station</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -198,7 +198,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="01 时间性能系统技术领域知识"></span>
+            <span id="subtitle" data-typed-text="时间性能分析系统技术实现知识"></span>
           
         </div>
 
@@ -221,7 +221,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.3k 字
+          2.7k 字
         
       </span>
     
@@ -232,7 +232,7 @@
         
         
         
-          28 分钟
+          23 分钟
         
       </span>
     
@@ -270,23 +270,12 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">01 时间性能系统技术领域知识</h1>
+            <h1 style="display: none">时间性能分析系统技术实现知识</h1>
             
             
               <div class="markdown-body">
                 
-                <hr>
-<p>title: 时间性能系统技术领域知识<br>area: domain-knowledge<br>kind: technical-detail<br>topic: time-performance-analysis-technical<br>parent:</p>
-<ul>
-<li>‘[时间性能系统领域知识](&#x2F;20_Domain_Knowledge&#x2F;23 时间性能分析&#x2F;00 时间性能系统领域知识&#x2F;)’<br>upstream:</li>
-<li>‘[时间性能系统领域知识](&#x2F;20_Domain_Knowledge&#x2F;23 时间性能分析&#x2F;00 时间性能系统领域知识&#x2F;)’</li>
-<li>‘[工业数据接入](&#x2F;20_Domain_Knowledge&#x2F;21 工业数据接入&#x2F;00 接入模式&#x2F;)’</li>
-<li>‘[工业智能平台总体架构](&#x2F;10_Architecture&#x2F;11 平台总览&#x2F;工业智能平台总体架构&#x2F;)’<br>related:</li>
-<li>‘[曲线分析系统技术领域知识](&#x2F;20_Domain_Knowledge&#x2F;22 曲线质量分析&#x2F;02 曲线分析系统技术领域知识&#x2F;)’</li>
-<li>‘[PDM技术领域知识笔记](&#x2F;20_Domain_Knowledge&#x2F;24 预测性维护&#x2F;01 PDM技术领域知识笔记&#x2F;)’</li>
-</ul>
-<hr>
-<blockquote>
+                <blockquote>
 <p>作为业务领域知识的补充，本文聚焦系统架构、关键算法、数据口径与后续实现方向。内容保持在“可指导实现”的层面，不展开到方法级细节。<br>术语沿用业务文档中的定义，但本文只说明实现映射，不重复展开业务语义。</p>
 </blockquote>
 <h2 id="1-技术定位"><a href="#1-技术定位" class="headerlink" title="1. 技术定位"></a>1. 技术定位</h2><p>时间性能系统的技术目标，是把产线时序数据加工成可解释的节拍知识，再进一步沉淀为瓶颈诊断与改善分析的标准输出。<br>系统不是单纯计算某个时长，而是要形成一条稳定的数据链路：</p>
@@ -564,7 +553,7 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>01 时间性能系统技术领域知识</div>
+      <div>时间性能分析系统技术实现知识</div>
       <div>https://luischen.github.io/2026/06/24/manulism-work/20_Domain_Knowledge/23 时间性能分析/01 时间性能系统技术领域知识/</div>
     </div>
     <div class="license-meta">
@@ -609,9 +598,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/06/24/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/02%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/" title="曲线分析系统技术领域知识">
+                      <a href="/2026/06/24/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/02%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/" title="曲线质量分析系统技术架构与数据流转">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">曲线分析系统技术领域知识</span>
+                        <span class="hidden-mobile">曲线质量分析系统技术架构与数据流转</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -619,8 +608,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/06/24/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/01%20PDM%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/" title="PDM技术领域知识">
-                        <span class="hidden-mobile">PDM技术领域知识</span>
+                      <a href="/2026/06/24/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/01%20PDM%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/" title="预测性维护 PDM 技术实现知识">
+                        <span class="hidden-mobile">预测性维护 PDM 技术实现知识</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

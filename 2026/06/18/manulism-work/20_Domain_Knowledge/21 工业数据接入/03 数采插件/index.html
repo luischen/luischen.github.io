@@ -18,13 +18,13 @@
   
     <meta name="description" content="说明：本文以当前工作区内的源码实现为准。部分 README 与源码存在不一致的地方，例如 mssql-agent 的 README 会提到 MySQL，但代码实际使用的是 SQL Server；toolsnet 的 README 也更偏旧版描述，但源码已经明确了它的 HTTP 入站、Influx 写入与字段映射逻辑。  总体认知这个仓库里的每个文件夹都可以看作一个独立的工业数采插件。它们的共同目">
 <meta property="og:type" content="article">
-<meta property="og:title" content="数采插件">
+<meta property="og:title" content="工业数采插件设计与扩展">
 <meta property="og:url" content="https://luischen.github.io/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/03%20%E6%95%B0%E9%87%87%E6%8F%92%E4%BB%B6/index.html">
 <meta property="og:site_name" content="Next Station">
 <meta property="og:description" content="说明：本文以当前工作区内的源码实现为准。部分 README 与源码存在不一致的地方，例如 mssql-agent 的 README 会提到 MySQL，但代码实际使用的是 SQL Server；toolsnet 的 README 也更偏旧版描述，但源码已经明确了它的 HTTP 入站、Influx 写入与字段映射逻辑。  总体认知这个仓库里的每个文件夹都可以看作一个独立的工业数采插件。它们的共同目">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-06-18T02:21:49.000Z">
-<meta property="article:modified_time" content="2026-07-13T09:35:16.000Z">
+<meta property="article:modified_time" content="2026-08-14T03:44:26.000Z">
 <meta property="article:author" content="Luis Chen">
 <meta property="article:tag" content="Domain Knowledge">
 <meta property="article:tag" content="工作笔记">
@@ -32,7 +32,7 @@
   
   
   
-  <title>数采插件 - Next Station</title>
+  <title>工业数采插件设计与扩展 - Next Station</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -198,7 +198,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="数采插件"></span>
+            <span id="subtitle" data-typed-text="工业数采插件设计与扩展"></span>
           
         </div>
 
@@ -270,7 +270,7 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">数采插件</h1>
+            <h1 style="display: none">工业数采插件设计与扩展</h1>
             
             
               <div class="markdown-body">
@@ -777,7 +777,7 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>数采插件</div>
+      <div>工业数采插件设计与扩展</div>
       <div>https://luischen.github.io/2026/06/18/manulism-work/20_Domain_Knowledge/21 工业数据接入/03 数采插件/</div>
     </div>
     <div class="license-meta">
@@ -822,9 +822,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/01%20%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95/" title="数采清单">
+                      <a href="/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/01%20%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95/" title="工业数据采集清单设计">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">数采清单</span>
+                        <span class="hidden-mobile">工业数据采集清单设计</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -832,8 +832,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E6%95%B0%E6%8D%AE%E8%83%BD%E5%8A%9B%E4%BC%B0%E7%AE%97/" title="数据能力估算">
-                        <span class="hidden-mobile">数据能力估算</span>
+                      <a href="/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E6%95%B0%E6%8D%AE%E8%83%BD%E5%8A%9B%E4%BC%B0%E7%AE%97/" title="工业平台数据容量与处理能力估算">
+                        <span class="hidden-mobile">工业平台数据容量与处理能力估算</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

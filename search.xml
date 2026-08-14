@@ -2557,7 +2557,7 @@
       </tags>
   </entry>
   <entry>
-    <title>工业智能平台总体架构</title>
+    <title>工业智能平台总体架构与能力分层</title>
     <url>/2026/06/17/manulism-work/10_Architecture/11%20%E5%B9%B3%E5%8F%B0%E6%80%BB%E8%A7%88/%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E5%B9%B3%E5%8F%B0%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84/</url>
     <content><![CDATA[<h2 id="1-文档概述"><a href="#1-文档概述" class="headerlink" title="1. 文档概述"></a>1. 文档概述</h2><p>工业平台以“边缘采集与推理 + 平台服务 + 模型训练 + 数据智能 + 业务应用”为核心思路，面向制造现场的数据接入、时间性能分析、工艺质量分析、设备预测性维护、数据管理和智能助手应用需求，构建可扩展、可部署、可运维、可集成的工业智能平台。</p>
 <p>平台总体目标包括：</p>
@@ -3401,16 +3401,34 @@
       </tags>
   </entry>
   <entry>
-    <title>架构演进脉络</title>
+    <title>工业智能平台架构演进脉络</title>
     <url>/2026/06/16/manulism-work/10_Architecture/12%20%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B/%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B%E8%84%89%E7%BB%9C/</url>
     <content><![CDATA[<h2 id="阅读导引"><a href="#阅读导引" class="headerlink" title="阅读导引"></a>阅读导引</h2><p>这篇笔记单独整理“架构演进”，避免它只被吸收到架构总览里。它关注的是：平台为什么从单体走向主从、云原生、平台化和智能化。</p>
-<h2 id="演进主线"><a href="#演进主线" class="headerlink" title="演进主线"></a>演进主线</h2><pre><code class=" mermaid">timeline
-    title 工业平台架构演进
-    2016 : 单体架构 : 快速验证业务和产品概念
-    2019 : 主从架构 : 规模部署 现场管理/执行分离
-    2022 : 云原生架构 : 自动化发布 按需部署和运维治理
-    2025 : 智能化架构 : AI模型和智能体 增强制造基础设施
-</code></pre>
+<h2 id="演进主线"><a href="#演进主线" class="headerlink" title="演进主线"></a>演进主线</h2><div style="margin: 18px 0; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc;">
+  <div style="font-weight: 700; font-size: 16px; margin-bottom: 14px; color: #0f172a;">工业平台架构演进</div>
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+    <div style="padding: 12px; border-top: 4px solid #2563eb; background: #ffffff; border-radius: 8px; border-left: 1px solid #bfdbfe; border-right: 1px solid #bfdbfe; border-bottom: 1px solid #bfdbfe;">
+      <div style="font-weight: 700; color: #1d4ed8;">2016</div>
+      <div style="font-weight: 700; margin: 6px 0;">单体架构</div>
+      <div style="color: #475569; line-height: 1.6;">快速验证业务和产品概念。</div>
+    </div>
+    <div style="padding: 12px; border-top: 4px solid #0f766e; background: #ffffff; border-radius: 8px; border-left: 1px solid #99f6e4; border-right: 1px solid #99f6e4; border-bottom: 1px solid #99f6e4;">
+      <div style="font-weight: 700; color: #0f766e;">2019</div>
+      <div style="font-weight: 700; margin: 6px 0;">主从架构</div>
+      <div style="color: #475569; line-height: 1.6;">适应规模部署，分离现场执行与中心管理。</div>
+    </div>
+    <div style="padding: 12px; border-top: 4px solid #7c3aed; background: #ffffff; border-radius: 8px; border-left: 1px solid #ddd6fe; border-right: 1px solid #ddd6fe; border-bottom: 1px solid #ddd6fe;">
+      <div style="font-weight: 700; color: #6d28d9;">2022</div>
+      <div style="font-weight: 700; margin: 6px 0;">云原生架构</div>
+      <div style="color: #475569; line-height: 1.6;">自动化发布，支持按需部署和运维治理。</div>
+    </div>
+    <div style="padding: 12px; border-top: 4px solid #dc2626; background: #ffffff; border-radius: 8px; border-left: 1px solid #fecaca; border-right: 1px solid #fecaca; border-bottom: 1px solid #fecaca;">
+      <div style="font-weight: 700; color: #b91c1c;">2025</div>
+      <div style="font-weight: 700; margin: 6px 0;">智能化架构</div>
+      <div style="color: #475569; line-height: 1.6;">AI 模型和智能体进入制造基础设施。</div>
+    </div>
+  </div>
+</div>
 
 <h2 id="阶段理解"><a href="#阶段理解" class="headerlink" title="阶段理解"></a>阶段理解</h2><h3 id="1-单体架构：快速落地"><a href="#1-单体架构：快速落地" class="headerlink" title="1. 单体架构：快速落地"></a>1. 单体架构：快速落地</h3><p>早期目标是快速实现业务闭环，例如产线规划、预测维护、时间性能等应用。优点是开发快、验证快；缺点是系统边界和复用能力不足。</p>
 <h3 id="2-主从架构：适应工厂规模部署"><a href="#2-主从架构：适应工厂规模部署" class="headerlink" title="2. 主从架构：适应工厂规模部署"></a>2. 主从架构：适应工厂规模部署</h3><p>随着现场部署规模扩大，需要区分管理侧和执行侧。主从架构解决的是工厂多产线、多工位、多设备下的组织和运行问题。</p>
@@ -3438,7 +3456,7 @@
       </tags>
   </entry>
   <entry>
-    <title>开源许可</title>
+    <title>工业平台开源许可治理参考</title>
     <url>/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E5%BC%80%E6%BA%90%E8%AE%B8%E5%8F%AF/</url>
     <content><![CDATA[<p>![[Pasted image 20260617162906.png|697]]</p>
 <table>
@@ -3475,7 +3493,7 @@
       </tags>
   </entry>
   <entry>
-    <title>服务器需求</title>
+    <title>工业智能平台服务器配置需求</title>
     <url>/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%9C%80%E6%B1%82/</url>
     <content><![CDATA[<h2 id="主站服务器需求"><a href="#主站服务器需求" class="headerlink" title="主站服务器需求"></a>主站服务器需求</h2><table>
 <thead>
@@ -3535,7 +3553,7 @@
       </tags>
   </entry>
   <entry>
-    <title>软件版本信息</title>
+    <title>工业平台软件版本与组件清单</title>
     <url>/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E8%BD%AF%E4%BB%B6%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF/</url>
     <content><![CDATA[<table>
 <thead>
@@ -3611,7 +3629,7 @@
       </tags>
   </entry>
   <entry>
-    <title>数据能力估算</title>
+    <title>工业平台数据容量与处理能力估算</title>
     <url>/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E6%95%B0%E6%8D%AE%E8%83%BD%E5%8A%9B%E4%BC%B0%E7%AE%97/</url>
     <content><![CDATA[<h2 id="工艺质量-拧紧枪接入数量"><a href="#工艺质量-拧紧枪接入数量" class="headerlink" title="工艺质量 - 拧紧枪接入数量"></a>工艺质量 - 拧紧枪接入数量</h2><p>估算原则：基于经验数据估算</p>
 <p>以阿特拉斯拧紧作为基准，主要瓶颈在于influxdb的写入，以5w点每秒考虑。<br>每个螺栓一次两条曲线数据（扭矩和角度），合计约3000点</p>
@@ -3644,17 +3662,27 @@
       </tags>
   </entry>
   <entry>
-    <title>接入模式</title>
+    <title>工业数据接入模式与架构设计</title>
     <url>/2026/06/16/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/00%20%E6%8E%A5%E5%85%A5%E6%A8%A1%E5%BC%8F/</url>
     <content><![CDATA[<h1 id="工业数据接入模式"><a href="#工业数据接入模式" class="headerlink" title="工业数据接入模式"></a>工业数据接入模式</h1><h2 id="阅读导引"><a href="#阅读导引" class="headerlink" title="阅读导引"></a>阅读导引</h2><p>这篇笔记把 BS350、NodeRed 压机采集、MES&#x2F;SAMS 接口、IOT 中间件和曲线数据上报资料放在一起理解，目标是形成可复用的数据接入设计模式。</p>
 <h2 id="核心结论"><a href="#核心结论" class="headerlink" title="核心结论"></a>核心结论</h2><p>工业数据接入不是简单的数据搬运，而是一个“现场设备语义 → 平台业务语义”的转换过程。好的接入设计要同时解决协议、频率、时间戳、数据完整性、业务主键、异常处理和验收标准。</p>
-<pre><code class=" mermaid">flowchart LR
-  Device[设备 / 控制器 / MES] --&gt; Adapter[协议适配与接口服务]
-  Adapter --&gt; Edge[边缘节点 / 缓存 / 清洗]
-  Edge --&gt; Model[统一数据模型]
-  Model --&gt; Platform[平台数据服务]
-  Platform --&gt; App[质量诊断 / 预测维护 / 报表]
-</code></pre>
+<div style="margin: 18px 0; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc;">
+  <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; align-items: stretch;">
+    <div style="padding: 12px; border: 1px solid #bfdbfe; border-radius: 8px; background: #eff6ff;"><strong>设备 / 控制器 / MES</strong><br><span style="color: #475569;">现场数据源</span></div>
+    <div style="display: grid; place-items: center; color: #2563eb; font-weight: 700;">→</div>
+    <div style="padding: 12px; border: 1px solid #99f6e4; border-radius: 8px; background: #ecfdf5;"><strong>协议适配与接口服务</strong><br><span style="color: #475569;">协议转换、报文解析</span></div>
+    <div style="display: grid; place-items: center; color: #0f766e; font-weight: 700;">→</div>
+    <div style="padding: 12px; border: 1px solid #fde68a; border-radius: 8px; background: #fffbeb;"><strong>边缘节点 / 缓存 / 清洗</strong><br><span style="color: #475569;">缓冲、清洗、断点续传</span></div>
+    <div style="display: grid; place-items: center; color: #b45309; font-weight: 700;">→</div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; align-items: stretch; margin-top: 10px;">
+    <div></div>
+    <div style="padding: 12px; border: 1px solid #ddd6fe; border-radius: 8px; background: #f5f3ff;"><strong>统一数据模型</strong><br><span style="color: #475569;">设备语义转业务语义</span></div>
+    <div style="display: grid; place-items: center; color: #7c3aed; font-weight: 700;">→</div>
+    <div style="padding: 12px; border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2;"><strong>平台数据服务</strong><br><span style="color: #475569;">存储、查询、服务化</span></div>
+    <div style="padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff;"><strong>质量诊断 / 预测维护 / 报表</strong><br><span style="color: #475569;">上层业务应用</span></div>
+  </div>
+</div>
 
 <h2 id="设计原则"><a href="#设计原则" class="headerlink" title="设计原则"></a>设计原则</h2><h3 id="1-先统一业务语义，再谈字段映射"><a href="#1-先统一业务语义，再谈字段映射" class="headerlink" title="1. 先统一业务语义，再谈字段映射"></a>1. 先统一业务语义，再谈字段映射</h3><p>源文件里有很多设备字段、接口字段和曲线字段。如果直接把这些字段暴露给上层应用，系统会很快被项目差异拖垮。更合理的做法是先定义统一业务对象，例如工件、设备、工位、程序、结果、曲线、特征、判定，再映射到各设备&#x2F;系统字段。</p>
 <h3 id="2-曲线数据要分层处理"><a href="#2-曲线数据要分层处理" class="headerlink" title="2. 曲线数据要分层处理"></a>2. 曲线数据要分层处理</h3><p>曲线类数据至少应区分三类：</p>
@@ -3683,7 +3711,7 @@
       </tags>
   </entry>
   <entry>
-    <title>数采清单</title>
+    <title>工业数据采集清单设计</title>
     <url>/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/01%20%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95/</url>
     <content><![CDATA[<blockquote>
 <p>脱敏说明：本文基于当前工作区中的《拧紧枪数采清单 V1.2》整理，仅保留通用结构与方法论，不展示公司名称、现场专属 IP、专有标识与可直接定位产线的敏感信息。</p>
@@ -3978,7 +4006,7 @@
       </tags>
   </entry>
   <entry>
-    <title>数采卡</title>
+    <title>边缘数采卡设计与运行机制</title>
     <url>/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/02%20%E6%95%B0%E9%87%87%E5%8D%A1/</url>
     <content><![CDATA[<h1 id="02-数采卡"><a href="#02-数采卡" class="headerlink" title="02 数采卡"></a>02 数采卡</h1><h2 id="1-目的"><a href="#1-目的" class="headerlink" title="1. 目的"></a>1. 目的</h2><p>数采卡是整个数采系统的现场执行端，负责把 PLC、机器人等设备里的原始数据按配置采集出来，映射成统一的业务字段，再上传到数据目的地。<br>数采卡是基于 C++ 开发的常驻服务，核心能力包括：</p>
 <ol>
@@ -4416,7 +4444,7 @@
       </tags>
   </entry>
   <entry>
-    <title>数采插件</title>
+    <title>工业数采插件设计与扩展</title>
     <url>/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/03%20%E6%95%B0%E9%87%87%E6%8F%92%E4%BB%B6/</url>
     <content><![CDATA[<blockquote>
 <p>说明：本文以当前工作区内的源码实现为准。部分 README 与源码存在不一致的地方，例如 <code>mssql-agent</code> 的 README 会提到 MySQL，但代码实际使用的是 SQL Server；<code>toolsnet</code> 的 README 也更偏旧版描述，但源码已经明确了它的 HTTP 入站、Influx 写入与字段映射逻辑。</p>
@@ -4883,7 +4911,7 @@
       </tags>
   </entry>
   <entry>
-    <title>数据对接</title>
+    <title>工业数据对接方案与平台集成</title>
     <url>/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/04%20%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%8E%A5/</url>
     <content><![CDATA[<h1 id="04-数据对接"><a href="#04-数据对接" class="headerlink" title="04 数据对接"></a>04 数据对接</h1><h2 id="1-说明"><a href="#1-说明" class="headerlink" title="1. 说明"></a>1. 说明</h2><p>这份文档总结了两种常见的数据对接思路，以及它们更适合的场景：</p>
 <ul>
@@ -5121,7 +5149,7 @@
       </tags>
   </entry>
   <entry>
-    <title>曲线分析系统领域知识</title>
+    <title>曲线质量分析系统业务领域知识</title>
     <url>/2026/06/22/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/00%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/</url>
     <content><![CDATA[<p>这是一份面向拧紧工艺的曲线分析系统领域笔记。系统核心对象是时序数据曲线，重点围绕螺栓拧紧过程中的扭矩、角度、判定、参考曲线、基础模型、策略和规则展开。</p>
 <h2 id="一句话定义"><a href="#一句话定义" class="headerlink" title="一句话定义"></a>一句话定义</h2><p>曲线分析系统的本质，是把设备在一次拧紧过程中的时序曲线，转换成可解释的质量结论。</p>
@@ -5366,25 +5394,56 @@
 <li>获取最小可置信循环周期</li>
 </ul>
 <p>这表示模型管理不仅是配置中心，也是训练运营中心和模型平台接入中心。</p>
-<h2 id="端到端业务链路"><a href="#端到端业务链路" class="headerlink" title="端到端业务链路"></a>端到端业务链路</h2><pre><code class=" mermaid">sequenceDiagram
-    participant U as 用户
-    participant A as 分析中心/前端
-    participant N as 在线节点
-    participant D as 数据中心
-    participant M as 模型/策略服务
-
-    U-&gt;&gt;A: 发起曲线查询
-    A-&gt;&gt;N: 查询时序数据
-    N-&gt;&gt;D: 查询并返回原始时序数据
-    D--&gt;&gt;N: 返回时序点
-    N--&gt;&gt;A: 返回曲线数据
-    A--&gt;&gt;U: 展示曲线
-
-    Note over N,M: 节点收到数据后立即触发计算线程
-    N-&gt;&gt;M: 调用模型策略服务进行计算
-    M--&gt;&gt;N: 返回模型输出、策略结果和规则结果
-    N-&gt;&gt;D: 同步计算结果、历史和标签
-</code></pre>
+<h2 id="端到端业务链路"><a href="#端到端业务链路" class="headerlink" title="端到端业务链路"></a>端到端业务链路</h2><div style="margin: 18px 0; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; background: #ffffff;">
+  <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+    <thead>
+      <tr>
+        <th style="padding: 10px; border: 1px solid #cbd5e1; background: #eff6ff;">用户</th>
+        <th style="padding: 10px; border: 1px solid #cbd5e1; background: #eff6ff;">分析中心 / 前端</th>
+        <th style="padding: 10px; border: 1px solid #cbd5e1; background: #ecfdf5;">在线节点</th>
+        <th style="padding: 10px; border: 1px solid #cbd5e1; background: #f8fafc;">数据中心</th>
+        <th style="padding: 10px; border: 1px solid #cbd5e1; background: #fffbeb;">模型 / 策略服务</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;">发起曲线查询</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0; text-align: center; color: #2563eb; font-weight: 700;">→ 接收查询</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;">请求时序数据</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0; text-align: center; color: #0f766e; font-weight: 700;">→ 查询数据中心</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;">返回原始时序点</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;">查看曲线</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;">展示曲线数据</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;">返回曲线数据</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0; background: #ecfdf5;"><strong>后台计算线程</strong><br>节点收到数据后立即触发计算</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0; background: #fffbeb;">返回模型输出、策略结果和规则结果</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;">同步计算结果、历史和标签</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0; background: #f8fafc;">保存结果留痕</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 <h2 id="关键业务功能地图"><a href="#关键业务功能地图" class="headerlink" title="关键业务功能地图"></a>关键业务功能地图</h2><h3 id="曲线中心"><a href="#曲线中心" class="headerlink" title="曲线中心"></a>曲线中心</h3><ul>
 <li>单条曲线查看</li>
@@ -5522,7 +5581,7 @@
       </tags>
   </entry>
   <entry>
-    <title>曲线分析系统领域知识扩展</title>
+    <title>曲线质量分析业务扩展与交付经验</title>
     <url>/2026/06/22/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/01%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E6%89%A9%E5%B1%95/</url>
     <content><![CDATA[<h2 id="与主笔记的关系"><a href="#与主笔记的关系" class="headerlink" title="与主笔记的关系"></a>与主笔记的关系</h2><ul>
 <li>主笔记：[00 曲线分析系统领域知识](&#x2F;00 曲线分析系统领域知识&#x2F;)</li>
@@ -5607,7 +5666,7 @@
       </tags>
   </entry>
   <entry>
-    <title>曲线分析系统技术领域知识</title>
+    <title>曲线质量分析系统技术架构与数据流转</title>
     <url>/2026/06/24/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/02%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/</url>
     <content><![CDATA[<blockquote>
 <p>本文只补充技术实现视角，不重复业务定义。重点说明曲线分析系统的架构位置、数据流转、边缘端计算、云端规则判定和结果回写机制。</p>
@@ -5890,17 +5949,25 @@
 <p>策略的作用是把模型能力变成可执行、可存储、可回放的单维度判定结果。到这里为止，边缘端已经完成“从曲线计算到策略结果”的闭环，但还没有生成最终事件。</p>
 <h2 id="云端规则判定链路"><a href="#云端规则判定链路" class="headerlink" title="云端规则判定链路"></a>云端规则判定链路</h2><p>云端规则判定链路的目标，是从已经同步上来的策略结果中筛选适用规则，并决定是否生成事件。</p>
 <p>规则层不做模型推理，只做策略结果编排、规则表达式判定和事件触发。</p>
-<pre><code class=" mermaid">flowchart TD
-  A[&quot;接收一条曲线的策略运行结果&quot;] --&gt; B[&quot;筛选 scope 候选规则&quot;]
-  B --&gt; C[&quot;统计实际运行的策略结果分类&quot;]
-  C --&gt; D[&quot;只保留与结果类型一致的规则&quot;]
-  D --&gt; E&#123;&quot;存在对应类型规则？&quot;&#125;
-  E --&gt;|否| F[&quot;跳过事件判定&lt;br/&gt;该曲线不需要生成事件&quot;]
-  E --&gt;|是| G[&quot;执行 direct 或 combination 判定&quot;]
-  G --&gt; H&#123;&quot;最终结果是否 NOK？&quot;&#125;
-  H --&gt;|否| I[&quot;写入 OK / 非事件结果&quot;]
-  H --&gt;|是| J[&quot;生成事件&quot;]
-</code></pre>
+<div style="margin: 18px 0; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc;">
+  <div style="display: grid; gap: 10px;">
+    <div style="padding: 10px 12px; border: 1px solid #bfdbfe; border-radius: 8px; background: #eff6ff;"><strong>1. 接收策略运行结果</strong><br><span style="color: #475569;">一条曲线可能对应多个实际运行的策略结果。</span></div>
+    <div style="text-align: center; color: #2563eb; font-weight: 700;">↓</div>
+    <div style="padding: 10px 12px; border: 1px solid #99f6e4; border-radius: 8px; background: #ecfdf5;"><strong>2. 筛选 scope 候选规则</strong><br><span style="color: #475569;">按“设备 + 分类号 → 设备级 → 基础规则”的优先级查找。</span></div>
+    <div style="text-align: center; color: #0f766e; font-weight: 700;">↓</div>
+    <div style="padding: 10px 12px; border: 1px solid #fde68a; border-radius: 8px; background: #fffbeb;"><strong>3. 统计策略结果分类</strong><br><span style="color: #475569;">只统计实际运行策略，得到全部通过、全部不通过、绝大多数通过或部分通过。</span></div>
+    <div style="text-align: center; color: #b45309; font-weight: 700;">↓</div>
+    <div style="padding: 10px 12px; border: 1px solid #ddd6fe; border-radius: 8px; background: #f5f3ff;"><strong>4. 保留同类型规则</strong><br><span style="color: #475569;">只保留与策略结果类型一致的规则。</span></div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div style="padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff;"><strong>无对应类型规则</strong><br><span style="color: #475569;">跳过事件判定，该曲线不需要生成事件。</span></div>
+      <div style="padding: 10px 12px; border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2;"><strong>存在对应类型规则</strong><br><span style="color: #475569;">执行 direct 或 combination 判定。</span></div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div style="padding: 10px 12px; border: 1px solid #bbf7d0; border-radius: 8px; background: #f0fdf4;"><strong>最终 OK</strong><br><span style="color: #166534;">写入非事件结果。</span></div>
+      <div style="padding: 10px 12px; border: 1px solid #fecaca; border-radius: 8px; background: #fff1f2;"><strong>最终 NOK</strong><br><span style="color: #991b1b;">生成事件。</span></div>
+    </div>
+  </div>
+</div>
 
 <h3 id="1-作用域筛选"><a href="#1-作用域筛选" class="headerlink" title="1. 作用域筛选"></a>1. 作用域筛选</h3><p>规则筛选先根据设备和分类号确定候选规则。筛选顺序是从最具体到最通用：</p>
 <ol>
@@ -6027,7 +6094,7 @@
       </tags>
   </entry>
   <entry>
-    <title>曲线分析系统菜单工作流程</title>
+    <title>曲线质量分析系统菜单工作流程</title>
     <url>/2026/07/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/03%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E8%8F%9C%E5%8D%95%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/</url>
     <content><![CDATA[<p>本文档用于说明曲线分析系统从边缘端数据接入、曲线查看、主站同步、数据挖掘、事件判定、渠道推送到标准曲线沉淀的完整菜单工作流程。</p>
 <h2 id="与其他笔记的分工"><a href="#与其他笔记的分工" class="headerlink" title="与其他笔记的分工"></a>与其他笔记的分工</h2><ul>
@@ -6183,7 +6250,7 @@
       </tags>
   </entry>
   <entry>
-    <title>曲线分析系统补充知识</title>
+    <title>曲线质量分析系统配置解析补充</title>
     <url>/2026/08/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/</url>
     <content><![CDATA[<h2 id="特征配置中col-item-的解释逻辑"><a href="#特征配置中col-item-的解释逻辑" class="headerlink" title="特征配置中col_item 的解释逻辑"></a>特征配置中col_item 的解释逻辑</h2><p>示例数据：<br><code>AA002,AA003,AA005,,&amp;AA004,AA011,AA016,AA017,AB001,AB002,AA018,AA015</code></p>
 <p>这段 <code>col_item</code> 会先用 <code>&amp;</code> 分成“公共采集项”和“螺栓采集项”两部分：</p>
@@ -6315,20 +6382,9 @@
       </tags>
   </entry>
   <entry>
-    <title>00 时间性能系统领域知识</title>
+    <title>时间性能分析系统业务领域知识</title>
     <url>/2026/06/23/manulism-work/20_Domain_Knowledge/23%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/00%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/</url>
-    <content><![CDATA[<hr>
-<p>title: 时间性能系统领域知识<br>area: domain-knowledge<br>kind: domain-overview<br>topic: time-performance-analysis<br>status: active<br>children:</p>
-<ul>
-<li>‘[时间性能系统技术领域知识](&#x2F;20_Domain_Knowledge&#x2F;23 时间性能分析&#x2F;01 时间性能系统技术领域知识&#x2F;)’<br>upstream:</li>
-<li>‘[工业数据接入](&#x2F;20_Domain_Knowledge&#x2F;21 工业数据接入&#x2F;00 接入模式&#x2F;)’</li>
-<li>‘[工业智能平台总体架构](&#x2F;10_Architecture&#x2F;11 平台总览&#x2F;工业智能平台总体架构&#x2F;)’</li>
-<li>‘[数据能力估算](&#x2F;10_Architecture&#x2F;13 架构参考&#x2F;数据能力估算&#x2F;)’<br>related:</li>
-<li>‘[曲线质量分析](&#x2F;20_Domain_Knowledge&#x2F;22 曲线质量分析&#x2F;00 曲线分析系统领域知识&#x2F;)’</li>
-<li>‘[预测性维护](&#x2F;20_Domain_Knowledge&#x2F;24 预测性维护&#x2F;00 PDM业务领域知识笔记&#x2F;)’</li>
-</ul>
-<hr>
-<h2 id="2-核心业务对象"><a href="#2-核心业务对象" class="headerlink" title="2. 核心业务对象"></a>2. 核心业务对象</h2><h3 id="2-1-研究对象"><a href="#2-1-研究对象" class="headerlink" title="2.1 研究对象"></a>2.1 研究对象</h3><p>研究对象是分析的基本组织单元，常见可以是：</p>
+    <content><![CDATA[<h2 id="2-核心业务对象"><a href="#2-核心业务对象" class="headerlink" title="2. 核心业务对象"></a>2. 核心业务对象</h2><h3 id="2-1-研究对象"><a href="#2-1-研究对象" class="headerlink" title="2.1 研究对象"></a>2.1 研究对象</h3><p>研究对象是分析的基本组织单元，常见可以是：</p>
 <ul>
 <li>产线</li>
 <li>产线下的工位</li>
@@ -6729,7 +6785,7 @@
       </tags>
   </entry>
   <entry>
-    <title>PDM业务领域知识</title>
+    <title>预测性维护 PDM 业务领域知识</title>
     <url>/2026/06/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/00%20PDM%E4%B8%9A%E5%8A%A1%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>说明：本文结合当前后端实现整理。若文档描述与系统实现存在差异，以系统实现为准。本文刻意区分“领域知识”和“系统知识”：前者回答预测性维护是什么，后者回答本系统如何承载预测性维护。</p>
 <h2 id="1-领域知识：预测性维护在解决什么问题"><a href="#1-领域知识：预测性维护在解决什么问题" class="headerlink" title="1. 领域知识：预测性维护在解决什么问题"></a>1. 领域知识：预测性维护在解决什么问题</h2><p>预测性维护的核心不是把设备故障记录下来，而是在设备状态劣化早期识别风险，让维护从“故障后处理”转向“风险前干预”。</p>
@@ -7116,20 +7172,9 @@
       </tags>
   </entry>
   <entry>
-    <title>01 时间性能系统技术领域知识</title>
+    <title>时间性能分析系统技术实现知识</title>
     <url>/2026/06/24/manulism-work/20_Domain_Knowledge/23%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/01%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/</url>
-    <content><![CDATA[<hr>
-<p>title: 时间性能系统技术领域知识<br>area: domain-knowledge<br>kind: technical-detail<br>topic: time-performance-analysis-technical<br>parent:</p>
-<ul>
-<li>‘[时间性能系统领域知识](&#x2F;20_Domain_Knowledge&#x2F;23 时间性能分析&#x2F;00 时间性能系统领域知识&#x2F;)’<br>upstream:</li>
-<li>‘[时间性能系统领域知识](&#x2F;20_Domain_Knowledge&#x2F;23 时间性能分析&#x2F;00 时间性能系统领域知识&#x2F;)’</li>
-<li>‘[工业数据接入](&#x2F;20_Domain_Knowledge&#x2F;21 工业数据接入&#x2F;00 接入模式&#x2F;)’</li>
-<li>‘[工业智能平台总体架构](&#x2F;10_Architecture&#x2F;11 平台总览&#x2F;工业智能平台总体架构&#x2F;)’<br>related:</li>
-<li>‘[曲线分析系统技术领域知识](&#x2F;20_Domain_Knowledge&#x2F;22 曲线质量分析&#x2F;02 曲线分析系统技术领域知识&#x2F;)’</li>
-<li>‘[PDM技术领域知识笔记](&#x2F;20_Domain_Knowledge&#x2F;24 预测性维护&#x2F;01 PDM技术领域知识笔记&#x2F;)’</li>
-</ul>
-<hr>
-<blockquote>
+    <content><![CDATA[<blockquote>
 <p>作为业务领域知识的补充，本文聚焦系统架构、关键算法、数据口径与后续实现方向。内容保持在“可指导实现”的层面，不展开到方法级细节。<br>术语沿用业务文档中的定义，但本文只说明实现映射，不重复展开业务语义。</p>
 </blockquote>
 <h2 id="1-技术定位"><a href="#1-技术定位" class="headerlink" title="1. 技术定位"></a>1. 技术定位</h2><p>时间性能系统的技术目标，是把产线时序数据加工成可解释的节拍知识，再进一步沉淀为瓶颈诊断与改善分析的标准输出。<br>系统不是单纯计算某个时长，而是要形成一条稳定的数据链路：</p>
@@ -7370,7 +7415,7 @@
       </tags>
   </entry>
   <entry>
-    <title>PDM技术领域知识</title>
+    <title>预测性维护 PDM 技术实现知识</title>
     <url>/2026/06/24/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/01%20PDM%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文重点说明系统如何支撑业务落地。本文只展开架构和关键技术实现，其他算法、聚合策略和局部实现不再细写，便于后续继续补充。</p>
 <h2 id="1-系统定位"><a href="#1-系统定位" class="headerlink" title="1. 系统定位"></a>1. 系统定位</h2><p>PDM 不是单一诊断服务，而是一套围绕“特征配置、模型训练、诊断展示、事件闭环、边缘计算协同”构建的微服务体系。</p>
@@ -7487,13 +7532,17 @@
 </ul>
 <p>因此，知识库建设应优先关注 <strong>Citation（可追溯引用）</strong> 和 <strong>Verification（验证）</strong>。</p>
 <h3 id="2-ChatBI-的关键在语义层，而不是让模型直接写-SQL"><a href="#2-ChatBI-的关键在语义层，而不是让模型直接写-SQL" class="headerlink" title="2. ChatBI 的关键在语义层，而不是让模型直接写 SQL"></a>2. ChatBI 的关键在语义层，而不是让模型直接写 SQL</h3><p>ChatBI 类系统要稳定落地，需要在数据库和自然语言之间建立语义层：</p>
-<pre><code class=" mermaid">flowchart LR
-  User[用户问题] --&gt; LLM[意图理解]
-  LLM --&gt; Semantic[指标/维度语义层]
-  Semantic --&gt; Query[查询生成]
-  Query --&gt; DB[数据库]
-  DB --&gt; Result[结果解释与图表]
-</code></pre>
+<div style="margin: 18px 0; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc;">
+  <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; align-items: stretch;">
+    <div style="padding: 12px; border: 1px solid #bfdbfe; border-radius: 8px; background: #eff6ff;"><strong>用户问题</strong><br><span style="color: #475569;">自然语言输入</span></div>
+    <div style="padding: 12px; border: 1px solid #99f6e4; border-radius: 8px; background: #ecfdf5;"><strong>意图理解</strong><br><span style="color: #475569;">识别查询目标</span></div>
+    <div style="padding: 12px; border: 1px solid #fde68a; border-radius: 8px; background: #fffbeb;"><strong>指标 / 维度语义层</strong><br><span style="color: #475569;">统一业务口径</span></div>
+    <div style="padding: 12px; border: 1px solid #ddd6fe; border-radius: 8px; background: #f5f3ff;"><strong>查询生成</strong><br><span style="color: #475569;">生成受控查询</span></div>
+    <div style="padding: 12px; border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2;"><strong>数据库</strong><br><span style="color: #475569;">执行查询</span></div>
+    <div style="padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff;"><strong>结果解释与图表</strong><br><span style="color: #475569;">返回可理解结论</span></div>
+  </div>
+  <div style="margin-top: 10px; color: #64748b; text-align: center; font-weight: 700;">用户问题 → 意图理解 → 语义层约束 → 查询生成 → 数据库 → 结果解释</div>
+</div>
 
 <p>如果缺少语义层，模型直接生成 SQL 会带来字段歧义、指标口径不一致、权限和安全问题。</p>
 <h3 id="3-多智能体适合工业系统，但要控制上下文污染"><a href="#3-多智能体适合工业系统，但要控制上下文污染" class="headerlink" title="3. 多智能体适合工业系统，但要控制上下文污染"></a>3. 多智能体适合工业系统，但要控制上下文污染</h3><p>OneNote 中多次讨论了分层智能体&#x2F;多智能体：主智能体负责协调，领域智能体负责具体系统，例如 IRUN、拧紧、产线性能等。这种模式适合工业平台，但要注意：</p>
@@ -7529,7 +7578,7 @@
       </tags>
   </entry>
   <entry>
-    <title>HTTPS 与 TLS 基础</title>
+    <title>HTTPS 与 TLS 安全通信基础</title>
     <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80/</url>
     <content><![CDATA[<h1 id="HTTPS-与-TLS-基础"><a href="#HTTPS-与-TLS-基础" class="headerlink" title="HTTPS 与 TLS 基础"></a>HTTPS 与 TLS 基础</h1><p>HTTPS 可以理解为 <code>HTTP + TLS</code>。它解决的不是“更快传输”，而是“更可信、更保密地传输”。</p>
 <h2 id="1-HTTPS-解决什么问题"><a href="#1-HTTPS-解决什么问题" class="headerlink" title="1. HTTPS 解决什么问题"></a>1. HTTPS 解决什么问题</h2><ul>
@@ -7571,7 +7620,7 @@
       </tags>
   </entry>
   <entry>
-    <title>x509 证书与信任链</title>
+    <title>x509 证书与信任链机制</title>
     <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE/</url>
     <content><![CDATA[<h1 id="x509-证书与信任链"><a href="#x509-证书与信任链" class="headerlink" title="x509 证书与信任链"></a>x509 证书与信任链</h1><p>HTTPS 的身份基础通常是 <code>x509</code> 证书。它把“身份信息”和“公钥”绑定在一起，再通过 CA 的签名形成可验证的信任关系。</p>
 <h2 id="1-x509-证书里通常有什么"><a href="#1-x509-证书里通常有什么" class="headerlink" title="1. x509 证书里通常有什么"></a>1. x509 证书里通常有什么</h2><ul>
@@ -7630,7 +7679,7 @@ HTTPS 通信成立
       </tags>
   </entry>
   <entry>
-    <title>设备认证中的 x509 证书</title>
+    <title>工业设备认证中的 x509 证书应用</title>
     <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/03-%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x509%E8%AF%81%E4%B9%A6/</url>
     <content><![CDATA[<h1 id="设备认证中的-x509-证书"><a href="#设备认证中的-x509-证书" class="headerlink" title="设备认证中的 x509 证书"></a>设备认证中的 x509 证书</h1><p>在设备接入场景里，证书不只是给网页用，也常用于设备身份识别。核心目标是让平台确认“设备是谁”，并确认“设备确实持有对应私钥”。</p>
 <h2 id="1-为什么设备也要用证书"><a href="#1-为什么设备也要用证书" class="headerlink" title="1. 为什么设备也要用证书"></a>1. 为什么设备也要用证书</h2><ul>
@@ -7707,7 +7756,7 @@ HTTPS 通信成立
       </tags>
   </entry>
   <entry>
-    <title>Let&#39;s Encrypt 与 Nginx 快速部署</title>
+    <title>Let&#39;s Encrypt 与 Nginx HTTPS 快速部署</title>
     <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/04-LetsEncrypt%E4%B8%8ENginx%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2/</url>
     <content><![CDATA[<h1 id="Let’s-Encrypt-与-Nginx-快速部署"><a href="#Let’s-Encrypt-与-Nginx-快速部署" class="headerlink" title="Let’s Encrypt 与 Nginx 快速部署"></a>Let’s Encrypt 与 Nginx 快速部署</h1><p>如果只是想快速把站点切到 HTTPS，最常见的方式是让 Nginx 终止 TLS，然后通过 Let’s Encrypt 自动申请和续期证书。</p>
 <h2 id="1-为什么选这个方案"><a href="#1-为什么选这个方案" class="headerlink" title="1. 为什么选这个方案"></a>1. 为什么选这个方案</h2><ul>
@@ -7792,7 +7841,7 @@ HTTPS 通信成立
       </tags>
   </entry>
   <entry>
-    <title>HTTPS 知识索引</title>
+    <title>HTTPS、TLS 与 x509 专题索引</title>
     <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/README/</url>
     <content><![CDATA[<h1 id="HTTPS-知识索引"><a href="#HTTPS-知识索引" class="headerlink" title="HTTPS 知识索引"></a>HTTPS 知识索引</h1><p>这组笔记按“小专题”拆开，方便单独阅读，也方便后续持续补充。</p>
 <h2 id="阅读顺序"><a href="#阅读顺序" class="headerlink" title="阅读顺序"></a>阅读顺序</h2><ol>
@@ -7826,7 +7875,7 @@ HTTPS 通信成立
       </tags>
   </entry>
   <entry>
-    <title>调用外部 HTTPS 服务</title>
+    <title>Java 调用外部 HTTPS 服务与证书信任处理</title>
     <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/05%20%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8Https%E6%9C%8D%E5%8A%A1/</url>
     <content><![CDATA[<h1 id="调用外部-HTTPS-服务"><a href="#调用外部-HTTPS-服务" class="headerlink" title="调用外部 HTTPS 服务"></a>调用外部 HTTPS 服务</h1><p>当 Java 程序调用外部 HTTPS 服务时，如果 JVM 不信任对方证书，就会出现证书链校验失败。</p>
 <p>常见报错如下：</p>
@@ -7929,7 +7978,7 @@ HTTPS 通信成立
       </tags>
   </entry>
   <entry>
-    <title>工业智能体总览</title>
+    <title>工业智能体能力总览</title>
     <url>/2026/06/30/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93/00%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93%E6%80%BB%E8%A7%88/</url>
     <content><![CDATA[<h2 id="1-一句话理解"><a href="#1-一句话理解" class="headerlink" title="1. 一句话理解"></a>1. 一句话理解</h2><p>AI Native 是一种设计原则，意思是系统从一开始就围绕 AI 来组织入口、工具、数据和反馈闭环。智能体是这种原则下最常见的落地形态之一。</p>
 <p>它和传统 App 的核心差别，不是“有没有大模型”，而是“系统的中心到底是功能，还是目标完成”。</p>
@@ -8138,7 +8187,7 @@ HTTPS 通信成立
       </tags>
   </entry>
   <entry>
-    <title>多智能体架构</title>
+    <title>工业多智能体架构模式</title>
     <url>/2026/07/01/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%A4%9A%E6%99%BA%E8%83%BD%E4%BD%93%E6%9E%B6%E6%9E%84/</url>
     <content><![CDATA[<h2 id="1-一句话理解"><a href="#1-一句话理解" class="headerlink" title="1. 一句话理解"></a>1. 一句话理解</h2><p>多智能体架构不是“把很多模型放在一起”，而是把一个复杂任务拆成多个职责明确的智能体，让它们通过路由、分工、通信和汇总来协作完成目标。</p>
 <p>它的价值不在于智能体数量多，而在于：</p>
@@ -8216,63 +8265,44 @@ HTTPS 通信成立
 <li>如果设计不好，主入口会变成“什么都管、什么都懂一点”的瓶颈</li>
 <li>容易出现上下文污染</li>
 </ul>
-<h2 id="4-架构示意"><a href="#4-架构示意" class="headerlink" title="4. 架构示意"></a>4. 架构示意</h2><h3 id="4-1-扁平架构"><a href="#4-1-扁平架构" class="headerlink" title="4.1 扁平架构"></a>4.1 扁平架构</h3><pre><code class=" mermaid">%%&#123;init: &#123;&quot;theme&quot;:&quot;base&quot;,&quot;themeVariables&quot;:&#123;&quot;fontFamily&quot;:&quot;Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif&quot;,&quot;primaryColor&quot;:&quot;#E0F2FE&quot;,&quot;primaryTextColor&quot;:&quot;#0F172A&quot;,&quot;primaryBorderColor&quot;:&quot;#38BDF8&quot;,&quot;lineColor&quot;:&quot;#64748B&quot;,&quot;secondaryColor&quot;:&quot;#ECFDF5&quot;,&quot;tertiaryColor&quot;:&quot;#FFF7ED&quot;&#125;&#125;&#125;%%
-flowchart TD
-  U[用户]:::user --&gt; G[主入口&lt;br/&gt;Router]:::router
+<h2 id="4-架构示意"><a href="#4-架构示意" class="headerlink" title="4. 架构示意"></a>4. 架构示意</h2><h3 id="4-1-扁平架构"><a href="#4-1-扁平架构" class="headerlink" title="4.1 扁平架构"></a>4.1 扁平架构</h3><div style="margin: 18px 0; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc;">
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; align-items: center;">
+    <div style="padding: 12px; border-radius: 8px; background: #111827; color: #ffffff; text-align: center; font-weight: 700;">用户</div>
+    <div style="padding: 12px; border: 2px solid #3b82f6; border-radius: 8px; background: #dbeafe; color: #1d4ed8; text-align: center; font-weight: 700;">主入口<br>Router</div>
+    <div style="padding: 12px; border: 2px solid #f59e0b; border-radius: 8px; background: #fef3c7; color: #92400e; text-align: center; font-weight: 700;">统一结果输出</div>
+  </div>
+  <div style="text-align: center; color: #2563eb; font-weight: 700; margin: 8px 0;">用户请求 → 主入口分发 → 专家池并行处理 → 主入口汇总 → 用户</div>
+  <div style="padding: 12px; border: 1px solid #99f6e4; border-radius: 8px; background: #ecfdf5;">
+    <div style="font-weight: 700; color: #047857; margin-bottom: 10px;">专家池</div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+      <div style="padding: 10px; border: 1px solid #10b981; border-radius: 8px; background: #ffffff; text-align: center;"><strong>智能体 A</strong><br><span style="color: #475569;">领域专家</span></div>
+      <div style="padding: 10px; border: 1px solid #10b981; border-radius: 8px; background: #ffffff; text-align: center;"><strong>智能体 B</strong><br><span style="color: #475569;">领域专家</span></div>
+      <div style="padding: 10px; border: 1px solid #10b981; border-radius: 8px; background: #ffffff; text-align: center;"><strong>智能体 C</strong><br><span style="color: #475569;">领域专家</span></div>
+    </div>
+  </div>
+</div>
 
-  subgraph P[专家池]
-    direction LR
-    A[智能体 A&lt;br/&gt;领域专家]:::expert
-    B[智能体 B&lt;br/&gt;领域专家]:::expert
-    C[智能体 C&lt;br/&gt;领域专家]:::expert
-  end
-
-  G --&gt; A
-  G --&gt; B
-  G --&gt; C
-  A --&gt; G
-  B --&gt; G
-  C --&gt; G
-  G --&gt; R[统一结果输出]:::result
-  R --&gt; U
-
-  classDef user fill:#111827,color:#FFFFFF,stroke:#111827,stroke-width:1px;
-  classDef router fill:#DBEAFE,color:#1D4ED8,stroke:#3B82F6,stroke-width:2px;
-  classDef expert fill:#ECFDF5,color:#047857,stroke:#10B981,stroke-width:1.5px;
-  classDef result fill:#FEF3C7,color:#92400E,stroke:#F59E0B,stroke-width:2px;
-</code></pre>
-
-<h3 id="4-2-层级架构"><a href="#4-2-层级架构" class="headerlink" title="4.2 层级架构"></a>4.2 层级架构</h3><pre><code class=" mermaid">%%&#123;init: &#123;&quot;theme&quot;:&quot;base&quot;,&quot;themeVariables&quot;:&#123;&quot;fontFamily&quot;:&quot;Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif&quot;,&quot;primaryColor&quot;:&quot;#F5F3FF&quot;,&quot;primaryTextColor&quot;:&quot;#0F172A&quot;,&quot;primaryBorderColor&quot;:&quot;#8B5CF6&quot;,&quot;lineColor&quot;:&quot;#64748B&quot;,&quot;secondaryColor&quot;:&quot;#EEF2FF&quot;,&quot;tertiaryColor&quot;:&quot;#F8FAFC&quot;&#125;&#125;&#125;%%
-flowchart TD
-  U[用户]:::user --&gt; M[主代理&lt;br/&gt;总协调者]:::manager
-
-  M --&gt; P&#123;任务拆解&#125;:::decision
-
-  subgraph W[执行层]
-    direction LR
-    A[子智能体 A&lt;br/&gt;领域专家]:::worker
-    B[子智能体 B&lt;br/&gt;领域专家]:::worker
-    C[子智能体 C&lt;br/&gt;领域专家]:::worker
-  end
-
-  P --&gt; A
-  P --&gt; B
-  P --&gt; C
-  A --&gt; M
-  B --&gt; M
-  C --&gt; M
-
-  M --&gt; D&#123;是否继续分派&#125;:::decision
-  D --&gt;|是| P
-  D --&gt;|否| O[结果汇总&lt;br/&gt;最终答复]:::result
-  O --&gt; U
-
-  classDef user fill:#111827,color:#FFFFFF,stroke:#111827,stroke-width:1px;
-  classDef manager fill:#EDE9FE,color:#5B21B6,stroke:#7C3AED,stroke-width:2px;
-  classDef decision fill:#FDE68A,color:#92400E,stroke:#F59E0B,stroke-width:2px;
-  classDef worker fill:#E0E7FF,color:#3730A3,stroke:#6366F1,stroke-width:1.5px;
-  classDef result fill:#DCFCE7,color:#166534,stroke:#22C55E,stroke-width:2px;
-</code></pre>
+<h3 id="4-2-层级架构"><a href="#4-2-层级架构" class="headerlink" title="4.2 层级架构"></a>4.2 层级架构</h3><div style="margin: 18px 0; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; background: #ffffff;">
+  <div style="display: grid; gap: 10px;">
+    <div style="padding: 12px; border-radius: 8px; background: #111827; color: #ffffff; text-align: center; font-weight: 700;">用户</div>
+    <div style="text-align: center; color: #7c3aed; font-weight: 700;">↓</div>
+    <div style="padding: 12px; border: 2px solid #7c3aed; border-radius: 8px; background: #ede9fe; color: #5b21b6; text-align: center; font-weight: 700;">主代理 / 总协调者</div>
+    <div style="text-align: center; color: #b45309; font-weight: 700;">↓</div>
+    <div style="padding: 12px; border: 2px solid #f59e0b; border-radius: 8px; background: #fef3c7; color: #92400e; text-align: center; font-weight: 700;">任务拆解</div>
+    <div style="padding: 12px; border: 1px solid #c7d2fe; border-radius: 8px; background: #eef2ff;">
+      <div style="font-weight: 700; color: #3730a3; margin-bottom: 10px;">执行层</div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+        <div style="padding: 10px; border: 1px solid #6366f1; border-radius: 8px; background: #ffffff; text-align: center;"><strong>子智能体 A</strong><br><span style="color: #475569;">领域专家</span></div>
+        <div style="padding: 10px; border: 1px solid #6366f1; border-radius: 8px; background: #ffffff; text-align: center;"><strong>子智能体 B</strong><br><span style="color: #475569;">领域专家</span></div>
+        <div style="padding: 10px; border: 1px solid #6366f1; border-radius: 8px; background: #ffffff; text-align: center;"><strong>子智能体 C</strong><br><span style="color: #475569;">领域专家</span></div>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div style="padding: 10px; border: 1px solid #fde68a; border-radius: 8px; background: #fffbeb;"><strong>继续分派</strong><br><span style="color: #475569;">回到任务拆解，进入下一轮执行。</span></div>
+      <div style="padding: 10px; border: 1px solid #bbf7d0; border-radius: 8px; background: #f0fdf4;"><strong>结果汇总</strong><br><span style="color: #166534;">形成最终答复并返回用户。</span></div>
+    </div>
+  </div>
+</div>
 
 <h2 id="5-通信与记忆"><a href="#5-通信与记忆" class="headerlink" title="5. 通信与记忆"></a>5. 通信与记忆</h2><p>多智能体系统里，通信不是简单地“把消息转发出去”，而是要控制哪些信息该共享、哪些信息必须隔离。</p>
 <p>比较稳妥的做法是：</p>
@@ -8389,7 +8419,7 @@ flowchart TD
       </tags>
   </entry>
   <entry>
-    <title>能耗寻优算法</title>
+    <title>工业能耗寻优算法设计</title>
     <url>/2026/06/30/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/02%20%E5%B7%A5%E4%B8%9A%E7%AE%97%E6%B3%95/00%20%E8%83%BD%E8%80%97%E5%AF%BB%E4%BC%98%E7%AE%97%E6%B3%95/</url>
     <content><![CDATA[<h2 id="1-一句话说清楚"><a href="#1-一句话说清楚" class="headerlink" title="1. 一句话说清楚"></a>1. 一句话说清楚</h2><p>这套算法本质上是在做一个<strong>带约束的非线性最优化</strong>：</p>
 <ul>

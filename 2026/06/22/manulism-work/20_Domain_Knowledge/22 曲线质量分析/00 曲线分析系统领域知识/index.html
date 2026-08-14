@@ -18,13 +18,13 @@
   
     <meta name="description" content="这是一份面向拧紧工艺的曲线分析系统领域笔记。系统核心对象是时序数据曲线，重点围绕螺栓拧紧过程中的扭矩、角度、判定、参考曲线、基础模型、策略和规则展开。 一句话定义曲线分析系统的本质，是把设备在一次拧紧过程中的时序曲线，转换成可解释的质量结论。 它做的不是单纯“看曲线”，而是把一条曲线放进业务上下文里判断：  这是不是一颗有效螺栓的有效曲线 它和历史参考曲线是否一致 它是否触发了特征规则或模型判定">
 <meta property="og:type" content="article">
-<meta property="og:title" content="曲线分析系统领域知识">
+<meta property="og:title" content="曲线质量分析系统业务领域知识">
 <meta property="og:url" content="https://luischen.github.io/2026/06/22/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/00%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/index.html">
 <meta property="og:site_name" content="Next Station">
 <meta property="og:description" content="这是一份面向拧紧工艺的曲线分析系统领域笔记。系统核心对象是时序数据曲线，重点围绕螺栓拧紧过程中的扭矩、角度、判定、参考曲线、基础模型、策略和规则展开。 一句话定义曲线分析系统的本质，是把设备在一次拧紧过程中的时序曲线，转换成可解释的质量结论。 它做的不是单纯“看曲线”，而是把一条曲线放进业务上下文里判断：  这是不是一颗有效螺栓的有效曲线 它和历史参考曲线是否一致 它是否触发了特征规则或模型判定">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-06-22T09:43:21.000Z">
-<meta property="article:modified_time" content="2026-07-13T09:24:54.000Z">
+<meta property="article:modified_time" content="2026-08-14T03:45:48.000Z">
 <meta property="article:author" content="Luis Chen">
 <meta property="article:tag" content="Domain Knowledge">
 <meta property="article:tag" content="工作笔记">
@@ -32,7 +32,7 @@
   
   
   
-  <title>曲线分析系统领域知识 - Next Station</title>
+  <title>曲线质量分析系统业务领域知识 - Next Station</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -198,7 +198,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="曲线分析系统领域知识"></span>
+            <span id="subtitle" data-typed-text="曲线质量分析系统业务领域知识"></span>
           
         </div>
 
@@ -221,7 +221,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.7k 字
+          4.5k 字
         
       </span>
     
@@ -232,7 +232,7 @@
         
         
         
-          40 分钟
+          38 分钟
         
       </span>
     
@@ -270,7 +270,7 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">曲线分析系统领域知识</h1>
+            <h1 style="display: none">曲线质量分析系统业务领域知识</h1>
             
             
               <div class="markdown-body">
@@ -518,25 +518,56 @@
 <li>获取最小可置信循环周期</li>
 </ul>
 <p>这表示模型管理不仅是配置中心，也是训练运营中心和模型平台接入中心。</p>
-<h2 id="端到端业务链路"><a href="#端到端业务链路" class="headerlink" title="端到端业务链路"></a>端到端业务链路</h2><pre><code class=" mermaid">sequenceDiagram
-    participant U as 用户
-    participant A as 分析中心/前端
-    participant N as 在线节点
-    participant D as 数据中心
-    participant M as 模型/策略服务
-
-    U-&gt;&gt;A: 发起曲线查询
-    A-&gt;&gt;N: 查询时序数据
-    N-&gt;&gt;D: 查询并返回原始时序数据
-    D--&gt;&gt;N: 返回时序点
-    N--&gt;&gt;A: 返回曲线数据
-    A--&gt;&gt;U: 展示曲线
-
-    Note over N,M: 节点收到数据后立即触发计算线程
-    N-&gt;&gt;M: 调用模型策略服务进行计算
-    M--&gt;&gt;N: 返回模型输出、策略结果和规则结果
-    N-&gt;&gt;D: 同步计算结果、历史和标签
-</code></pre>
+<h2 id="端到端业务链路"><a href="#端到端业务链路" class="headerlink" title="端到端业务链路"></a>端到端业务链路</h2><div style="margin: 18px 0; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; background: #ffffff;">
+  <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+    <thead>
+      <tr>
+        <th style="padding: 10px; border: 1px solid #cbd5e1; background: #eff6ff;">用户</th>
+        <th style="padding: 10px; border: 1px solid #cbd5e1; background: #eff6ff;">分析中心 / 前端</th>
+        <th style="padding: 10px; border: 1px solid #cbd5e1; background: #ecfdf5;">在线节点</th>
+        <th style="padding: 10px; border: 1px solid #cbd5e1; background: #f8fafc;">数据中心</th>
+        <th style="padding: 10px; border: 1px solid #cbd5e1; background: #fffbeb;">模型 / 策略服务</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;">发起曲线查询</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0; text-align: center; color: #2563eb; font-weight: 700;">→ 接收查询</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;">请求时序数据</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0; text-align: center; color: #0f766e; font-weight: 700;">→ 查询数据中心</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;">返回原始时序点</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;">查看曲线</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;">展示曲线数据</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;">返回曲线数据</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0; background: #ecfdf5;"><strong>后台计算线程</strong><br>节点收到数据后立即触发计算</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0; background: #fffbeb;">返回模型输出、策略结果和规则结果</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;">同步计算结果、历史和标签</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0; background: #f8fafc;">保存结果留痕</td>
+        <td style="padding: 10px; border: 1px solid #e2e8f0;"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 <h2 id="关键业务功能地图"><a href="#关键业务功能地图" class="headerlink" title="关键业务功能地图"></a>关键业务功能地图</h2><h3 id="曲线中心"><a href="#曲线中心" class="headerlink" title="曲线中心"></a>曲线中心</h3><ul>
 <li>单条曲线查看</li>
@@ -711,7 +742,7 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>曲线分析系统领域知识</div>
+      <div>曲线质量分析系统业务领域知识</div>
       <div>https://luischen.github.io/2026/06/22/manulism-work/20_Domain_Knowledge/22 曲线质量分析/00 曲线分析系统领域知识/</div>
     </div>
     <div class="license-meta">
@@ -756,9 +787,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/06/22/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/01%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E6%89%A9%E5%B1%95/" title="曲线分析系统领域知识扩展">
+                      <a href="/2026/06/22/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/01%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E6%89%A9%E5%B1%95/" title="曲线质量分析业务扩展与交付经验">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">曲线分析系统领域知识扩展</span>
+                        <span class="hidden-mobile">曲线质量分析业务扩展与交付经验</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -766,8 +797,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/04%20%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%8E%A5/" title="数据对接">
-                        <span class="hidden-mobile">数据对接</span>
+                      <a href="/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/04%20%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%8E%A5/" title="工业数据对接方案与平台集成">
+                        <span class="hidden-mobile">工业数据对接方案与平台集成</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

@@ -18,13 +18,13 @@
   
     <meta name="description" content="x509 证书与信任链HTTPS 的身份基础通常是 x509 证书。它把“身份信息”和“公钥”绑定在一起，再通过 CA 的签名形成可验证的信任关系。 1. x509 证书里通常有什么 版本号 序列号 签名算法 颁发者 有效期 使用者 公钥信息 扩展信息  2. 证书和私钥的关系 证书相当于公开身份证明，可以发给别人看。 私钥必须只保留在持有者手里，用来完成签名、解密或握手中的关键运算。 公钥通常放">
 <meta property="og:type" content="article">
-<meta property="og:title" content="x509 证书与信任链">
+<meta property="og:title" content="x509 证书与信任链机制">
 <meta property="og:url" content="https://luischen.github.io/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE/index.html">
 <meta property="og:site_name" content="Next Station">
 <meta property="og:description" content="x509 证书与信任链HTTPS 的身份基础通常是 x509 证书。它把“身份信息”和“公钥”绑定在一起，再通过 CA 的签名形成可验证的信任关系。 1. x509 证书里通常有什么 版本号 序列号 签名算法 颁发者 有效期 使用者 公钥信息 扩展信息  2. 证书和私钥的关系 证书相当于公开身份证明，可以发给别人看。 私钥必须只保留在持有者手里，用来完成签名、解密或握手中的关键运算。 公钥通常放">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-10T06:17:21.000Z">
-<meta property="article:modified_time" content="2026-08-13T08:00:25.000Z">
+<meta property="article:modified_time" content="2026-08-14T03:44:21.000Z">
 <meta property="article:author" content="Luis Chen">
 <meta property="article:tag" content="Architecture">
 <meta property="article:tag" content="工作笔记">
@@ -32,7 +32,7 @@
   
   
   
-  <title>x509 证书与信任链 - Next Station</title>
+  <title>x509 证书与信任链机制 - Next Station</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -198,7 +198,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="x509 证书与信任链"></span>
+            <span id="subtitle" data-typed-text="x509 证书与信任链机制"></span>
           
         </div>
 
@@ -270,7 +270,7 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">x509 证书与信任链</h1>
+            <h1 style="display: none">x509 证书与信任链机制</h1>
             
             
               <div class="markdown-body">
@@ -369,7 +369,7 @@ HTTPS 通信成立
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>x509 证书与信任链</div>
+      <div>x509 证书与信任链机制</div>
       <div>https://luischen.github.io/2026/07/10/manulism-work/10_Architecture/14 架构和开发/Https/02-x509证书与信任链/</div>
     </div>
     <div class="license-meta">
@@ -414,9 +414,9 @@ HTTPS 通信成立
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/04-LetsEncrypt%E4%B8%8ENginx%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2/" title="Let&#39;s Encrypt 与 Nginx 快速部署">
+                      <a href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/04-LetsEncrypt%E4%B8%8ENginx%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2/" title="Let&#39;s Encrypt 与 Nginx HTTPS 快速部署">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Let&#39;s Encrypt 与 Nginx 快速部署</span>
+                        <span class="hidden-mobile">Let&#39;s Encrypt 与 Nginx HTTPS 快速部署</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -424,8 +424,8 @@ HTTPS 通信成立
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80/" title="HTTPS 与 TLS 基础">
-                        <span class="hidden-mobile">HTTPS 与 TLS 基础</span>
+                      <a href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80/" title="HTTPS 与 TLS 安全通信基础">
+                        <span class="hidden-mobile">HTTPS 与 TLS 安全通信基础</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
