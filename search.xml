@@ -8678,4 +8678,246 @@ HTTPS 通信成立
         <tag>工业算法</tag>
       </tags>
   </entry>
+  <entry>
+    <title>前端多语言资源按需加载与运行时切换实践</title>
+    <url>/2026/09/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%97%B6%E5%88%87%E6%8D%A2%E5%AE%9E%E8%B7%B5/</url>
+    <content><![CDATA[<h2 id="1-阅读导引"><a href="#1-阅读导引" class="headerlink" title="1. 阅读导引"></a>1. 阅读导引</h2><p>当一个前端应用包含多个业务模块或子应用时，如果在启动阶段一次性加载全部语言资源，会增加首屏资源体积和初始化耗时。更合适的做法是将资源按使用范围拆分：公共资源随应用初始化加载，业务模块资源在真正进入模块时，按照当前语言按需加载。</p>
+<p>本文结合 <code>tighten</code>、<code>pdm</code>、<code>pressFit</code> 等 App 的资源组织方式，介绍资源分层、命名约定、加载时机、缓存、合并和运行时切换等问题。除了为全新 App 建立独立页面和语言资源，方案还需要支持 <code>pressFit</code> 这类复用已有 App 页面、但使用自身业务术语的场景。</p>
+<p>本次优化主要实现以下目标：</p>
+<ul>
+<li>公共资源常驻，业务 App 资源按当前语言加载，控制首屏资源体积。</li>
+<li>全新 App 可以建立独立页面、namespace 和语言资源。</li>
+<li>复用 App 可以沿用既有页面和翻译 key，同时通过独立语言文件呈现自身术语。</li>
+<li>App 切换和语言切换时正确应用目标资源，避免共享 namespace 带来的文案残留。</li>
+</ul>
+<p>示例用于说明方案如何落地，具体实现仍可以由项目使用的国际化库和构建工具负责承载。</p>
+<h2 id="2-资源分层与命名约定"><a href="#2-资源分层与命名约定" class="headerlink" title="2. 资源分层与命名约定"></a>2. 资源分层与命名约定</h2><h3 id="2-1-资源分层"><a href="#2-1-资源分层" class="headerlink" title="2.1 资源分层"></a>2.1 资源分层</h3><p>多语言资源可以按使用范围分为两类：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>资源范围</th>
+<th>加载时机</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>公共资源</td>
+<td>导航、登录、基础组件、平台级功能</td>
+<td>应用初始化时</td>
+<td>多个模块都会使用的通用文案</td>
+</tr>
+<tr>
+<td>业务资源</td>
+<td><code>tighten</code>、<code>pdm</code>、<code>irun</code>、<code>energy</code> 等 App 的专属文案</td>
+<td>进入对应 App 时</td>
+<td>仅部分用户或部分页面会使用的文案</td>
+</tr>
+</tbody></table>
+<p>公共资源应保持稳定、精简，避免把大量业务文案不断加入公共资源。业务资源则以模块为边界拆分，使资源加载范围与用户当前访问范围保持一致。</p>
+<h3 id="2-2-命名约定"><a href="#2-2-命名约定" class="headerlink" title="2.2 命名约定"></a>2.2 命名约定</h3><p>每个业务模块需要有一个稳定的资源前缀，资源文件名由模块前缀、标准化语言标识和扩展名组成：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">&#123;module&#125;_&#123;locale&#125;.json</span><br></pre></td></tr></table></figure>
+
+<p>例如，<code>tighten</code> App 的资源前缀为 <code>tighten</code>，中文和英文资源可以命名为：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">tighten_zh-CN.json</span><br><span class="line">tighten_en.json</span><br></pre></td></tr></table></figure>
+
+<p>App 配置只需要保存资源前缀，不应同时保存语言标识和文件扩展名。例如，数据库字段 <code>lang_file</code> 保存 <code>tighten</code>，后端返回给前端的 App 配置可表示为 <code>langFile: &quot;tighten&quot;</code>。语言标识由当前用户语言统一计算，避免配置与实际语言状态不一致。</p>
+<p>如果某个模块没有额外语言资源，可以将资源前缀配置为空，加载器应直接跳过请求。</p>
+<p>资源配置的职责是选择已经随前端版本发布的资源，而不是让前端任意从服务端下载 JSON。新增或修改资源后，应与前端版本一起构建和发布。</p>
+<h2 id="3-目录组织"><a href="#3-目录组织" class="headerlink" title="3. 目录组织"></a>3. 目录组织</h2><p>推荐将公共资源和业务资源分开存放：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">locale/</span><br><span class="line">├── base/                    # 公共资源</span><br><span class="line">│   ├── common_zh-CN.json</span><br><span class="line">│   ├── common_en.json</span><br><span class="line">│   ├── core_zh-CN.json</span><br><span class="line">│   └── core_en.json</span><br><span class="line">└── apps/                    # 业务 App 资源</span><br><span class="line">    ├── tighten_zh-CN.json</span><br><span class="line">    ├── tighten_en.json</span><br><span class="line">    ├── pdm_zh-CN.json</span><br><span class="line">    ├── pdm_en.json</span><br><span class="line">    └── ...</span><br></pre></td></tr></table></figure>
+
+<p>目录名称可以根据项目习惯调整，但应保证公共资源和业务资源有明确边界。构建工具的按需加载范围只应覆盖业务资源目录，避免公共资源被重复打包或重复请求。</p>
+<h2 id="4-应用初始化与公共资源"><a href="#4-应用初始化与公共资源" class="headerlink" title="4. 应用初始化与公共资源"></a>4. 应用初始化与公共资源</h2><p>应用初始化阶段只注册公共资源和基础组件所需的语言资源。例如，<code>common</code> 可以承载登录、导航等通用文案，<code>core</code> 可以承载平台管理等核心功能文案。初始化完成后，这些页面可以直接使用公共翻译。</p>
+<p>初始化阶段不应根据菜单或权限列表批量加载所有业务模块资源。菜单和权限信息可以用于生成可访问路由，但不应因此触发业务语言文件的加载。</p>
+<p>这种划分可以将“应用能够启动所必需的资源”和“用户访问特定功能后才需要的资源”分开，降低首屏加载压力。</p>
+<h2 id="5-进入业务模块时的加载流程"><a href="#5-进入业务模块时的加载流程" class="headerlink" title="5. 进入业务模块时的加载流程"></a>5. 进入业务模块时的加载流程</h2><p>资源加载应发生在页面首次渲染之前。以用户首次进入 <code>tighten</code> App、当前语言为 <code>zh-CN</code> 为例，完整流程如下：</p>
+<ol>
+<li>路由或页面上下文确定当前所属 App 为 <code>tighten</code>。</li>
+<li>从 App 配置中取得资源前缀 <code>tighten</code>，并读取当前生效的语言 <code>zh-CN</code>。</li>
+<li>将不同格式的语言标识统一为系统支持的标准格式，例如将多种中文写法统一为 <code>zh-CN</code>，将英文区域语言统一为 <code>en</code>。</li>
+<li>根据资源前缀和标准语言标识生成资源请求键 <code>./tighten_zh-CN.json</code>。</li>
+<li>通过构建工具提供的静态资源映射或按需加载机制请求该资源。</li>
+<li>资源加载完成后，将 <code>tighten</code> 的 messages 合并到 <code>zh-CN</code> 语言的资源集合中。</li>
+<li>确认资源准备完成后，再继续路由跳转或页面渲染。</li>
+</ol>
+<p>资源加载属于页面进入流程的一部分，而不是组件渲染后的补救动作。这样可以避免页面短暂显示翻译 key，也能让资源加载失败进入统一的错误处理流程。</p>
+<h2 id="6-公共资源判断"><a href="#6-公共资源判断" class="headerlink" title="6. 公共资源判断"></a>6. 公共资源判断</h2><p>资源加载器应维护公共资源前缀集合，例如：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">&#123;common, core&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当 <code>langFile</code> 为 <code>common</code>、<code>core</code> 或空值时，加载器直接复用初始化阶段已经注册的 messages，不再发起业务资源请求。公共资源集合应集中维护，并在新增公共模块时同步更新。</p>
+<h2 id="7-按需加载与缓存策略"><a href="#7-按需加载与缓存策略" class="headerlink" title="7. 按需加载与缓存策略"></a>7. 按需加载与缓存策略</h2><h3 id="7-1-资源映射"><a href="#7-1-资源映射" class="headerlink" title="7.1 资源映射"></a>7.1 资源映射</h3><p>动态资源加载需要依赖构建阶段生成的静态资源映射。运行时请求的资源键必须与构建工具收集到的资源键保持一致，例如使用映射中的 <code>./tighten_zh-CN.json</code>，而不是自行拼出一段无法与构建结果对应的完整目录路径。</p>
+<p>这种约束可以让构建工具提前发现资源引用，并将业务语言文件拆分为独立资源。目录、文件名或语言标识不一致时，应在构建或发布阶段尽早暴露问题。</p>
+<h3 id="7-2-缓存维度"><a href="#7-2-缓存维度" class="headerlink" title="7.2 缓存维度"></a>7.2 缓存维度</h3><p>缓存键至少应包含业务模块和语言两个维度：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">&#123;langFile&#125;_&#123;locale&#125;</span><br></pre></td></tr></table></figure>
+
+<p>推荐遵循以下规则：</p>
+<ul>
+<li>加载中的请求缓存为 Promise，避免并发进入同一模块时重复请求。</li>
+<li>加载成功后缓存解析后的 messages，后续进入同一模块时直接复用。</li>
+<li>每次进入模块时重新应用该模块的 messages，以支持多个模块复用同一个 namespace。</li>
+<li>加载失败时清理对应缓存，允许后续重新尝试。</li>
+<li>不同语言分别缓存，例如 <code>tighten_zh-CN</code> 与 <code>tighten_en</code> 互不影响。</li>
+</ul>
+<p>缓存应区分“正在加载的请求”和“已经加载完成的资源”，这样既能合并并发请求，也能避免把失败状态永久留在缓存中。</p>
+<h2 id="8-运行时切换语言"><a href="#8-运行时切换语言" class="headerlink" title="8. 运行时切换语言"></a>8. 运行时切换语言</h2><p>运行时切换语言时，不能只更新全局语言标识，还需要确保当前页面所需的目标语言资源已经准备完成。推荐的处理顺序如下：</p>
+<ol>
+<li>规范化目标语言。</li>
+<li>确定当前页面所属的业务模块。</li>
+<li>如果当前页面属于业务模块，加载并合并该模块的目标语言资源；如果只依赖公共资源，则直接复用已有资源。</li>
+<li>资源准备完成后，更新全局语言状态。</li>
+<li>触发页面重新渲染，使公共文案和业务文案同时切换。</li>
+</ol>
+<p>例如，用户在 <code>tighten</code> 页面从中文切换到英文时，只需加载并合并 <code>tighten_en.json</code>，不需要同时加载 <code>pdm_en.json</code>、<code>irun_en.json</code> 等其他 App 资源。用户之后进入其他 App 时，再按相同规则加载对应资源。</p>
+<h2 id="9-messages-合并规则"><a href="#9-messages-合并规则" class="headerlink" title="9. messages 合并规则"></a>9. messages 合并规则</h2><p>业务资源通常以 namespace 组织，并合并到当前语言已有的 messages 中。建议明确以下规则：</p>
+<ul>
+<li>对象节点采用递归合并，保留未被覆盖的其他资源。</li>
+<li>普通值和数组由新资源覆盖，避免产生不明确的部分合并结果。</li>
+<li>合并前复制资源对象，避免修改缓存中的原始内容。</li>
+<li>业务模块的默认 namespace 与资源前缀保持一致，便于定位和维护。</li>
+<li>如果多个模块需要复用同一套页面文案，可以显式共享 namespace，但应记录复用关系。</li>
+</ul>
+<p>例如，模块资源可以使用以下结构：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;tighten&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;example&quot;</span><span class="punctuation">:</span> <span class="string">&quot;示例&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>通常，App 的顶层 namespace 与 <code>langFile</code> 一致。需要复用既有页面时，也可以共享 namespace。例如，<code>pressFit_zh-CN.json</code> 的顶层仍使用 <code>tighten</code>，从而复用页面中的 <code>tighten.example</code> 等完整翻译 key，而不必复制和改写整套页面文案。</p>
+<p>资源加载器需要分别缓存 <code>tighten</code> 和 <code>pressFit</code> 的 messages，并在进入 App 时重新应用当前资源。这样即使两个 App 共享 namespace，也不会遗留上一个 App 对同名术语的覆盖结果。</p>
+<h2 id="10-新增-App-的两种接入方式"><a href="#10-新增-App-的两种接入方式" class="headerlink" title="10. 新增 App 的两种接入方式"></a>10. 新增 App 的两种接入方式</h2><p>新增 App 时，首先需要判断它是拥有独立业务页面，还是复用已有 App 的页面。两种场景都需要独立的 App 配置，但页面、namespace 和语言资源的组织方式不同。</p>
+<h3 id="10-1-全新-App：新增一套页面"><a href="#10-1-全新-App：新增一套页面" class="headerlink" title="10.1 全新 App：新增一套页面"></a>10.1 全新 App：新增一套页面</h3><p>全新 App 拥有独立的业务页面和术语体系，适合使用独立的资源前缀与 namespace。以新增质量管理 App <code>quality</code> 为例：</p>
+<ol>
+<li>新增 <code>quality</code> 对应的页面和路由，并让路由能够关联到该 App。</li>
+<li>在 App 配置中设置 <code>lang_file = quality</code>，前端取得 <code>langFile: &quot;quality&quot;</code>。</li>
+<li>创建 <code>quality_zh-CN.json</code>、<code>quality_en.json</code> 等语言资源。</li>
+<li>语言文件使用 <code>quality</code> 作为顶层 namespace。</li>
+<li>新页面统一使用 <code>quality.xxx</code> 形式的翻译 key。</li>
+<li>将页面和语言资源一起构建发布，再启用对应的 App 配置。</li>
+</ol>
+<div style="font-family:Arial,'Microsoft YaHei',sans-serif;margin:16px 0;padding:14px;border:1px solid #d7dde8;border-radius:10px;background:#f8fafc;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+    <div style="font-size:16px;font-weight:700;color:#1f3b57;">全新 App 接入流程</div>
+    <div style="font-size:12px;font-weight:700;color:#1d4ed8;background:#eaf2ff;border:1px solid #bfdbfe;border-radius:999px;padding:4px 9px;">独立页面模式 · quality</div>
+  </div>
+  <div style="display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;">
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #bfdbfe;border-top:4px solid #2563eb;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#2563eb;margin-bottom:6px;">01 · APP 与页面</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">创建 quality App</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">新增独立页面<br/>新增独立路由</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #a7d8b7;border-top:4px solid #2e8b57;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#24713b;margin-bottom:6px;">02 · 配置与资源</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">langFile: quality</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">quality_zh-CN.json<br/>quality_en.json</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #e7c995;border-top:4px solid #d97706;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#a65f00;margin-bottom:6px;">03 · 翻译契约</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">namespace: quality</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">页面保持独立<br/>翻译 key 使用 quality.xxx</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #d4c4f4;border-top:4px solid #7c3aed;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:6px;">04 · 发布与运行</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">按当前语言加载</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">构建并发布前端<br/>启用 App 配置后加载资源</div>
+    </div>
+  </div>
+</div>
+
+<p>这种方式的关键是让 App、页面、资源前缀和 namespace 保持一致。读者看到 <code>quality</code>，就能直接定位到对应页面和语言资源，后续维护成本较低。</p>
+<h3 id="10-2-复用-App：沿用已有页面"><a href="#10-2-复用-App：沿用已有页面" class="headerlink" title="10.2 复用 App：沿用已有页面"></a>10.2 复用 App：沿用已有页面</h3><p>复用 App 不新增一套完整页面，而是沿用已有 App 的页面结构和翻译 key，同时通过独立语言文件替换业务术语。以 <code>pressFit</code> 复用 <code>tighten</code> 页面为例：</p>
+<ol>
+<li>创建 <code>pressFit</code> 的 App 配置和路由入口，但路由仍指向 <code>tighten</code> 的已有页面。</li>
+<li>为 <code>pressFit</code> 配置独立资源前缀，即 <code>langFile: &quot;pressFit&quot;</code>。</li>
+<li>创建 <code>pressFit_zh-CN.json</code>、<code>pressFit_en.json</code> 等语言资源。</li>
+<li>语言文件的顶层 namespace 仍使用 <code>tighten</code>，并保持与原页面一致的 key 结构。</li>
+<li>进入 <code>pressFit</code> 时加载其语言文件，再把 messages 合并到 <code>tighten</code> namespace。</li>
+<li>复用页面继续使用 <code>tighten.xxx</code>，但最终展示的是 <code>pressFit</code> 对应的业务术语。</li>
+</ol>
+<div style="font-family:Arial,'Microsoft YaHei',sans-serif;margin:16px 0;padding:14px;border:1px solid #d7dde8;border-radius:10px;background:#f8fafc;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+    <div style="font-size:16px;font-weight:700;color:#1f3b57;">复用 App 接入流程</div>
+    <div style="font-size:12px;font-weight:700;color:#6d28d9;background:#f3e8ff;border:1px solid #d4c4f4;border-radius:999px;padding:4px 9px;">页面复用模式 · pressFit</div>
+  </div>
+  <div style="display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;">
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #bfdbfe;border-top:4px solid #2563eb;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#2563eb;margin-bottom:6px;">01 · APP 与页面</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">创建 pressFit App</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">建立独立路由入口<br/>复用 tighten 页面</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #a7d8b7;border-top:4px solid #2e8b57;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#24713b;margin-bottom:6px;">02 · 独立资源</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">langFile: pressFit</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">pressFit_zh-CN.json<br/>pressFit_en.json</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #e7c995;border-top:4px solid #d97706;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#a65f00;margin-bottom:6px;">03 · 共享契约</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">namespace: tighten</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">保持原页面 key 结构<br/>继续使用 tighten.xxx</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #d4c4f4;border-top:4px solid #7c3aed;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:6px;">04 · 运行时应用</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">加载 pressFit 资源</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">合并到 tighten namespace<br/>重新应用当前 App messages</div>
+    </div>
+  </div>
+  <div style="margin-top:10px;padding:10px 12px;border:1px solid #c4b5fd;border-radius:8px;background:#faf8ff;color:#4c1d95;text-align:center;font-size:13px;line-height:1.6;">
+    <strong>最终效果：</strong>页面结构和翻译 key 保持不变，进入 pressFit 后展示 pressFit 对应的业务术语。
+  </div>
+</div>
+
+<p>这里需要区分资源前缀和 namespace：<code>langFile</code> 决定加载哪个 App 的资源，namespace 决定这些资源供哪些页面 key 使用。因此，<code>pressFit</code> 可以加载自己的资源文件，同时继续服务于使用 <code>tighten.xxx</code> 的既有页面。</p>
+<p>由于 <code>tighten</code> 和 <code>pressFit</code> 会写入同一个 namespace，缓存不能只判断资源是否曾经加载过。每次进入 App 时，都需要重新应用当前 App 已缓存的 messages，避免页面遗留上一个 App 的术语。</p>
+<h3 id="10-3-两种接入方式的区别"><a href="#10-3-两种接入方式的区别" class="headerlink" title="10.3 两种接入方式的区别"></a>10.3 两种接入方式的区别</h3><table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>全新 App：<code>quality</code></th>
+<th>复用 App：<code>pressFit</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>页面</td>
+<td>新增独立页面</td>
+<td>复用 <code>tighten</code> 页面</td>
+</tr>
+<tr>
+<td>路由</td>
+<td>指向新页面</td>
+<td>指向已有页面</td>
+</tr>
+<tr>
+<td><code>langFile</code></td>
+<td><code>quality</code></td>
+<td><code>pressFit</code></td>
+</tr>
+<tr>
+<td>语言文件</td>
+<td><code>quality_*.json</code></td>
+<td><code>pressFit_*.json</code></td>
+</tr>
+<tr>
+<td>顶层 namespace</td>
+<td><code>quality</code></td>
+<td><code>tighten</code></td>
+</tr>
+<tr>
+<td>页面翻译 key</td>
+<td><code>quality.xxx</code></td>
+<td><code>tighten.xxx</code></td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>页面结构和术语均独立</td>
+<td>页面结构相同，但业务术语不同</td>
+</tr>
+</tbody></table>
+<p>无论采用哪种方式，都应先发布包含页面和语言资源的前端版本，再启用新的 App 配置，避免配置已经生效但旧版本前端尚未包含对应资源。</p>
+<h2 id="11-总结"><a href="#11-总结" class="headerlink" title="11. 总结"></a>11. 总结</h2><p>前端多语言资源按需加载的核心，是将资源加载范围与页面访问范围对齐：公共资源负责支撑应用启动和通用页面，业务资源则在模块进入时按当前语言加载。</p>
+<p>在此基础上，通过统一语言标识、构建期资源映射、模块与语言维度的缓存、明确的 messages 合并规则，以及“资源准备完成后再渲染”的页面生命周期控制，可以在降低首屏资源体积的同时，保证多语言切换的一致性和可维护性。</p>
+]]></content>
+      <categories>
+        <category>工作笔记</category>
+      </categories>
+      <tags>
+        <tag>架构和开发</tag>
+      </tags>
+  </entry>
 </search>

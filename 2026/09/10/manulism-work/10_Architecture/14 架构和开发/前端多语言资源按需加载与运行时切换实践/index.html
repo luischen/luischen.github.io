@@ -1,0 +1,435 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>前端多语言资源按需加载与运行时切换实践 | Next Station</title><meta name="author" content="Luis Chen"><meta name="copyright" content="Luis Chen"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1. 阅读导引当一个前端应用包含多个业务模块或子应用时，如果在启动阶段一次性加载全部语言资源，会增加首屏资源体积和初始化耗时。更合适的做法是将资源按使用范围拆分：公共资源随应用初始化加载，业务模块资源在真正进入模块时，按照当前语言按需加载。 本文结合 tighten、pdm、pressFit 等 App 的资源组织方式，介绍资源分层、命名约定、加载时机、缓存、合并和运行时切换等问题。除了为全新 A">
+<meta property="og:type" content="article">
+<meta property="og:title" content="前端多语言资源按需加载与运行时切换实践">
+<meta property="og:url" content="https://luischen.github.io/2026/09/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%97%B6%E5%88%87%E6%8D%A2%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="1. 阅读导引当一个前端应用包含多个业务模块或子应用时，如果在启动阶段一次性加载全部语言资源，会增加首屏资源体积和初始化耗时。更合适的做法是将资源按使用范围拆分：公共资源随应用初始化加载，业务模块资源在真正进入模块时，按照当前语言按需加载。 本文结合 tighten、pdm、pressFit 等 App 的资源组织方式，介绍资源分层、命名约定、加载时机、缓存、合并和运行时切换等问题。除了为全新 A">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://luischen.github.io/img/fluid.png">
+<meta property="article:published_time" content="2026-09-10T01:51:22.000Z">
+<meta property="article:modified_time" content="2026-09-10T04:50:10.000Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="架构和开发">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://luischen.github.io/img/fluid.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "前端多语言资源按需加载与运行时切换实践",
+  "url": "https://luischen.github.io/2026/09/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%97%B6%E5%88%87%E6%8D%A2%E5%AE%9E%E8%B7%B5/",
+  "image": "https://luischen.github.io/img/fluid.png",
+  "datePublished": "2026-09-10T01:51:22.000Z",
+  "dateModified": "2026-09-10T04:50:10.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Luis Chen",
+      "url": "https://luischen.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://luischen.github.io/2026/09/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%97%B6%E5%88%87%E6%8D%A2%E5%AE%9E%E8%B7%B5/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '前端多语言资源按需加载与运行时切换实践',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 6.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/fluid.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">33</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Next Station</span></a><a class="nav-page-title" href="/"><span class="site-name">前端多语言资源按需加载与运行时切换实践</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">前端多语言资源按需加载与运行时切换实践</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-09-10T01:51:22.000Z" title="发表于 2026-09-10 09:51:22">2026-09-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-09-10T04:50:10.000Z" title="更新于 2026-09-10 12:50:10">2026-09-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B7%A5%E4%BD%9C%E7%AC%94%E8%AE%B0/">工作笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="1-阅读导引"><a href="#1-阅读导引" class="headerlink" title="1. 阅读导引"></a>1. 阅读导引</h2><p>当一个前端应用包含多个业务模块或子应用时，如果在启动阶段一次性加载全部语言资源，会增加首屏资源体积和初始化耗时。更合适的做法是将资源按使用范围拆分：公共资源随应用初始化加载，业务模块资源在真正进入模块时，按照当前语言按需加载。</p>
+<p>本文结合 <code>tighten</code>、<code>pdm</code>、<code>pressFit</code> 等 App 的资源组织方式，介绍资源分层、命名约定、加载时机、缓存、合并和运行时切换等问题。除了为全新 App 建立独立页面和语言资源，方案还需要支持 <code>pressFit</code> 这类复用已有 App 页面、但使用自身业务术语的场景。</p>
+<p>本次优化主要实现以下目标：</p>
+<ul>
+<li>公共资源常驻，业务 App 资源按当前语言加载，控制首屏资源体积。</li>
+<li>全新 App 可以建立独立页面、namespace 和语言资源。</li>
+<li>复用 App 可以沿用既有页面和翻译 key，同时通过独立语言文件呈现自身术语。</li>
+<li>App 切换和语言切换时正确应用目标资源，避免共享 namespace 带来的文案残留。</li>
+</ul>
+<p>示例用于说明方案如何落地，具体实现仍可以由项目使用的国际化库和构建工具负责承载。</p>
+<h2 id="2-资源分层与命名约定"><a href="#2-资源分层与命名约定" class="headerlink" title="2. 资源分层与命名约定"></a>2. 资源分层与命名约定</h2><h3 id="2-1-资源分层"><a href="#2-1-资源分层" class="headerlink" title="2.1 资源分层"></a>2.1 资源分层</h3><p>多语言资源可以按使用范围分为两类：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>资源范围</th>
+<th>加载时机</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>公共资源</td>
+<td>导航、登录、基础组件、平台级功能</td>
+<td>应用初始化时</td>
+<td>多个模块都会使用的通用文案</td>
+</tr>
+<tr>
+<td>业务资源</td>
+<td><code>tighten</code>、<code>pdm</code>、<code>irun</code>、<code>energy</code> 等 App 的专属文案</td>
+<td>进入对应 App 时</td>
+<td>仅部分用户或部分页面会使用的文案</td>
+</tr>
+</tbody></table>
+<p>公共资源应保持稳定、精简，避免把大量业务文案不断加入公共资源。业务资源则以模块为边界拆分，使资源加载范围与用户当前访问范围保持一致。</p>
+<h3 id="2-2-命名约定"><a href="#2-2-命名约定" class="headerlink" title="2.2 命名约定"></a>2.2 命名约定</h3><p>每个业务模块需要有一个稳定的资源前缀，资源文件名由模块前缀、标准化语言标识和扩展名组成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;module&#125;_&#123;locale&#125;.json</span><br></pre></td></tr></table></figure>
+
+<p>例如，<code>tighten</code> App 的资源前缀为 <code>tighten</code>，中文和英文资源可以命名为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tighten_zh-CN.json</span><br><span class="line">tighten_en.json</span><br></pre></td></tr></table></figure>
+
+<p>App 配置只需要保存资源前缀，不应同时保存语言标识和文件扩展名。例如，数据库字段 <code>lang_file</code> 保存 <code>tighten</code>，后端返回给前端的 App 配置可表示为 <code>langFile: &quot;tighten&quot;</code>。语言标识由当前用户语言统一计算，避免配置与实际语言状态不一致。</p>
+<p>如果某个模块没有额外语言资源，可以将资源前缀配置为空，加载器应直接跳过请求。</p>
+<p>资源配置的职责是选择已经随前端版本发布的资源，而不是让前端任意从服务端下载 JSON。新增或修改资源后，应与前端版本一起构建和发布。</p>
+<h2 id="3-目录组织"><a href="#3-目录组织" class="headerlink" title="3. 目录组织"></a>3. 目录组织</h2><p>推荐将公共资源和业务资源分开存放：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">locale/</span><br><span class="line">├── base/                    # 公共资源</span><br><span class="line">│   ├── common_zh-CN.json</span><br><span class="line">│   ├── common_en.json</span><br><span class="line">│   ├── core_zh-CN.json</span><br><span class="line">│   └── core_en.json</span><br><span class="line">└── apps/                    # 业务 App 资源</span><br><span class="line">    ├── tighten_zh-CN.json</span><br><span class="line">    ├── tighten_en.json</span><br><span class="line">    ├── pdm_zh-CN.json</span><br><span class="line">    ├── pdm_en.json</span><br><span class="line">    └── ...</span><br></pre></td></tr></table></figure>
+
+<p>目录名称可以根据项目习惯调整，但应保证公共资源和业务资源有明确边界。构建工具的按需加载范围只应覆盖业务资源目录，避免公共资源被重复打包或重复请求。</p>
+<h2 id="4-应用初始化与公共资源"><a href="#4-应用初始化与公共资源" class="headerlink" title="4. 应用初始化与公共资源"></a>4. 应用初始化与公共资源</h2><p>应用初始化阶段只注册公共资源和基础组件所需的语言资源。例如，<code>common</code> 可以承载登录、导航等通用文案，<code>core</code> 可以承载平台管理等核心功能文案。初始化完成后，这些页面可以直接使用公共翻译。</p>
+<p>初始化阶段不应根据菜单或权限列表批量加载所有业务模块资源。菜单和权限信息可以用于生成可访问路由，但不应因此触发业务语言文件的加载。</p>
+<p>这种划分可以将“应用能够启动所必需的资源”和“用户访问特定功能后才需要的资源”分开，降低首屏加载压力。</p>
+<h2 id="5-进入业务模块时的加载流程"><a href="#5-进入业务模块时的加载流程" class="headerlink" title="5. 进入业务模块时的加载流程"></a>5. 进入业务模块时的加载流程</h2><p>资源加载应发生在页面首次渲染之前。以用户首次进入 <code>tighten</code> App、当前语言为 <code>zh-CN</code> 为例，完整流程如下：</p>
+<ol>
+<li>路由或页面上下文确定当前所属 App 为 <code>tighten</code>。</li>
+<li>从 App 配置中取得资源前缀 <code>tighten</code>，并读取当前生效的语言 <code>zh-CN</code>。</li>
+<li>将不同格式的语言标识统一为系统支持的标准格式，例如将多种中文写法统一为 <code>zh-CN</code>，将英文区域语言统一为 <code>en</code>。</li>
+<li>根据资源前缀和标准语言标识生成资源请求键 <code>./tighten_zh-CN.json</code>。</li>
+<li>通过构建工具提供的静态资源映射或按需加载机制请求该资源。</li>
+<li>资源加载完成后，将 <code>tighten</code> 的 messages 合并到 <code>zh-CN</code> 语言的资源集合中。</li>
+<li>确认资源准备完成后，再继续路由跳转或页面渲染。</li>
+</ol>
+<p>资源加载属于页面进入流程的一部分，而不是组件渲染后的补救动作。这样可以避免页面短暂显示翻译 key，也能让资源加载失败进入统一的错误处理流程。</p>
+<h2 id="6-公共资源判断"><a href="#6-公共资源判断" class="headerlink" title="6. 公共资源判断"></a>6. 公共资源判断</h2><p>资源加载器应维护公共资源前缀集合，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;common, core&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当 <code>langFile</code> 为 <code>common</code>、<code>core</code> 或空值时，加载器直接复用初始化阶段已经注册的 messages，不再发起业务资源请求。公共资源集合应集中维护，并在新增公共模块时同步更新。</p>
+<h2 id="7-按需加载与缓存策略"><a href="#7-按需加载与缓存策略" class="headerlink" title="7. 按需加载与缓存策略"></a>7. 按需加载与缓存策略</h2><h3 id="7-1-资源映射"><a href="#7-1-资源映射" class="headerlink" title="7.1 资源映射"></a>7.1 资源映射</h3><p>动态资源加载需要依赖构建阶段生成的静态资源映射。运行时请求的资源键必须与构建工具收集到的资源键保持一致，例如使用映射中的 <code>./tighten_zh-CN.json</code>，而不是自行拼出一段无法与构建结果对应的完整目录路径。</p>
+<p>这种约束可以让构建工具提前发现资源引用，并将业务语言文件拆分为独立资源。目录、文件名或语言标识不一致时，应在构建或发布阶段尽早暴露问题。</p>
+<h3 id="7-2-缓存维度"><a href="#7-2-缓存维度" class="headerlink" title="7.2 缓存维度"></a>7.2 缓存维度</h3><p>缓存键至少应包含业务模块和语言两个维度：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;langFile&#125;_&#123;locale&#125;</span><br></pre></td></tr></table></figure>
+
+<p>推荐遵循以下规则：</p>
+<ul>
+<li>加载中的请求缓存为 Promise，避免并发进入同一模块时重复请求。</li>
+<li>加载成功后缓存解析后的 messages，后续进入同一模块时直接复用。</li>
+<li>每次进入模块时重新应用该模块的 messages，以支持多个模块复用同一个 namespace。</li>
+<li>加载失败时清理对应缓存，允许后续重新尝试。</li>
+<li>不同语言分别缓存，例如 <code>tighten_zh-CN</code> 与 <code>tighten_en</code> 互不影响。</li>
+</ul>
+<p>缓存应区分“正在加载的请求”和“已经加载完成的资源”，这样既能合并并发请求，也能避免把失败状态永久留在缓存中。</p>
+<h2 id="8-运行时切换语言"><a href="#8-运行时切换语言" class="headerlink" title="8. 运行时切换语言"></a>8. 运行时切换语言</h2><p>运行时切换语言时，不能只更新全局语言标识，还需要确保当前页面所需的目标语言资源已经准备完成。推荐的处理顺序如下：</p>
+<ol>
+<li>规范化目标语言。</li>
+<li>确定当前页面所属的业务模块。</li>
+<li>如果当前页面属于业务模块，加载并合并该模块的目标语言资源；如果只依赖公共资源，则直接复用已有资源。</li>
+<li>资源准备完成后，更新全局语言状态。</li>
+<li>触发页面重新渲染，使公共文案和业务文案同时切换。</li>
+</ol>
+<p>例如，用户在 <code>tighten</code> 页面从中文切换到英文时，只需加载并合并 <code>tighten_en.json</code>，不需要同时加载 <code>pdm_en.json</code>、<code>irun_en.json</code> 等其他 App 资源。用户之后进入其他 App 时，再按相同规则加载对应资源。</p>
+<h2 id="9-messages-合并规则"><a href="#9-messages-合并规则" class="headerlink" title="9. messages 合并规则"></a>9. messages 合并规则</h2><p>业务资源通常以 namespace 组织，并合并到当前语言已有的 messages 中。建议明确以下规则：</p>
+<ul>
+<li>对象节点采用递归合并，保留未被覆盖的其他资源。</li>
+<li>普通值和数组由新资源覆盖，避免产生不明确的部分合并结果。</li>
+<li>合并前复制资源对象，避免修改缓存中的原始内容。</li>
+<li>业务模块的默认 namespace 与资源前缀保持一致，便于定位和维护。</li>
+<li>如果多个模块需要复用同一套页面文案，可以显式共享 namespace，但应记录复用关系。</li>
+</ul>
+<p>例如，模块资源可以使用以下结构：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;tighten&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;example&quot;</span><span class="punctuation">:</span> <span class="string">&quot;示例&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>通常，App 的顶层 namespace 与 <code>langFile</code> 一致。需要复用既有页面时，也可以共享 namespace。例如，<code>pressFit_zh-CN.json</code> 的顶层仍使用 <code>tighten</code>，从而复用页面中的 <code>tighten.example</code> 等完整翻译 key，而不必复制和改写整套页面文案。</p>
+<p>资源加载器需要分别缓存 <code>tighten</code> 和 <code>pressFit</code> 的 messages，并在进入 App 时重新应用当前资源。这样即使两个 App 共享 namespace，也不会遗留上一个 App 对同名术语的覆盖结果。</p>
+<h2 id="10-新增-App-的两种接入方式"><a href="#10-新增-App-的两种接入方式" class="headerlink" title="10. 新增 App 的两种接入方式"></a>10. 新增 App 的两种接入方式</h2><p>新增 App 时，首先需要判断它是拥有独立业务页面，还是复用已有 App 的页面。两种场景都需要独立的 App 配置，但页面、namespace 和语言资源的组织方式不同。</p>
+<h3 id="10-1-全新-App：新增一套页面"><a href="#10-1-全新-App：新增一套页面" class="headerlink" title="10.1 全新 App：新增一套页面"></a>10.1 全新 App：新增一套页面</h3><p>全新 App 拥有独立的业务页面和术语体系，适合使用独立的资源前缀与 namespace。以新增质量管理 App <code>quality</code> 为例：</p>
+<ol>
+<li>新增 <code>quality</code> 对应的页面和路由，并让路由能够关联到该 App。</li>
+<li>在 App 配置中设置 <code>lang_file = quality</code>，前端取得 <code>langFile: &quot;quality&quot;</code>。</li>
+<li>创建 <code>quality_zh-CN.json</code>、<code>quality_en.json</code> 等语言资源。</li>
+<li>语言文件使用 <code>quality</code> 作为顶层 namespace。</li>
+<li>新页面统一使用 <code>quality.xxx</code> 形式的翻译 key。</li>
+<li>将页面和语言资源一起构建发布，再启用对应的 App 配置。</li>
+</ol>
+<div style="font-family:Arial,'Microsoft YaHei',sans-serif;margin:16px 0;padding:14px;border:1px solid #d7dde8;border-radius:10px;background:#f8fafc;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+    <div style="font-size:16px;font-weight:700;color:#1f3b57;">全新 App 接入流程</div>
+    <div style="font-size:12px;font-weight:700;color:#1d4ed8;background:#eaf2ff;border:1px solid #bfdbfe;border-radius:999px;padding:4px 9px;">独立页面模式 · quality</div>
+  </div>
+  <div style="display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;">
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #bfdbfe;border-top:4px solid #2563eb;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#2563eb;margin-bottom:6px;">01 · APP 与页面</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">创建 quality App</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">新增独立页面<br/>新增独立路由</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #a7d8b7;border-top:4px solid #2e8b57;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#24713b;margin-bottom:6px;">02 · 配置与资源</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">langFile: quality</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">quality_zh-CN.json<br/>quality_en.json</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #e7c995;border-top:4px solid #d97706;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#a65f00;margin-bottom:6px;">03 · 翻译契约</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">namespace: quality</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">页面保持独立<br/>翻译 key 使用 quality.xxx</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #d4c4f4;border-top:4px solid #7c3aed;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:6px;">04 · 发布与运行</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">按当前语言加载</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">构建并发布前端<br/>启用 App 配置后加载资源</div>
+    </div>
+  </div>
+</div>
+
+<p>这种方式的关键是让 App、页面、资源前缀和 namespace 保持一致。读者看到 <code>quality</code>，就能直接定位到对应页面和语言资源，后续维护成本较低。</p>
+<h3 id="10-2-复用-App：沿用已有页面"><a href="#10-2-复用-App：沿用已有页面" class="headerlink" title="10.2 复用 App：沿用已有页面"></a>10.2 复用 App：沿用已有页面</h3><p>复用 App 不新增一套完整页面，而是沿用已有 App 的页面结构和翻译 key，同时通过独立语言文件替换业务术语。以 <code>pressFit</code> 复用 <code>tighten</code> 页面为例：</p>
+<ol>
+<li>创建 <code>pressFit</code> 的 App 配置和路由入口，但路由仍指向 <code>tighten</code> 的已有页面。</li>
+<li>为 <code>pressFit</code> 配置独立资源前缀，即 <code>langFile: &quot;pressFit&quot;</code>。</li>
+<li>创建 <code>pressFit_zh-CN.json</code>、<code>pressFit_en.json</code> 等语言资源。</li>
+<li>语言文件的顶层 namespace 仍使用 <code>tighten</code>，并保持与原页面一致的 key 结构。</li>
+<li>进入 <code>pressFit</code> 时加载其语言文件，再把 messages 合并到 <code>tighten</code> namespace。</li>
+<li>复用页面继续使用 <code>tighten.xxx</code>，但最终展示的是 <code>pressFit</code> 对应的业务术语。</li>
+</ol>
+<div style="font-family:Arial,'Microsoft YaHei',sans-serif;margin:16px 0;padding:14px;border:1px solid #d7dde8;border-radius:10px;background:#f8fafc;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+    <div style="font-size:16px;font-weight:700;color:#1f3b57;">复用 App 接入流程</div>
+    <div style="font-size:12px;font-weight:700;color:#6d28d9;background:#f3e8ff;border:1px solid #d4c4f4;border-radius:999px;padding:4px 9px;">页面复用模式 · pressFit</div>
+  </div>
+  <div style="display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;">
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #bfdbfe;border-top:4px solid #2563eb;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#2563eb;margin-bottom:6px;">01 · APP 与页面</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">创建 pressFit App</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">建立独立路由入口<br/>复用 tighten 页面</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #a7d8b7;border-top:4px solid #2e8b57;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#24713b;margin-bottom:6px;">02 · 独立资源</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">langFile: pressFit</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">pressFit_zh-CN.json<br/>pressFit_en.json</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #e7c995;border-top:4px solid #d97706;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#a65f00;margin-bottom:6px;">03 · 共享契约</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">namespace: tighten</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">保持原页面 key 结构<br/>继续使用 tighten.xxx</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #d4c4f4;border-top:4px solid #7c3aed;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:6px;">04 · 运行时应用</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">加载 pressFit 资源</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">合并到 tighten namespace<br/>重新应用当前 App messages</div>
+    </div>
+  </div>
+  <div style="margin-top:10px;padding:10px 12px;border:1px solid #c4b5fd;border-radius:8px;background:#faf8ff;color:#4c1d95;text-align:center;font-size:13px;line-height:1.6;">
+    <strong>最终效果：</strong>页面结构和翻译 key 保持不变，进入 pressFit 后展示 pressFit 对应的业务术语。
+  </div>
+</div>
+
+<p>这里需要区分资源前缀和 namespace：<code>langFile</code> 决定加载哪个 App 的资源，namespace 决定这些资源供哪些页面 key 使用。因此，<code>pressFit</code> 可以加载自己的资源文件，同时继续服务于使用 <code>tighten.xxx</code> 的既有页面。</p>
+<p>由于 <code>tighten</code> 和 <code>pressFit</code> 会写入同一个 namespace，缓存不能只判断资源是否曾经加载过。每次进入 App 时，都需要重新应用当前 App 已缓存的 messages，避免页面遗留上一个 App 的术语。</p>
+<h3 id="10-3-两种接入方式的区别"><a href="#10-3-两种接入方式的区别" class="headerlink" title="10.3 两种接入方式的区别"></a>10.3 两种接入方式的区别</h3><table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>全新 App：<code>quality</code></th>
+<th>复用 App：<code>pressFit</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>页面</td>
+<td>新增独立页面</td>
+<td>复用 <code>tighten</code> 页面</td>
+</tr>
+<tr>
+<td>路由</td>
+<td>指向新页面</td>
+<td>指向已有页面</td>
+</tr>
+<tr>
+<td><code>langFile</code></td>
+<td><code>quality</code></td>
+<td><code>pressFit</code></td>
+</tr>
+<tr>
+<td>语言文件</td>
+<td><code>quality_*.json</code></td>
+<td><code>pressFit_*.json</code></td>
+</tr>
+<tr>
+<td>顶层 namespace</td>
+<td><code>quality</code></td>
+<td><code>tighten</code></td>
+</tr>
+<tr>
+<td>页面翻译 key</td>
+<td><code>quality.xxx</code></td>
+<td><code>tighten.xxx</code></td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>页面结构和术语均独立</td>
+<td>页面结构相同，但业务术语不同</td>
+</tr>
+</tbody></table>
+<p>无论采用哪种方式，都应先发布包含页面和语言资源的前端版本，再启用新的 App 配置，避免配置已经生效但旧版本前端尚未包含对应资源。</p>
+<h2 id="11-总结"><a href="#11-总结" class="headerlink" title="11. 总结"></a>11. 总结</h2><p>前端多语言资源按需加载的核心，是将资源加载范围与页面访问范围对齐：公共资源负责支撑应用启动和通用页面，业务资源则在模块进入时按当前语言加载。</p>
+<p>在此基础上，通过统一语言标识、构建期资源映射、模块与语言维度的缓存、明确的 messages 合并规则，以及“资源准备完成后再渲染”的页面生命周期控制，可以在降低首屏资源体积的同时，保证多语言切换的一致性和可维护性。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/">架构和开发</a></div><div class="post-share"><div class="social-share" data-image="/img/fluid.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/08/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/" title="曲线质量分析系统配置解析补充"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">曲线质量分析系统配置解析补充</div></div><div class="info-2"><div class="info-item-1">特征配置中col_item 的解释逻辑示例数据：AA002,AA003,AA005,,&amp;AA004,AA011,AA016,AA017,AB001,AB002,AA018,AA015 这段 col_item 会先用 &amp; 分成“公共采集项”和“螺栓采集项”两部分： 123AA002,AA003,AA005,,&amp;AA004,AA011,AA016,AA017,AB001,AB002,AA018,AA015  第一部分：公共采集项解析位置固定，对应关系...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80/" title="HTTPS 与 TLS 安全通信基础"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-10</div><div class="info-item-2">HTTPS 与 TLS 安全通信基础</div></div><div class="info-2"><div class="info-item-1">HTTPS 与 TLS 基础HTTPS 可以理解为 HTTP + TLS。它解决的不是“更快传输”，而是“更可信、更保密地传输”。 1. HTTPS 解决什么问题 机密性：传输中的内容不容易被旁路窃听直接读到。 完整性：传输中的内容不容易被悄悄篡改。 身份认证：客户端可以确认自己连到的确实是目标服务。  2. TLS 握手在做什么一个简化版流程如下：  客户端发起连接，并声明支持的 TLS 版本和加密套件。 服务端返回证书，并选择本次会话参数。 客户端验证证书链、域名和...</div></div></div></a><a class="pagination-related" href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/05%20%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8Https%E6%9C%8D%E5%8A%A1/" title="Java 调用外部 HTTPS 服务与证书信任处理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-10</div><div class="info-item-2">Java 调用外部 HTTPS 服务与证书信任处理</div></div><div class="info-2"><div class="info-item-1">调用外部 HTTPS 服务当 Java 程序调用外部 HTTPS 服务时，如果 JVM 不信任对方证书，就会出现证书链校验失败。 常见报错如下： 123sun.security.validator.ValidatorException: PKIX path building failed:sun.security.provider.certpath.SunCertPathBuilderException:unable to find valid certificatio...</div></div></div></a><a class="pagination-related" href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE/" title="x509 证书与信任链机制"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-10</div><div class="info-item-2">x509 证书与信任链机制</div></div><div class="info-2"><div class="info-item-1">x509 证书与信任链HTTPS 的身份基础通常是 x509 证书。它把“身份信息”和“公钥”绑定在一起，再通过 CA 的签名形成可验证的信任关系。 1. x509 证书里通常有什么 版本号 序列号 签名算法 颁发者 有效期 使用者 公钥信息 扩展信息  2. 证书和私钥的关系 证书相当于公开身份证明，可以发给别人看。 私钥必须只保留在持有者手里，用来完成签名、解密或握手中的关键运算。 公钥通常放在证书里，任何人都可以拿到。  3. 证书链和信任链浏览器或设备并不是直接...</div></div></div></a><a class="pagination-related" href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/03-%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x509%E8%AF%81%E4%B9%A6/" title="工业设备认证中的 x509 证书应用"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-10</div><div class="info-item-2">工业设备认证中的 x509 证书应用</div></div><div class="info-2"><div class="info-item-1">设备认证中的 x509 证书在设备接入场景里，证书不只是给网页用，也常用于设备身份识别。核心目标是让平台确认“设备是谁”，并确认“设备确实持有对应私钥”。 1. 为什么设备也要用证书 设备需要向平台证明身份。 平台需要确认这台设备是不是可信主体。 连接建立后，还需要保证通信内容只能被双方读懂。  2. CA 分级思路证书签发机构应该是可信第三方。企业内部通常会按用途划分为多级 CA：  企业根 CA：最高信任锚点。 中间 CA：负责具体业务域的签发和管理。 设备证书：发...</div></div></div></a><a class="pagination-related" href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/04-LetsEncrypt%E4%B8%8ENginx%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2/" title="Let&#39;s Encrypt 与 Nginx HTTPS 快速部署"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-10</div><div class="info-item-2">Let&#39;s Encrypt 与 Nginx HTTPS 快速部署</div></div><div class="info-2"><div class="info-item-1">Let’s Encrypt 与 Nginx 快速部署如果只是想快速把站点切到 HTTPS，最常见的方式是让 Nginx 终止 TLS，然后通过 Let’s Encrypt 自动申请和续期证书。 1. 为什么选这个方案 Nginx 很适合作为统一入口，终止 TLS。 Let’s Encrypt 提供免费证书。 申请和续期可以自动化，手工运维成本低。  2. Let’s Encrypt 的原理Let’s Encrypt 的核心是 ACME 协议。它不是“直接给你一张证书”，...</div></div></div></a><a class="pagination-related" href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/README/" title="HTTPS、TLS 与 x509 专题索引"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-10</div><div class="info-item-2">HTTPS、TLS 与 x509 专题索引</div></div><div class="info-2"><div class="info-item-1">HTTPS 知识索引这组笔记按“小专题”拆开，方便单独阅读，也方便后续持续补充。 阅读顺序 HTTPS 与 TLS 基础 x509 证书与信任链 设备认证中的 x509 证书 Let’s Encrypt 与 Nginx 快速部署 调用外部 HTTPS 服务  主题地图 协议层：HTTPS 做了什么，TLS 握手如何工作。 证书层：x509 证书包含什么，信任链如何建立。 设备层：设备如何用证书证明身份并完成接入。 运维层：如何用 Nginx 和 Let’s Encryp...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/fluid.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Luis Chen</div><div class="author-info-description">工业智能平台与技术知识沉淀</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">33</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%98%85%E8%AF%BB%E5%AF%BC%E5%BC%95"><span class="toc-number">1.</span> <span class="toc-text">1. 阅读导引</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%B5%84%E6%BA%90%E5%88%86%E5%B1%82%E4%B8%8E%E5%91%BD%E5%90%8D%E7%BA%A6%E5%AE%9A"><span class="toc-number">2.</span> <span class="toc-text">2. 资源分层与命名约定</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E8%B5%84%E6%BA%90%E5%88%86%E5%B1%82"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 资源分层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%91%BD%E5%90%8D%E7%BA%A6%E5%AE%9A"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 命名约定</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E7%9B%AE%E5%BD%95%E7%BB%84%E7%BB%87"><span class="toc-number">3.</span> <span class="toc-text">3. 目录组织</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%BA%94%E7%94%A8%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E5%85%AC%E5%85%B1%E8%B5%84%E6%BA%90"><span class="toc-number">4.</span> <span class="toc-text">4. 应用初始化与公共资源</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E8%BF%9B%E5%85%A5%E4%B8%9A%E5%8A%A1%E6%A8%A1%E5%9D%97%E6%97%B6%E7%9A%84%E5%8A%A0%E8%BD%BD%E6%B5%81%E7%A8%8B"><span class="toc-number">5.</span> <span class="toc-text">5. 进入业务模块时的加载流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%85%AC%E5%85%B1%E8%B5%84%E6%BA%90%E5%88%A4%E6%96%AD"><span class="toc-number">6.</span> <span class="toc-text">6. 公共资源判断</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD%E4%B8%8E%E7%BC%93%E5%AD%98%E7%AD%96%E7%95%A5"><span class="toc-number">7.</span> <span class="toc-text">7. 按需加载与缓存策略</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E8%B5%84%E6%BA%90%E6%98%A0%E5%B0%84"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 资源映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E7%BC%93%E5%AD%98%E7%BB%B4%E5%BA%A6"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 缓存维度</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E8%BF%90%E8%A1%8C%E6%97%B6%E5%88%87%E6%8D%A2%E8%AF%AD%E8%A8%80"><span class="toc-number">8.</span> <span class="toc-text">8. 运行时切换语言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-messages-%E5%90%88%E5%B9%B6%E8%A7%84%E5%88%99"><span class="toc-number">9.</span> <span class="toc-text">9. messages 合并规则</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E6%96%B0%E5%A2%9E-App-%E7%9A%84%E4%B8%A4%E7%A7%8D%E6%8E%A5%E5%85%A5%E6%96%B9%E5%BC%8F"><span class="toc-number">10.</span> <span class="toc-text">10. 新增 App 的两种接入方式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%85%A8%E6%96%B0-App%EF%BC%9A%E6%96%B0%E5%A2%9E%E4%B8%80%E5%A5%97%E9%A1%B5%E9%9D%A2"><span class="toc-number">10.1.</span> <span class="toc-text">10.1 全新 App：新增一套页面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E5%A4%8D%E7%94%A8-App%EF%BC%9A%E6%B2%BF%E7%94%A8%E5%B7%B2%E6%9C%89%E9%A1%B5%E9%9D%A2"><span class="toc-number">10.2.</span> <span class="toc-text">10.2 复用 App：沿用已有页面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E4%B8%A4%E7%A7%8D%E6%8E%A5%E5%85%A5%E6%96%B9%E5%BC%8F%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">10.3.</span> <span class="toc-text">10.3 两种接入方式的区别</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">11. 总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%97%B6%E5%88%87%E6%8D%A2%E5%AE%9E%E8%B7%B5/" title="前端多语言资源按需加载与运行时切换实践">前端多语言资源按需加载与运行时切换实践</a><time datetime="2026-09-10T01:51:22.000Z" title="发表于 2026-09-10 09:51:22">2026-09-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/" title="曲线质量分析系统配置解析补充">曲线质量分析系统配置解析补充</a><time datetime="2026-08-13T05:55:00.000Z" title="发表于 2026-08-13 13:55:00">2026-08-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/03%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E8%8F%9C%E5%8D%95%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" title="曲线质量分析系统菜单工作流程">曲线质量分析系统菜单工作流程</a><time datetime="2026-07-13T09:25:40.000Z" title="发表于 2026-07-13 17:25:40">2026-07-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/05%20%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8Https%E6%9C%8D%E5%8A%A1/" title="Java 调用外部 HTTPS 服务与证书信任处理">Java 调用外部 HTTPS 服务与证书信任处理</a><time datetime="2026-07-10T06:31:52.000Z" title="发表于 2026-07-10 14:31:52">2026-07-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/03-%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x509%E8%AF%81%E4%B9%A6/" title="工业设备认证中的 x509 证书应用">工业设备认证中的 x509 证书应用</a><time datetime="2026-07-10T06:17:22.000Z" title="发表于 2026-07-10 14:17:22">2026-07-10</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By Luis Chen</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>
