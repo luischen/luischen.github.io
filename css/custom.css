@@ -1,5 +1,16 @@
 #page-header.full_page {
-  background-position: center 52%;
+  background-position: center 48%;
+}
+
+#page-header.not-home-page,
+#page-header.post-bg {
+  height: 280px;
+  background-position: center 48%;
+}
+
+#page-header.not-home-page #page-site-info {
+  top: 145px;
+  transform: translateY(-50%);
 }
 
 #page-header.full_page #site-title {
@@ -17,11 +28,28 @@
 }
 
 @media screen and (max-width: 768px) {
+  #page-header.full_page,
+  #page-header.not-home-page,
+  #page-header.post-bg {
+    background-image: url('/img/site-hero-mobile-v2.png') !important;
+    background-position: center 55%;
+    background-attachment: scroll;
+  }
+
   #page-header.full_page {
     height: 32vh;
     min-height: 260px;
-    background-position: 28% center;
-    background-attachment: scroll;
+  }
+
+  #page-header.not-home-page,
+  #page-header.post-bg {
+    height: 220px;
+    min-height: 220px;
+  }
+
+  #page-header.not-home-page #page-site-info {
+    top: 120px;
+    transform: translateY(-50%);
   }
 
   #page-header.full_page #site-info {
