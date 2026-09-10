@@ -1,0 +1,39 @@
+#page-header.full_page {
+  background-position: center 52%;
+}
+
+#page-header.full_page #site-title {
+  font-size: 2.5em;
+  text-shadow: 0 2px 14px rgba(15, 23, 42, 0.4);
+}
+
+#page-header.full_page #site-subtitle {
+  font-size: 1.25em;
+  text-shadow: 0 2px 12px rgba(15, 23, 42, 0.45);
+}
+
+#page-header.full_page #scroll-down {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  #page-header.full_page {
+    height: 32vh;
+    min-height: 260px;
+    background-position: 28% center;
+    background-attachment: scroll;
+  }
+
+  #page-header.full_page #site-info {
+    top: 50%;
+    transform: translateY(-42%);
+  }
+
+  #page-header.full_page #site-title {
+    font-size: 2em;
+  }
+
+  #page-header.full_page #site-subtitle {
+    font-size: 1em;
+  }
+}
