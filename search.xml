@@ -3454,6 +3454,38 @@
       </tags>
   </entry>
   <entry>
+    <title>工业平台数据容量与处理能力估算</title>
+    <url>/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E6%95%B0%E6%8D%AE%E8%83%BD%E5%8A%9B%E4%BC%B0%E7%AE%97/</url>
+    <content><![CDATA[<h2 id="工艺质量-拧紧枪接入数量"><a href="#工艺质量-拧紧枪接入数量" class="headerlink" title="工艺质量 - 拧紧枪接入数量"></a>工艺质量 - 拧紧枪接入数量</h2><p>估算原则：基于经验数据估算</p>
+<p>以阿特拉斯拧紧作为基准，主要瓶颈在于influxdb的写入，以5w点每秒考虑。<br>每个螺栓一次两条曲线数据（扭矩和角度），合计约3000点</p>
+<p>设置变量：<br><font color="#ff0000">boltPerSecond</font>, 每秒螺栓数量，如10s一颗则值为0.1<br><font color="#ff0000">spindleNum</font>, 拧紧轴数量，单轴为1<br><font color="#ff0000">numOfGuns</font>, 可以接入的拧紧枪数量</p>
+<p>最终估算公式：<br>$numOfGuns&#x3D; 50000&#x2F;(3000 * boltPerSecond) &#x2F; spindleNum$</p>
+<p>例如：<br>每秒一颗螺栓计算 boltPerSecond &#x3D; 1<br>两轴拧紧枪 spindleNum &#x3D; 2<br>可以接入的枪的数量 &#x3D; 50000&#x2F;(3000 * boltPerSecond) &#x2F; spindleNum &#x3D; 8 把</p>
+<h2 id="预测性维护-设备接入数量"><a href="#预测性维护-设备接入数量" class="headerlink" title="预测性维护 - 设备接入数量"></a>预测性维护 - 设备接入数量</h2><p>估算原则：基于服务器数据能力估算</p>
+<p>基于服务器数据写入的线程切换考虑，建议数量为4-16线程，按照16写入线程即16张数采卡<br>同样按照数采卡的线程限制，目前限制的是32</p>
+<p>如果每台设备每秒数据量（pps） 100 个点位<br>每个数采卡每秒采集 32 * 100 &#x3D; 3200<br>一个边缘节点16个数采卡 每秒写入 16 * 3200 &#x3D; <font color="#ff0000">51200</font> ，基本接近一个边缘节点的写入能力上限</p>
+<p>综上，预测性维护单节点的接入能力为：</p>
+<ul>
+<li>pps &lt;&#x3D; 100 每个节点可接入的设备台数为 16 * 32&#x3D;512 （台）</li>
+<li>否则 每个节点可接入的设备台数 &#x3D; 50000 &#x2F; pps （台）</li>
+</ul>
+<h2 id="时间性能-服务器空间"><a href="#时间性能-服务器空间" class="headerlink" title="时间性能 - 服务器空间"></a>时间性能 - 服务器空间</h2><p>估算原则：基于经验数据估算</p>
+<p>服务器空间占用主要由clickhouse贡献，主要数据分布为：</p>
+<ul>
+<li>基础节拍（T_SEGMENT）, 每条数据 26字节</li>
+<li>节拍总表（T_SEGMENT_FINAL），每条数据 60字节</li>
+<li>规整报警（T_SUBJECT_ALARM），每条数据 16字节，数据量级按照总表估算</li>
+</ul>
+<p>基于装配线经验数据，每天的数据量为：<br>(250000 * 26 + 45000 * 60 + 45000 * 16) &#x2F; (1024 * 1024 ) &#x3D; <font color="#ff0000">10 MB</font></p>
+]]></content>
+      <categories>
+        <category>工作笔记</category>
+      </categories>
+      <tags>
+        <tag>架构参考</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>工业平台开源许可治理参考</title>
     <url>/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E5%BC%80%E6%BA%90%E8%AE%B8%E5%8F%AF/</url>
     <content><![CDATA[<p>![[Pasted image 20260617162906.png|697]]</p>
@@ -3479,65 +3511,6 @@
 <td>PM2</td>
 <td>AGPL-3.0</td>
 <td>可以商用、私有部署和内部使用</td>
-</tr>
-</tbody></table>
-]]></content>
-      <categories>
-        <category>工作笔记</category>
-      </categories>
-      <tags>
-        <tag>架构参考</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>工业智能平台服务器配置需求</title>
-    <url>/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%9C%80%E6%B1%82/</url>
-    <content><![CDATA[<h2 id="主站服务器需求"><a href="#主站服务器需求" class="headerlink" title="主站服务器需求"></a>主站服务器需求</h2><table>
-<thead>
-<tr>
-<th>项目</th>
-<th>需求</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>内存</td>
-<td>32G</td>
-</tr>
-<tr>
-<td>GPU</td>
-<td>24G</td>
-</tr>
-<tr>
-<td>CPU</td>
-<td>Intel X86-64, 4核</td>
-</tr>
-<tr>
-<td>硬盘</td>
-<td>100G SSD * 1 - 系统盘<br>500G SSD * 2 - 数据盘 Raid1</td>
-</tr>
-</tbody></table>
-<h2 id="节点服务器需求"><a href="#节点服务器需求" class="headerlink" title="节点服务器需求"></a>节点服务器需求</h2><table>
-<thead>
-<tr>
-<th>项目</th>
-<th>需求</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>内存</td>
-<td>16G</td>
-</tr>
-<tr>
-<td>GPU</td>
-<td>8G</td>
-</tr>
-<tr>
-<td>CPU</td>
-<td>Intel X86-64, 4核</td>
-</tr>
-<tr>
-<td>硬盘</td>
-<td>100G SSD * 1 - 系统盘<br>500G SSD * 2 - 数据盘 Raid1</td>
 </tr>
 </tbody></table>
 ]]></content>
@@ -3624,35 +3597,670 @@
       </tags>
   </entry>
   <entry>
-    <title>工业平台数据容量与处理能力估算</title>
-    <url>/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E6%95%B0%E6%8D%AE%E8%83%BD%E5%8A%9B%E4%BC%B0%E7%AE%97/</url>
-    <content><![CDATA[<h2 id="工艺质量-拧紧枪接入数量"><a href="#工艺质量-拧紧枪接入数量" class="headerlink" title="工艺质量 - 拧紧枪接入数量"></a>工艺质量 - 拧紧枪接入数量</h2><p>估算原则：基于经验数据估算</p>
-<p>以阿特拉斯拧紧作为基准，主要瓶颈在于influxdb的写入，以5w点每秒考虑。<br>每个螺栓一次两条曲线数据（扭矩和角度），合计约3000点</p>
-<p>设置变量：<br><font color="#ff0000">boltPerSecond</font>, 每秒螺栓数量，如10s一颗则值为0.1<br><font color="#ff0000">spindleNum</font>, 拧紧轴数量，单轴为1<br><font color="#ff0000">numOfGuns</font>, 可以接入的拧紧枪数量</p>
-<p>最终估算公式：<br>$numOfGuns&#x3D; 50000&#x2F;(3000 * boltPerSecond) &#x2F; spindleNum$</p>
-<p>例如：<br>每秒一颗螺栓计算 boltPerSecond &#x3D; 1<br>两轴拧紧枪 spindleNum &#x3D; 2<br>可以接入的枪的数量 &#x3D; 50000&#x2F;(3000 * boltPerSecond) &#x2F; spindleNum &#x3D; 8 把</p>
-<h2 id="预测性维护-设备接入数量"><a href="#预测性维护-设备接入数量" class="headerlink" title="预测性维护 - 设备接入数量"></a>预测性维护 - 设备接入数量</h2><p>估算原则：基于服务器数据能力估算</p>
-<p>基于服务器数据写入的线程切换考虑，建议数量为4-16线程，按照16写入线程即16张数采卡<br>同样按照数采卡的线程限制，目前限制的是32</p>
-<p>如果每台设备每秒数据量（pps） 100 个点位<br>每个数采卡每秒采集 32 * 100 &#x3D; 3200<br>一个边缘节点16个数采卡 每秒写入 16 * 3200 &#x3D; <font color="#ff0000">51200</font> ，基本接近一个边缘节点的写入能力上限</p>
-<p>综上，预测性维护单节点的接入能力为：</p>
-<ul>
-<li>pps &lt;&#x3D; 100 每个节点可接入的设备台数为 16 * 32&#x3D;512 （台）</li>
-<li>否则 每个节点可接入的设备台数 &#x3D; 50000 &#x2F; pps （台）</li>
-</ul>
-<h2 id="时间性能-服务器空间"><a href="#时间性能-服务器空间" class="headerlink" title="时间性能 - 服务器空间"></a>时间性能 - 服务器空间</h2><p>估算原则：基于经验数据估算</p>
-<p>服务器空间占用主要由clickhouse贡献，主要数据分布为：</p>
-<ul>
-<li>基础节拍（T_SEGMENT）, 每条数据 26字节</li>
-<li>节拍总表（T_SEGMENT_FINAL），每条数据 60字节</li>
-<li>规整报警（T_SUBJECT_ALARM），每条数据 16字节，数据量级按照总表估算</li>
-</ul>
-<p>基于装配线经验数据，每天的数据量为：<br>(250000 * 26 + 45000 * 60 + 45000 * 16) &#x2F; (1024 * 1024 ) &#x3D; <font color="#ff0000">10 MB</font></p>
+    <title>工业智能平台服务器配置需求</title>
+    <url>/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%9C%80%E6%B1%82/</url>
+    <content><![CDATA[<h2 id="主站服务器需求"><a href="#主站服务器需求" class="headerlink" title="主站服务器需求"></a>主站服务器需求</h2><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>需求</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>内存</td>
+<td>32G</td>
+</tr>
+<tr>
+<td>GPU</td>
+<td>24G</td>
+</tr>
+<tr>
+<td>CPU</td>
+<td>Intel X86-64, 4核</td>
+</tr>
+<tr>
+<td>硬盘</td>
+<td>100G SSD * 1 - 系统盘<br>500G SSD * 2 - 数据盘 Raid1</td>
+</tr>
+</tbody></table>
+<h2 id="节点服务器需求"><a href="#节点服务器需求" class="headerlink" title="节点服务器需求"></a>节点服务器需求</h2><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>需求</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>内存</td>
+<td>16G</td>
+</tr>
+<tr>
+<td>GPU</td>
+<td>8G</td>
+</tr>
+<tr>
+<td>CPU</td>
+<td>Intel X86-64, 4核</td>
+</tr>
+<tr>
+<td>硬盘</td>
+<td>100G SSD * 1 - 系统盘<br>500G SSD * 2 - 数据盘 Raid1</td>
+</tr>
+</tbody></table>
 ]]></content>
       <categories>
         <category>工作笔记</category>
       </categories>
       <tags>
         <tag>架构参考</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>前端多语言资源按需加载</title>
+    <url>/2026/09/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD/</url>
+    <content><![CDATA[<h2 id="1-阅读导引"><a href="#1-阅读导引" class="headerlink" title="1. 阅读导引"></a>1. 阅读导引</h2><p>当一个前端应用包含多个业务模块或子应用时，如果在启动阶段一次性加载全部语言资源，会增加首屏资源体积和初始化耗时。更合适的做法是将资源按使用范围拆分：公共资源随应用初始化加载，业务模块资源在真正进入模块时，按照当前语言按需加载。</p>
+<p>本文结合 <code>tighten</code>、<code>pdm</code>、<code>pressFit</code> 等 App 的资源组织方式，介绍资源分层、命名约定、加载时机、缓存、合并和运行时切换等问题。除了为全新 App 建立独立页面和语言资源，方案还需要支持 <code>pressFit</code> 这类复用已有 App 页面、但使用自身业务术语的场景。</p>
+<p>本次优化主要实现以下目标：</p>
+<ul>
+<li>公共资源常驻，业务 App 资源按当前语言加载，控制首屏资源体积。</li>
+<li>全新 App 可以建立独立页面、namespace 和语言资源。</li>
+<li>复用 App 可以沿用既有页面和翻译 key，同时通过独立语言文件呈现自身术语。</li>
+<li>App 切换和语言切换时正确应用目标资源，避免共享 namespace 带来的文案残留。</li>
+</ul>
+<p>示例用于说明方案如何落地，具体实现仍可以由项目使用的国际化库和构建工具负责承载。</p>
+<h2 id="2-资源分层与命名约定"><a href="#2-资源分层与命名约定" class="headerlink" title="2. 资源分层与命名约定"></a>2. 资源分层与命名约定</h2><h3 id="2-1-资源分层"><a href="#2-1-资源分层" class="headerlink" title="2.1 资源分层"></a>2.1 资源分层</h3><p>多语言资源可以按使用范围分为两类：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>资源范围</th>
+<th>加载时机</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>公共资源</td>
+<td>导航、登录、基础组件、平台级功能</td>
+<td>应用初始化时</td>
+<td>多个模块都会使用的通用文案</td>
+</tr>
+<tr>
+<td>业务资源</td>
+<td><code>tighten</code>、<code>pdm</code>、<code>irun</code>、<code>energy</code> 等 App 的专属文案</td>
+<td>进入对应 App 时</td>
+<td>仅部分用户或部分页面会使用的文案</td>
+</tr>
+</tbody></table>
+<p>公共资源应保持稳定、精简，避免把大量业务文案不断加入公共资源。业务资源则以模块为边界拆分，使资源加载范围与用户当前访问范围保持一致。</p>
+<h3 id="2-2-命名约定"><a href="#2-2-命名约定" class="headerlink" title="2.2 命名约定"></a>2.2 命名约定</h3><p>每个业务模块需要有一个稳定的资源前缀，资源文件名由模块前缀、标准化语言标识和扩展名组成：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">&#123;module&#125;_&#123;locale&#125;.json</span><br></pre></td></tr></table></figure>
+
+<p>例如，<code>tighten</code> App 的资源前缀为 <code>tighten</code>，中文和英文资源可以命名为：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">tighten_zh-CN.json</span><br><span class="line">tighten_en.json</span><br></pre></td></tr></table></figure>
+
+<p>App 配置只需要保存资源前缀，不应同时保存语言标识和文件扩展名。例如，数据库字段 <code>lang_file</code> 保存 <code>tighten</code>，后端返回给前端的 App 配置可表示为 <code>langFile: &quot;tighten&quot;</code>。语言标识由当前用户语言统一计算，避免配置与实际语言状态不一致。</p>
+<p>如果某个模块没有额外语言资源，可以将资源前缀配置为空，加载器应直接跳过请求。</p>
+<p>资源配置的职责是选择已经随前端版本发布的资源，而不是让前端任意从服务端下载 JSON。新增或修改资源后，应与前端版本一起构建和发布。</p>
+<h2 id="3-目录组织"><a href="#3-目录组织" class="headerlink" title="3. 目录组织"></a>3. 目录组织</h2><p>推荐将公共资源和业务资源分开存放：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">locale/</span><br><span class="line">├── base/                    # 公共资源</span><br><span class="line">│   ├── common_zh-CN.json</span><br><span class="line">│   ├── common_en.json</span><br><span class="line">│   ├── core_zh-CN.json</span><br><span class="line">│   └── core_en.json</span><br><span class="line">└── apps/                    # 业务 App 资源</span><br><span class="line">    ├── tighten_zh-CN.json</span><br><span class="line">    ├── tighten_en.json</span><br><span class="line">    ├── pdm_zh-CN.json</span><br><span class="line">    ├── pdm_en.json</span><br><span class="line">    └── ...</span><br></pre></td></tr></table></figure>
+
+<p>目录名称可以根据项目习惯调整，但应保证公共资源和业务资源有明确边界。构建工具的按需加载范围只应覆盖业务资源目录，避免公共资源被重复打包或重复请求。</p>
+<h2 id="4-应用初始化与公共资源"><a href="#4-应用初始化与公共资源" class="headerlink" title="4. 应用初始化与公共资源"></a>4. 应用初始化与公共资源</h2><p>应用初始化阶段只注册公共资源和基础组件所需的语言资源。例如，<code>common</code> 可以承载登录、导航等通用文案，<code>core</code> 可以承载平台管理等核心功能文案。初始化完成后，这些页面可以直接使用公共翻译。</p>
+<p>初始化阶段不应根据菜单或权限列表批量加载所有业务模块资源。菜单和权限信息可以用于生成可访问路由，但不应因此触发业务语言文件的加载。</p>
+<p>这种划分可以将“应用能够启动所必需的资源”和“用户访问特定功能后才需要的资源”分开，降低首屏加载压力。</p>
+<h2 id="5-进入业务模块时的加载流程"><a href="#5-进入业务模块时的加载流程" class="headerlink" title="5. 进入业务模块时的加载流程"></a>5. 进入业务模块时的加载流程</h2><p>资源加载应发生在页面首次渲染之前。以用户首次进入 <code>tighten</code> App、当前语言为 <code>zh-CN</code> 为例，完整流程如下：</p>
+<ol>
+<li>路由或页面上下文确定当前所属 App 为 <code>tighten</code>。</li>
+<li>从 App 配置中取得资源前缀 <code>tighten</code>，并读取当前生效的语言 <code>zh-CN</code>。</li>
+<li>将不同格式的语言标识统一为系统支持的标准格式，例如将多种中文写法统一为 <code>zh-CN</code>，将英文区域语言统一为 <code>en</code>。</li>
+<li>根据资源前缀和标准语言标识生成资源请求键 <code>./tighten_zh-CN.json</code>。</li>
+<li>通过构建工具提供的静态资源映射或按需加载机制请求该资源。</li>
+<li>资源加载完成后，将 <code>tighten</code> 的 messages 合并到 <code>zh-CN</code> 语言的资源集合中。</li>
+<li>确认资源准备完成后，再继续路由跳转或页面渲染。</li>
+</ol>
+<p>资源加载属于页面进入流程的一部分，而不是组件渲染后的补救动作。这样可以避免页面短暂显示翻译 key，也能让资源加载失败进入统一的错误处理流程。</p>
+<h2 id="6-公共资源判断"><a href="#6-公共资源判断" class="headerlink" title="6. 公共资源判断"></a>6. 公共资源判断</h2><p>资源加载器应维护公共资源前缀集合，例如：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">&#123;common, core&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当 <code>langFile</code> 为 <code>common</code>、<code>core</code> 或空值时，加载器直接复用初始化阶段已经注册的 messages，不再发起业务资源请求。公共资源集合应集中维护，并在新增公共模块时同步更新。</p>
+<h2 id="7-按需加载与缓存策略"><a href="#7-按需加载与缓存策略" class="headerlink" title="7. 按需加载与缓存策略"></a>7. 按需加载与缓存策略</h2><h3 id="7-1-资源映射"><a href="#7-1-资源映射" class="headerlink" title="7.1 资源映射"></a>7.1 资源映射</h3><p>动态资源加载需要依赖构建阶段生成的静态资源映射。运行时请求的资源键必须与构建工具收集到的资源键保持一致，例如使用映射中的 <code>./tighten_zh-CN.json</code>，而不是自行拼出一段无法与构建结果对应的完整目录路径。</p>
+<p>这种约束可以让构建工具提前发现资源引用，并将业务语言文件拆分为独立资源。目录、文件名或语言标识不一致时，应在构建或发布阶段尽早暴露问题。</p>
+<h3 id="7-2-缓存维度"><a href="#7-2-缓存维度" class="headerlink" title="7.2 缓存维度"></a>7.2 缓存维度</h3><p>缓存键至少应包含业务模块和语言两个维度：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">&#123;langFile&#125;_&#123;locale&#125;</span><br></pre></td></tr></table></figure>
+
+<p>推荐遵循以下规则：</p>
+<ul>
+<li>加载中的请求缓存为 Promise，避免并发进入同一模块时重复请求。</li>
+<li>加载成功后缓存解析后的 messages，后续进入同一模块时直接复用。</li>
+<li>每次进入模块时重新应用该模块的 messages，以支持多个模块复用同一个 namespace。</li>
+<li>加载失败时清理对应缓存，允许后续重新尝试。</li>
+<li>不同语言分别缓存，例如 <code>tighten_zh-CN</code> 与 <code>tighten_en</code> 互不影响。</li>
+</ul>
+<p>缓存应区分“正在加载的请求”和“已经加载完成的资源”，这样既能合并并发请求，也能避免把失败状态永久留在缓存中。</p>
+<h2 id="8-运行时切换语言"><a href="#8-运行时切换语言" class="headerlink" title="8. 运行时切换语言"></a>8. 运行时切换语言</h2><p>运行时切换语言时，不能只更新全局语言标识，还需要确保当前页面所需的目标语言资源已经准备完成。推荐的处理顺序如下：</p>
+<ol>
+<li>规范化目标语言。</li>
+<li>确定当前页面所属的业务模块。</li>
+<li>如果当前页面属于业务模块，加载并合并该模块的目标语言资源；如果只依赖公共资源，则直接复用已有资源。</li>
+<li>资源准备完成后，更新全局语言状态。</li>
+<li>触发页面重新渲染，使公共文案和业务文案同时切换。</li>
+</ol>
+<p>例如，用户在 <code>tighten</code> 页面从中文切换到英文时，只需加载并合并 <code>tighten_en.json</code>，不需要同时加载 <code>pdm_en.json</code>、<code>irun_en.json</code> 等其他 App 资源。用户之后进入其他 App 时，再按相同规则加载对应资源。</p>
+<h2 id="9-messages-合并规则"><a href="#9-messages-合并规则" class="headerlink" title="9. messages 合并规则"></a>9. messages 合并规则</h2><p>业务资源通常以 namespace 组织，并合并到当前语言已有的 messages 中。建议明确以下规则：</p>
+<ul>
+<li>对象节点采用递归合并，保留未被覆盖的其他资源。</li>
+<li>普通值和数组由新资源覆盖，避免产生不明确的部分合并结果。</li>
+<li>合并前复制资源对象，避免修改缓存中的原始内容。</li>
+<li>业务模块的默认 namespace 与资源前缀保持一致，便于定位和维护。</li>
+<li>如果多个模块需要复用同一套页面文案，可以显式共享 namespace，但应记录复用关系。</li>
+</ul>
+<p>例如，模块资源可以使用以下结构：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;tighten&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;example&quot;</span><span class="punctuation">:</span> <span class="string">&quot;示例&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>通常，App 的顶层 namespace 与 <code>langFile</code> 一致。需要复用既有页面时，也可以共享 namespace。例如，<code>pressFit_zh-CN.json</code> 的顶层仍使用 <code>tighten</code>，从而复用页面中的 <code>tighten.example</code> 等完整翻译 key，而不必复制和改写整套页面文案。</p>
+<p>资源加载器需要分别缓存 <code>tighten</code> 和 <code>pressFit</code> 的 messages，并在进入 App 时重新应用当前资源。这样即使两个 App 共享 namespace，也不会遗留上一个 App 对同名术语的覆盖结果。</p>
+<h2 id="10-新增-App-的两种接入方式"><a href="#10-新增-App-的两种接入方式" class="headerlink" title="10. 新增 App 的两种接入方式"></a>10. 新增 App 的两种接入方式</h2><p>新增 App 时，首先需要判断它是拥有独立业务页面，还是复用已有 App 的页面。两种场景都需要独立的 App 配置，但页面、namespace 和语言资源的组织方式不同。</p>
+<h3 id="10-1-全新-App：新增一套页面"><a href="#10-1-全新-App：新增一套页面" class="headerlink" title="10.1 全新 App：新增一套页面"></a>10.1 全新 App：新增一套页面</h3><p>全新 App 拥有独立的业务页面和术语体系，适合使用独立的资源前缀与 namespace。以新增质量管理 App <code>quality</code> 为例：</p>
+<ol>
+<li>新增 <code>quality</code> 对应的页面和路由，并让路由能够关联到该 App。</li>
+<li>在 App 配置中设置 <code>lang_file = quality</code>，前端取得 <code>langFile: &quot;quality&quot;</code>。</li>
+<li>创建 <code>quality_zh-CN.json</code>、<code>quality_en.json</code> 等语言资源。</li>
+<li>语言文件使用 <code>quality</code> 作为顶层 namespace。</li>
+<li>新页面统一使用 <code>quality.xxx</code> 形式的翻译 key。</li>
+<li>将页面和语言资源一起构建发布，再启用对应的 App 配置。</li>
+</ol>
+<div style="font-family:Arial,'Microsoft YaHei',sans-serif;margin:16px 0;padding:14px;border:1px solid #d7dde8;border-radius:10px;background:#f8fafc;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+    <div style="font-size:16px;font-weight:700;color:#1f3b57;">全新 App 接入流程</div>
+    <div style="font-size:12px;font-weight:700;color:#1d4ed8;background:#eaf2ff;border:1px solid #bfdbfe;border-radius:999px;padding:4px 9px;">独立页面模式 · quality</div>
+  </div>
+  <div style="display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;">
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #bfdbfe;border-top:4px solid #2563eb;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#2563eb;margin-bottom:6px;">01 · APP 与页面</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">创建 quality App</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">新增独立页面<br/>新增独立路由</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #a7d8b7;border-top:4px solid #2e8b57;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#24713b;margin-bottom:6px;">02 · 配置与资源</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">langFile: quality</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">quality_zh-CN.json<br/>quality_en.json</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #e7c995;border-top:4px solid #d97706;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#a65f00;margin-bottom:6px;">03 · 翻译契约</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">namespace: quality</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">页面保持独立<br/>翻译 key 使用 quality.xxx</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #d4c4f4;border-top:4px solid #7c3aed;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:6px;">04 · 发布与运行</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">按当前语言加载</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">构建并发布前端<br/>启用 App 配置后加载资源</div>
+    </div>
+  </div>
+</div>
+
+<p>这种方式的关键是让 App、页面、资源前缀和 namespace 保持一致。读者看到 <code>quality</code>，就能直接定位到对应页面和语言资源，后续维护成本较低。</p>
+<h3 id="10-2-复用-App：沿用已有页面"><a href="#10-2-复用-App：沿用已有页面" class="headerlink" title="10.2 复用 App：沿用已有页面"></a>10.2 复用 App：沿用已有页面</h3><p>复用 App 不新增一套完整页面，而是沿用已有 App 的页面结构和翻译 key，同时通过独立语言文件替换业务术语。以 <code>pressFit</code> 复用 <code>tighten</code> 页面为例：</p>
+<ol>
+<li>创建 <code>pressFit</code> 的 App 配置和路由入口，但路由仍指向 <code>tighten</code> 的已有页面。</li>
+<li>为 <code>pressFit</code> 配置独立资源前缀，即 <code>langFile: &quot;pressFit&quot;</code>。</li>
+<li>创建 <code>pressFit_zh-CN.json</code>、<code>pressFit_en.json</code> 等语言资源。</li>
+<li>语言文件的顶层 namespace 仍使用 <code>tighten</code>，并保持与原页面一致的 key 结构。</li>
+<li>进入 <code>pressFit</code> 时加载其语言文件，再把 messages 合并到 <code>tighten</code> namespace。</li>
+<li>复用页面继续使用 <code>tighten.xxx</code>，但最终展示的是 <code>pressFit</code> 对应的业务术语。</li>
+</ol>
+<div style="font-family:Arial,'Microsoft YaHei',sans-serif;margin:16px 0;padding:14px;border:1px solid #d7dde8;border-radius:10px;background:#f8fafc;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+    <div style="font-size:16px;font-weight:700;color:#1f3b57;">复用 App 接入流程</div>
+    <div style="font-size:12px;font-weight:700;color:#6d28d9;background:#f3e8ff;border:1px solid #d4c4f4;border-radius:999px;padding:4px 9px;">页面复用模式 · pressFit</div>
+  </div>
+  <div style="display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;">
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #bfdbfe;border-top:4px solid #2563eb;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#2563eb;margin-bottom:6px;">01 · APP 与页面</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">创建 pressFit App</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">建立独立路由入口<br/>复用 tighten 页面</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #a7d8b7;border-top:4px solid #2e8b57;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#24713b;margin-bottom:6px;">02 · 独立资源</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">langFile: pressFit</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">pressFit_zh-CN.json<br/>pressFit_en.json</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #e7c995;border-top:4px solid #d97706;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#a65f00;margin-bottom:6px;">03 · 共享契约</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">namespace: tighten</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">保持原页面 key 结构<br/>继续使用 tighten.xxx</div>
+    </div>
+    <div style="flex:1 1 170px;min-width:150px;border:1px solid #d4c4f4;border-top:4px solid #7c3aed;border-radius:8px;background:#ffffff;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:6px;">04 · 运行时应用</div>
+      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">加载 pressFit 资源</div>
+      <div style="font-size:13px;line-height:1.65;color:#475569;">合并到 tighten namespace<br/>重新应用当前 App messages</div>
+    </div>
+  </div>
+  <div style="margin-top:10px;padding:10px 12px;border:1px solid #c4b5fd;border-radius:8px;background:#faf8ff;color:#4c1d95;text-align:center;font-size:13px;line-height:1.6;">
+    <strong>最终效果：</strong>页面结构和翻译 key 保持不变，进入 pressFit 后展示 pressFit 对应的业务术语。
+  </div>
+</div>
+
+<p>这里需要区分资源前缀和 namespace：<code>langFile</code> 决定加载哪个 App 的资源，namespace 决定这些资源供哪些页面 key 使用。因此，<code>pressFit</code> 可以加载自己的资源文件，同时继续服务于使用 <code>tighten.xxx</code> 的既有页面。</p>
+<p>由于 <code>tighten</code> 和 <code>pressFit</code> 会写入同一个 namespace，缓存不能只判断资源是否曾经加载过。每次进入 App 时，都需要重新应用当前 App 已缓存的 messages，避免页面遗留上一个 App 的术语。</p>
+<h3 id="10-3-两种接入方式的区别"><a href="#10-3-两种接入方式的区别" class="headerlink" title="10.3 两种接入方式的区别"></a>10.3 两种接入方式的区别</h3><table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>全新 App：<code>quality</code></th>
+<th>复用 App：<code>pressFit</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>页面</td>
+<td>新增独立页面</td>
+<td>复用 <code>tighten</code> 页面</td>
+</tr>
+<tr>
+<td>路由</td>
+<td>指向新页面</td>
+<td>指向已有页面</td>
+</tr>
+<tr>
+<td><code>langFile</code></td>
+<td><code>quality</code></td>
+<td><code>pressFit</code></td>
+</tr>
+<tr>
+<td>语言文件</td>
+<td><code>quality_*.json</code></td>
+<td><code>pressFit_*.json</code></td>
+</tr>
+<tr>
+<td>顶层 namespace</td>
+<td><code>quality</code></td>
+<td><code>tighten</code></td>
+</tr>
+<tr>
+<td>页面翻译 key</td>
+<td><code>quality.xxx</code></td>
+<td><code>tighten.xxx</code></td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>页面结构和术语均独立</td>
+<td>页面结构相同，但业务术语不同</td>
+</tr>
+</tbody></table>
+<p>无论采用哪种方式，都应先发布包含页面和语言资源的前端版本，再启用新的 App 配置，避免配置已经生效但旧版本前端尚未包含对应资源。</p>
+<h2 id="11-总结"><a href="#11-总结" class="headerlink" title="11. 总结"></a>11. 总结</h2><p>前端多语言资源按需加载的核心，是将资源加载范围与页面访问范围对齐：公共资源负责支撑应用启动和通用页面，业务资源则在模块进入时按当前语言加载。</p>
+<p>在此基础上，通过统一语言标识、构建期资源映射、模块与语言维度的缓存、明确的 messages 合并规则，以及“资源准备完成后再渲染”的页面生命周期控制，可以在降低首屏资源体积的同时，保证多语言切换的一致性和可维护性。</p>
+]]></content>
+      <categories>
+        <category>工作笔记</category>
+      </categories>
+      <tags>
+        <tag>架构和开发</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>HTTPS 与 TLS 安全通信基础</title>
+    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80/</url>
+    <content><![CDATA[<h1 id="HTTPS-与-TLS-基础"><a href="#HTTPS-与-TLS-基础" class="headerlink" title="HTTPS 与 TLS 基础"></a>HTTPS 与 TLS 基础</h1><p>HTTPS 可以理解为 <code>HTTP + TLS</code>。它解决的不是“更快传输”，而是“更可信、更保密地传输”。</p>
+<h2 id="1-HTTPS-解决什么问题"><a href="#1-HTTPS-解决什么问题" class="headerlink" title="1. HTTPS 解决什么问题"></a>1. HTTPS 解决什么问题</h2><ul>
+<li>机密性：传输中的内容不容易被旁路窃听直接读到。</li>
+<li>完整性：传输中的内容不容易被悄悄篡改。</li>
+<li>身份认证：客户端可以确认自己连到的确实是目标服务。</li>
+</ul>
+<h2 id="2-TLS-握手在做什么"><a href="#2-TLS-握手在做什么" class="headerlink" title="2. TLS 握手在做什么"></a>2. TLS 握手在做什么</h2><p>一个简化版流程如下：</p>
+<ol>
+<li>客户端发起连接，并声明支持的 TLS 版本和加密套件。</li>
+<li>服务端返回证书，并选择本次会话参数。</li>
+<li>客户端验证证书链、域名和有效期。</li>
+<li>双方协商出会话密钥。</li>
+<li>后续业务数据都使用会话密钥加密传输。</li>
+</ol>
+<pre>
+客户端  ── ClientHello ──▶  服务端
+客户端  ◀─ ServerHello + 证书 ──
+客户端  ── 验证证书与参数 ──▶
+双方    ── 协商会话密钥 ──▶
+后续数据 ── 使用对称加密传输 ──▶
+</pre>
+
+<h2 id="3-排查时优先看什么"><a href="#3-排查时优先看什么" class="headerlink" title="3. 排查时优先看什么"></a>3. 排查时优先看什么</h2><ul>
+<li>域名是否和证书中的 <code>Subject Alternative Name</code> 匹配。</li>
+<li>证书是否过期。</li>
+<li>证书链是否完整。</li>
+<li>服务端私钥是否和证书配套。</li>
+<li>客户端系统时间是否正确。</li>
+</ul>
+<h2 id="4-和证书页的关系"><a href="#4-和证书页的关系" class="headerlink" title="4. 和证书页的关系"></a>4. 和证书页的关系</h2><p>握手之所以成立，前提是证书链和私钥验证都通过。证书结构和信任链可以继续看 <a href="./02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE.md">x509 证书与信任链</a>。</p>
+]]></content>
+      <categories>
+        <category>工作笔记</category>
+      </categories>
+      <tags>
+        <tag>架构和开发</tag>
+        <tag>Https</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>x509 证书与信任链机制</title>
+    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE/</url>
+    <content><![CDATA[<h1 id="x509-证书与信任链"><a href="#x509-证书与信任链" class="headerlink" title="x509 证书与信任链"></a>x509 证书与信任链</h1><p>HTTPS 的身份基础通常是 <code>x509</code> 证书。它把“身份信息”和“公钥”绑定在一起，再通过 CA 的签名形成可验证的信任关系。</p>
+<h2 id="1-x509-证书里通常有什么"><a href="#1-x509-证书里通常有什么" class="headerlink" title="1. x509 证书里通常有什么"></a>1. x509 证书里通常有什么</h2><ul>
+<li>版本号</li>
+<li>序列号</li>
+<li>签名算法</li>
+<li>颁发者</li>
+<li>有效期</li>
+<li>使用者</li>
+<li>公钥信息</li>
+<li>扩展信息</li>
+</ul>
+<h2 id="2-证书和私钥的关系"><a href="#2-证书和私钥的关系" class="headerlink" title="2. 证书和私钥的关系"></a>2. 证书和私钥的关系</h2><ul>
+<li>证书相当于公开身份证明，可以发给别人看。</li>
+<li>私钥必须只保留在持有者手里，用来完成签名、解密或握手中的关键运算。</li>
+<li>公钥通常放在证书里，任何人都可以拿到。</li>
+</ul>
+<h2 id="3-证书链和信任链"><a href="#3-证书链和信任链" class="headerlink" title="3. 证书链和信任链"></a>3. 证书链和信任链</h2><p>浏览器或设备并不是直接信任某一张业务证书，而是沿着“业务证书 -&gt; 中间证书 -&gt; 根证书”去验证整条链。</p>
+<pre>
+客户端
+  │
+  │ 1. 收到服务器证书
+  ▼
+业务证书
+  │
+  │ 2. 验证签发者
+  ▼
+中间证书
+  │
+  │ 3. 验证根证书
+  ▼
+根证书
+  │
+  │ 4. 证书链可信，建立安全连接
+  ▼
+HTTPS 通信成立
+</pre>
+
+<h2 id="4-常见检查项"><a href="#4-常见检查项" class="headerlink" title="4. 常见检查项"></a>4. 常见检查项</h2><ul>
+<li>域名是否覆盖在 <code>SAN</code> 里。</li>
+<li>有效期是否过期。</li>
+<li>颁发者链是否完整。</li>
+<li>证书和私钥是否匹配。</li>
+</ul>
+<h2 id="5-这个专题和其他页的关系"><a href="#5-这个专题和其他页的关系" class="headerlink" title="5. 这个专题和其他页的关系"></a>5. 这个专题和其他页的关系</h2><ul>
+<li>证书验证流程会在 <a href="./01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80.md">HTTPS 与 TLS 基础</a> 里用到。</li>
+<li>设备证书生成和验证会在 <a href="./03-%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x509%E8%AF%81%E4%B9%A6.md">设备认证中的 x509 证书</a> 里展开。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>工作笔记</category>
+      </categories>
+      <tags>
+        <tag>架构和开发</tag>
+        <tag>Https</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>工业设备认证中的 x509 证书应用</title>
+    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/03-%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x509%E8%AF%81%E4%B9%A6/</url>
+    <content><![CDATA[<h1 id="设备认证中的-x509-证书"><a href="#设备认证中的-x509-证书" class="headerlink" title="设备认证中的 x509 证书"></a>设备认证中的 x509 证书</h1><p>在设备接入场景里，证书不只是给网页用，也常用于设备身份识别。核心目标是让平台确认“设备是谁”，并确认“设备确实持有对应私钥”。</p>
+<h2 id="1-为什么设备也要用证书"><a href="#1-为什么设备也要用证书" class="headerlink" title="1. 为什么设备也要用证书"></a>1. 为什么设备也要用证书</h2><ul>
+<li>设备需要向平台证明身份。</li>
+<li>平台需要确认这台设备是不是可信主体。</li>
+<li>连接建立后，还需要保证通信内容只能被双方读懂。</li>
+</ul>
+<h2 id="2-CA-分级思路"><a href="#2-CA-分级思路" class="headerlink" title="2. CA 分级思路"></a>2. CA 分级思路</h2><p>证书签发机构应该是可信第三方。企业内部通常会按用途划分为多级 CA：</p>
+<ul>
+<li>企业根 CA：最高信任锚点。</li>
+<li>中间 CA：负责具体业务域的签发和管理。</li>
+<li>设备证书：发给具体设备，用于接入认证。</li>
+</ul>
+<pre>
+企业根 CA
+  │
+  ├─ 中间 CA 1
+  │    ├─ 设备证书 A
+  │    └─ 设备证书 B
+  │
+  └─ 中间 CA 2
+       ├─ 供应商证书 C
+       └─ 供应商证书 D
+</pre>
+
+<h2 id="3-设备证书的生成"><a href="#3-设备证书的生成" class="headerlink" title="3. 设备证书的生成"></a>3. 设备证书的生成</h2><p>设备证书通常走“生成密钥对 -&gt; 创建 CSR -&gt; 用 CA 签发”的流程。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 生成密钥对</span></span><br><span class="line">openssl genrsa -out e01.key 2048</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成证书签名请求</span></span><br><span class="line">openssl req -new -key e01.key -out e01.csr</span><br><span class="line"></span><br><span class="line"><span class="comment"># 由中间 CA 签发设备证书</span></span><br><span class="line">openssl x509 -req \</span><br><span class="line">  -<span class="keyword">in</span> e01.csr \</span><br><span class="line">  -CA ca.pem \</span><br><span class="line">  -CAkey ca.key \</span><br><span class="line">  -CAcreateserial \</span><br><span class="line">  -out e01.pem \</span><br><span class="line">  -days 500 -sha256</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-设备证书的验证"><a href="#4-设备证书的验证" class="headerlink" title="4. 设备证书的验证"></a>4. 设备证书的验证</h2><p>设备认证通常分两步：</p>
+<ol>
+<li>验证证书链是否可信。</li>
+<li>验证持有证书私钥的主体，确实是证书对应的那台设备。</li>
+</ol>
+<h3 id="4-1-证书可信验证"><a href="#4-1-证书可信验证" class="headerlink" title="4.1 证书可信验证"></a>4.1 证书可信验证</h3><p>平台接收到设备证书后，通常会做这些事：</p>
+<ol>
+<li>读取证书颁发者信息，确认它是谁签发的。</li>
+<li>用上级 CA 的公钥验证证书签名。</li>
+<li>检查证书主体信息、有效期、用途扩展和撤销状态。</li>
+<li>如果链路完整，则认为证书可信。</li>
+</ol>
+<h3 id="4-2-实体可信验证"><a href="#4-2-实体可信验证" class="headerlink" title="4.2 实体可信验证"></a>4.2 实体可信验证</h3><p>平台还要确认“对面是否真的持有私钥”，常见做法是：</p>
+<ol>
+<li>平台生成随机数或会话密钥。</li>
+<li>用设备证书中的公钥相关能力进行加密或挑战。</li>
+<li>设备用私钥完成解密或签名响应。</li>
+<li>能正确响应的一方，才算真正持有该证书对应的私钥。</li>
+</ol>
+<pre>
+设备身份认证
+  ├─ 设备持有自己的证书和私钥
+  ├─ 平台校验证书链和签名
+  ├─ 平台发起挑战，确认私钥持有权
+  └─ 双方基于 TLS 建立加密通道
+</pre>
+
+<h2 id="5-和-HTTPS-的关系"><a href="#5-和-HTTPS-的关系" class="headerlink" title="5. 和 HTTPS 的关系"></a>5. 和 HTTPS 的关系</h2><p>设备认证本质上和 HTTPS 的服务端认证是同一类问题：</p>
+<ul>
+<li>都依赖证书链。</li>
+<li>都依赖 CA 信任锚。</li>
+<li>都依赖私钥持有证明。</li>
+<li>都依赖 TLS 作为传输安全底座。</li>
+</ul>
+<h2 id="6-相关入口"><a href="#6-相关入口" class="headerlink" title="6. 相关入口"></a>6. 相关入口</h2><ul>
+<li>证书结构和信任链： <a href="./02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE.md">x509 证书与信任链</a></li>
+<li>TLS 连接如何建立： <a href="./01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80.md">HTTPS 与 TLS 基础</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>工作笔记</category>
+      </categories>
+      <tags>
+        <tag>架构和开发</tag>
+        <tag>Https</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java 调用外部 HTTPS 服务与证书信任处理</title>
+    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/05%20%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8Https%E6%9C%8D%E5%8A%A1/</url>
+    <content><![CDATA[<h1 id="调用外部-HTTPS-服务"><a href="#调用外部-HTTPS-服务" class="headerlink" title="调用外部 HTTPS 服务"></a>调用外部 HTTPS 服务</h1><p>当 Java 程序调用外部 HTTPS 服务时，如果 JVM 不信任对方证书，就会出现证书链校验失败。</p>
+<p>常见报错如下：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">sun.security.validator.ValidatorException: PKIX path building failed:</span><br><span class="line">sun.security.provider.certpath.SunCertPathBuilderException:</span><br><span class="line">unable to find valid certification path to requested target</span><br></pre></td></tr></table></figure>
+
+<p>这类问题的本质通常不是“网络不通”，而是“JVM 无法把目标服务的证书链连接到自己信任的根证书”。</p>
+<h2 id="1-问题现象"><a href="#1-问题现象" class="headerlink" title="1. 问题现象"></a>1. 问题现象</h2><ul>
+<li>程序可以连到目标地址，但 HTTPS 握手失败。</li>
+<li>报错通常出现在 <code>RestTemplate</code>、<code>WebClient</code>、<code>HttpClient</code> 或第三方 SDK 中。</li>
+<li>目标服务在浏览器里可能是正常的，但 Java 进程仍然报不信任。</li>
+</ul>
+<h2 id="2-常见原因"><a href="#2-常见原因" class="headerlink" title="2. 常见原因"></a>2. 常见原因</h2><ul>
+<li>目标服务使用了自签名证书。</li>
+<li>目标服务证书链不完整。</li>
+<li>证书由内部 CA 签发，但 JVM truststore 里没有对应 CA。</li>
+<li>使用了新的证书，但应用还在读旧的 truststore。</li>
+<li>证书域名和访问域名不匹配，触发了额外校验失败。</li>
+</ul>
+<h2 id="3-解决思路"><a href="#3-解决思路" class="headerlink" title="3. 解决思路"></a>3. 解决思路</h2><p>通常有两种做法：</p>
+<ol>
+<li>把目标服务信任链导入 JVM 的 truststore，让 JVM 直接信任它。</li>
+<li>在应用里显式指定自定义信任库或证书工厂，只让这一个客户端信任目标服务。</li>
+</ol>
+<p>一般建议优先选择第一种，因为它更符合生产环境的信任管理方式。</p>
+<h2 id="4-方案一：导入-JVM-truststore"><a href="#4-方案一：导入-JVM-truststore" class="headerlink" title="4. 方案一：导入 JVM truststore"></a>4. 方案一：导入 JVM truststore</h2><p>这是最常见、也最容易长期维护的方案。</p>
+<h3 id="4-1-适合什么场景"><a href="#4-1-适合什么场景" class="headerlink" title="4.1 适合什么场景"></a>4.1 适合什么场景</h3><ul>
+<li>内部系统调用固定域名的 HTTPS 服务。</li>
+<li>目标证书链稳定。</li>
+<li>希望所有基于该 JVM 的客户端都能信任这个服务。</li>
+</ul>
+<h3 id="4-2-推荐做法"><a href="#4-2-推荐做法" class="headerlink" title="4.2 推荐做法"></a>4.2 推荐做法</h3><p>通常更建议导入签发目标服务证书的 CA 证书或中间证书链，而不是只导入单张叶子证书。这样后续服务端证书更新时，客户端侧不一定要频繁改。</p>
+<h3 id="4-3-导入命令"><a href="#4-3-导入命令" class="headerlink" title="4.3 导入命令"></a>4.3 导入命令</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">keytool -importcert ^</span><br><span class="line">  -<span class="built_in">alias</span> target-service-ca ^</span><br><span class="line">  -file C:\Users\manulism\Desktop\fsdownload\chain.pem ^</span><br><span class="line">  -keystore D:\develop\jdk1.8.0_121\jre\lib\security\cacerts</span><br></pre></td></tr></table></figure>
+
+<p>执行过程中通常需要输入 truststore 密码，默认 JDK <code>cacerts</code> 常见密码是 <code>changeit</code>。</p>
+<h3 id="4-4-导入后要做什么"><a href="#4-4-导入后要做什么" class="headerlink" title="4.4 导入后要做什么"></a>4.4 导入后要做什么</h3><ul>
+<li>重启 Java 应用进程。</li>
+<li>如果是容器化部署，确认镜像里的 truststore 已经更新。</li>
+<li>如果服务有多个 JVM 实例，要确认每个实例都加载了新的 truststore。</li>
+</ul>
+<h3 id="4-5-注意事项"><a href="#4-5-注意事项" class="headerlink" title="4.5 注意事项"></a>4.5 注意事项</h3><ul>
+<li>不要随意把不可信的公钥或证书导入全局 truststore。</li>
+<li>如果是生产环境，最好使用独立 truststore，而不是直接改 JDK 自带的 <code>cacerts</code>。</li>
+<li>如果证书是轮换发布的，要确认链路里有稳定的 CA 证书可用。</li>
+</ul>
+<h2 id="5-方案二：应用内指定信任库"><a href="#5-方案二：应用内指定信任库" class="headerlink" title="5. 方案二：应用内指定信任库"></a>5. 方案二：应用内指定信任库</h2><p>如果只想让某一个调用外部 HTTPS 的客户端信任特定证书，可以在代码里创建定制化的 SSL 请求工厂。</p>
+<h3 id="5-1-适合什么场景"><a href="#5-1-适合什么场景" class="headerlink" title="5.1 适合什么场景"></a>5.1 适合什么场景</h3><ul>
+<li>只想影响某一个服务调用，不想修改全局 JVM truststore。</li>
+<li>目标服务证书是临时环境、测试环境或专属内网服务。</li>
+<li>应用里有明确的证书加载逻辑和配置管理。</li>
+</ul>
+<h3 id="5-2-RestTemplate-示例"><a href="#5-2-RestTemplate-示例" class="headerlink" title="5.2 RestTemplate 示例"></a>5.2 RestTemplate 示例</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">ClientHttpRequestFactory</span> <span class="variable">requestFactory</span> <span class="operator">=</span></span><br><span class="line">    createSslAwareRequestFactory(resourceLoader, environment);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (requestFactory != <span class="literal">null</span>) &#123;</span><br><span class="line">    restTemplate.setRequestFactory(requestFactory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码的重点不在于 <code>RestTemplate</code> 本身，而在于 <code>createSslAwareRequestFactory(...)</code> 里创建的 SSL 上下文。</p>
+<p>通常实现上会做这些事：</p>
+<ul>
+<li>从配置文件或资源目录加载证书文件。</li>
+<li>构建 <code>KeyStore</code> 或 <code>TrustStore</code>。</li>
+<li>使用该 truststore 初始化 <code>SSLContext</code>。</li>
+<li>把 <code>SSLContext</code> 注入 HTTP 客户端。</li>
+</ul>
+<h3 id="5-3-这种方式的优缺点"><a href="#5-3-这种方式的优缺点" class="headerlink" title="5.3 这种方式的优缺点"></a>5.3 这种方式的优缺点</h3><p>优点：</p>
+<ul>
+<li>隔离性好，不影响其他 HTTP 调用。</li>
+<li>便于做多环境切换。</li>
+<li>适合局部定制信任策略。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>代码复杂度更高。</li>
+<li>需要自己维护证书加载和更新逻辑。</li>
+<li>如果项目里有多个 HTTP 客户端，容易出现配置不一致。</li>
+</ul>
+<h2 id="6-排查顺序"><a href="#6-排查顺序" class="headerlink" title="6. 排查顺序"></a>6. 排查顺序</h2><p>当你看到 <code>PKIX path building failed</code> 时，可以按下面顺序查：</p>
+<ol>
+<li>先确认目标服务证书链是否完整。</li>
+<li>再确认 JVM 是否已经信任对应 CA。</li>
+<li>再确认访问域名和证书 <code>SAN</code> 是否匹配。</li>
+<li>再确认应用加载的是不是正确的 truststore。</li>
+<li>最后再看是否是代理、网关或中间层改写了 TLS 链路。</li>
+</ol>
+<h2 id="7-建议的实践"><a href="#7-建议的实践" class="headerlink" title="7. 建议的实践"></a>7. 建议的实践</h2><ul>
+<li>生产环境尽量使用独立 truststore。</li>
+<li>内部服务优先信任 CA，而不是单独信任某一张叶子证书。</li>
+<li>证书更新时同步检查应用配置和重启策略。</li>
+<li>不要把关闭证书校验当作长期方案。</li>
+</ul>
+<h2 id="8-小结"><a href="#8-小结" class="headerlink" title="8. 小结"></a>8. 小结</h2><p>调用外部 HTTPS 服务报错时，核心问题几乎总是“信任链不成立”。</p>
+<ul>
+<li>如果希望全局生效，就把 CA 链导入 JVM truststore。</li>
+<li>如果只想局部生效，就在客户端里注入自定义 SSL 配置。</li>
+<li>如果是长期生产场景，优先考虑稳定的 CA 管理和证书更新流程。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>工作笔记</category>
+      </categories>
+      <tags>
+        <tag>架构和开发</tag>
+        <tag>Https</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Let&#39;s Encrypt 与 Nginx HTTPS 快速部署</title>
+    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/04-LetsEncrypt%E4%B8%8ENginx%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2/</url>
+    <content><![CDATA[<h1 id="Let’s-Encrypt-与-Nginx-快速部署"><a href="#Let’s-Encrypt-与-Nginx-快速部署" class="headerlink" title="Let’s Encrypt 与 Nginx 快速部署"></a>Let’s Encrypt 与 Nginx 快速部署</h1><p>如果只是想快速把站点切到 HTTPS，最常见的方式是让 Nginx 终止 TLS，然后通过 Let’s Encrypt 自动申请和续期证书。</p>
+<h2 id="1-为什么选这个方案"><a href="#1-为什么选这个方案" class="headerlink" title="1. 为什么选这个方案"></a>1. 为什么选这个方案</h2><ul>
+<li>Nginx 很适合作为统一入口，终止 TLS。</li>
+<li>Let’s Encrypt 提供免费证书。</li>
+<li>申请和续期可以自动化，手工运维成本低。</li>
+</ul>
+<h2 id="2-Let’s-Encrypt-的原理"><a href="#2-Let’s-Encrypt-的原理" class="headerlink" title="2. Let’s Encrypt 的原理"></a>2. Let’s Encrypt 的原理</h2><p>Let’s Encrypt 的核心是 <code>ACME</code> 协议。它不是“直接给你一张证书”，而是先验证你对域名的控制权，再签发证书。</p>
+<p>运作逻辑可以概括为：</p>
+<ol>
+<li>申请者生成自己的私钥。</li>
+<li>申请者向 ACME 服务端发起签发请求。</li>
+<li>ACME 要求申请者完成域名控制验证。</li>
+<li>通过验证后，CA 签发域名证书。</li>
+<li>证书有效期较短，需要自动续期。</li>
+</ol>
+<h2 id="3-常见验证方式"><a href="#3-常见验证方式" class="headerlink" title="3. 常见验证方式"></a>3. 常见验证方式</h2><ul>
+<li><code>HTTP-01</code>：在网站上放一个指定的校验文件，证明你能控制这个 HTTP 服务。</li>
+<li><code>DNS-01</code>：在 DNS 里放一个指定记录，适合通配符证书，也适合无法开放 80 端口的场景。</li>
+<li><code>TLS-ALPN-01</code>：通过 TLS 握手阶段完成验证，适合一些更专门的部署场景。</li>
+</ul>
+<pre>
+证书申请流程
+  ├─ 申请人生成私钥
+  ├─ 向 ACME 发起申请
+  ├─ 完成域名控制验证
+  ├─ CA 签发证书
+  └─ 自动续期并更新服务端配置
+</pre>
+
+<h2 id="4-两种常见实施方式"><a href="#4-两种常见实施方式" class="headerlink" title="4. 两种常见实施方式"></a>4. 两种常见实施方式</h2><h3 id="4-1-让-Certbot-直接接管-Nginx"><a href="#4-1-让-Certbot-直接接管-Nginx" class="headerlink" title="4.1 让 Certbot 直接接管 Nginx"></a>4.1 让 Certbot 直接接管 Nginx</h3><p>适合已经由 Nginx 代理站点的场景，Certbot 可以自动改写配置并申请证书。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certbot --nginx -d example.com -d www.example.com</span><br></pre></td></tr></table></figure>
+
+<p>优点是简单，适合快速落地；缺点是对 Nginx 配置自动化改动比较多，需要保留好原始配置。</p>
+<h3 id="4-2-使用-webroot-模式"><a href="#4-2-使用-webroot-模式" class="headerlink" title="4.2 使用 webroot 模式"></a>4.2 使用 webroot 模式</h3><p>适合你想自己掌控 Nginx 配置，只让 Certbot 负责签发和续期。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certbot certonly --webroot -w /var/www/html -d example.com -d www.example.com</span><br></pre></td></tr></table></figure>
+
+<p>这种方式下，Certbot 会把 ACME 验证文件放到指定站点目录里，再由 Nginx 对外提供访问。</p>
+<h2 id="5-HTTP-01-的-Nginx-配置"><a href="#5-HTTP-01-的-Nginx-配置" class="headerlink" title="5. HTTP-01 的 Nginx 配置"></a>5. HTTP-01 的 Nginx 配置</h2><p>HTTP-01 验证的关键点是：</p>
+<ul>
+<li>CA 会访问 <code>http://example.com/.well-known/acme-challenge/...</code></li>
+<li>你的网站必须能把这个验证文件正确返回给外部</li>
+<li>只有域名确实指向你当前的服务器，这一步才会成功</li>
+</ul>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">80</span>;</span><br><span class="line">    <span class="attribute">server_name</span> example.com;</span><br><span class="line"></span><br><span class="line">    <span class="section">location</span> /.well-known/acme-challenge/ &#123;</span><br><span class="line">        <span class="attribute">root</span> /var/www/html;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="section">location</span> / &#123;</span><br><span class="line">        <span class="attribute">return</span> <span class="number">301</span> https://<span class="variable">$host</span><span class="variable">$request_uri</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果你用的是 <code>webroot</code>，就让 Certbot 把验证文件写到 <code>/var/www/html/.well-known/acme-challenge/</code>，CA 再来取文件完成校验。</p>
+<h2 id="6-DNS-01-适合什么情况"><a href="#6-DNS-01-适合什么情况" class="headerlink" title="6. DNS-01 适合什么情况"></a>6. DNS-01 适合什么情况</h2><p>DNS-01 的思路不是访问网站，而是验证你是否能修改域名 DNS 记录。</p>
+<ul>
+<li>适合通配符证书，例如 <code>*.example.com</code></li>
+<li>适合 80 端口不方便暴露的环境</li>
+<li>适合有自动化 DNS API 的云环境</li>
+</ul>
+<h2 id="7-自动续期"><a href="#7-自动续期" class="headerlink" title="7. 自动续期"></a>7. 自动续期</h2><p>Let’s Encrypt 证书有效期较短，运维重点不是“申请一次就完了”，而是“把续期做自动化”。</p>
+<p>常见做法：</p>
+<ol>
+<li>定期执行续期命令。</li>
+<li>证书更新后 reload Nginx。</li>
+<li>用定时任务或 systemd timer 托管。</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certbot renew --quiet</span><br><span class="line">nginx -t &amp;&amp; systemctl reload nginx</span><br></pre></td></tr></table></figure>
+
+<h2 id="8-部署检查项"><a href="#8-部署检查项" class="headerlink" title="8. 部署检查项"></a>8. 部署检查项</h2><ul>
+<li>域名解析是否正确指向服务器。</li>
+<li>80 端口是否可达，HTTP-01 是否会被外部访问到。</li>
+<li>Nginx 是否允许 <code>/.well-known/acme-challenge/</code> 路径正常返回。</li>
+<li>证书是否已经自动续期。</li>
+<li>续期后是否成功 reload 了 Nginx。</li>
+<li>是否需要通配符证书，如果需要就优先考虑 DNS-01。</li>
+</ul>
+<h2 id="9-和其他专题的关系"><a href="#9-和其他专题的关系" class="headerlink" title="9. 和其他专题的关系"></a>9. 和其他专题的关系</h2><ul>
+<li>想看证书结构，去看 <a href="./02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE.md">x509 证书与信任链</a></li>
+<li>想看 TLS 连接如何建立，去看 <a href="./01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80.md">HTTPS 与 TLS 基础</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>工作笔记</category>
+      </categories>
+      <tags>
+        <tag>架构和开发</tag>
+        <tag>Https</tag>
       </tags>
   </entry>
   <entry>
@@ -6239,7 +6847,7 @@
     <url>/2026/08/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/</url>
     <content><![CDATA[<h2 id="特征配置中col-item-的解释逻辑"><a href="#特征配置中col-item-的解释逻辑" class="headerlink" title="特征配置中col_item 的解释逻辑"></a>特征配置中col_item 的解释逻辑</h2><p>示例数据：<br><code>AA002,AA003,AA005,,&amp;AA004,AA011,AA016,AA017,AB001,AB002,AA018,AA015</code></p>
 <p>这段 <code>col_item</code> 会先用 <code>&amp;</code> 分成“公共采集项”和“螺栓采集项”两部分：</p>
-<figure class="highlight autohotkey"><table><tr><td class="code"><pre><code class="hljs autohotkey"><span class="hljs-built_in">AA002,</span>AA003,AA005,,<br>&amp;<br><span class="hljs-built_in">AA004,</span>AA011,AA016,AA017,AB001,AB002,AA018,AA015<br></code></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">AA002,AA003,AA005,,</span><br><span class="line">&amp;</span><br><span class="line">AA004,AA011,AA016,AA017,AB001,AB002,AA018,AA015</span><br></pre></td></tr></table></figure>
 
 <h3 id="第一部分：公共采集项"><a href="#第一部分：公共采集项" class="headerlink" title="第一部分：公共采集项"></a>第一部分：公共采集项</h3><p>解析位置固定，对应关系来自 <a href="D:/gitee/manu-edge/pdm-edge/analysis/src/main/java/com/edge/analysis/system/service/EquipCondContextLoader.java:48">EquipCondContextLoader.java (line 48)</a> 和具体 Loader 的 <code>itemDefinition()</code>：</p>
 <table>
@@ -6284,7 +6892,7 @@
 </tbody></table>
 <p>虽然代码使用的是普通 <code>split(&quot;,&quot;)</code>，会丢弃末尾空字符串，但循环发现第 4、5 个位置不存在时，会自动补成 <code>&quot;&quot;</code>，所以最终仍然是两个空参数。</p>
 <p>假设当前设备编码是 <code>EQUIP01</code>，短采集项编码会补全为：</p>
-<figure class="highlight ini"><table><tr><td class="code"><pre><code class="hljs ini"><span class="hljs-attr">result_identifier</span> = C-EQUIP01-AA002<br><span class="hljs-attr">sn</span>                = C-EQUIP01-AA003<br><span class="hljs-attr">tighten_status</span>    = C-EQUIP01-AA005<br><span class="hljs-attr">station_identifier</span> = <span class="hljs-string">&quot;&quot;</span><br><span class="hljs-attr">product_type</span>       = <span class="hljs-string">&quot;&quot;</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">result_identifier = C-EQUIP01-AA002</span><br><span class="line">sn                = C-EQUIP01-AA003</span><br><span class="line">tighten_status    = C-EQUIP01-AA005</span><br><span class="line">station_identifier = &quot;&quot;</span><br><span class="line">product_type       = &quot;&quot;</span><br></pre></td></tr></table></figure>
 
 <p>补全逻辑在 <a href="D:/gitee/manu-edge/pdm-edge/analysis/src/main/java/com/edge/analysis/system/service/EquipCondContextLoader.java:85">EquipCondContextLoader.java (line 85)</a>：</p>
 <ul>
@@ -6345,7 +6953,7 @@
 </tbody></table>
 <p>对应解析代码在 <a href="D:/gitee/manu-edge/pdm-edge/analysis/src/main/java/com/edge/analysis/equipcond/eccloader/EccTorqueAngleSimplifyLoader.java:29">EccTorqueAngleSimplifyLoader.java (line 29)</a>。</p>
 <p>补全设备编码后，写入计算上下文的 <code>bolt</code> 参数类似：</p>
-<figure class="highlight prolog"><table><tr><td class="code"><pre><code class="hljs prolog">&#123;<br>  <span class="hljs-string">&quot;C-EQUIP01-AA004&quot;</span>: [<br>    <span class="hljs-string">&quot;C-EQUIP01-AA011&quot;</span>,<br>    <span class="hljs-string">&quot;C-EQUIP01-AA016&quot;</span>,<br>    <span class="hljs-string">&quot;C-EQUIP01-AA017&quot;</span>,<br>    <span class="hljs-string">&quot;C-EQUIP01-AB001&quot;</span>,<br>    <span class="hljs-string">&quot;C-EQUIP01-AB002&quot;</span>,<br>    <span class="hljs-string">&quot;C-EQUIP01-AA018&quot;</span>,<br>    <span class="hljs-string">&quot;C-EQUIP01-AA015&quot;</span><br>  ]<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;C-EQUIP01-AA004&quot;: [</span><br><span class="line">    &quot;C-EQUIP01-AA011&quot;,</span><br><span class="line">    &quot;C-EQUIP01-AA016&quot;,</span><br><span class="line">    &quot;C-EQUIP01-AA017&quot;,</span><br><span class="line">    &quot;C-EQUIP01-AB001&quot;,</span><br><span class="line">    &quot;C-EQUIP01-AB002&quot;,</span><br><span class="line">    &quot;C-EQUIP01-AA018&quot;,</span><br><span class="line">    &quot;C-EQUIP01-AA015&quot;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>后续计算时：</p>
 <ul>
@@ -6768,6 +7376,248 @@
       </tags>
   </entry>
   <entry>
+    <title>时间性能分析系统技术实现知识</title>
+    <url>/2026/06/24/manulism-work/20_Domain_Knowledge/23%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/01%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/</url>
+    <content><![CDATA[<blockquote>
+<p>作为业务领域知识的补充，本文聚焦系统架构、关键算法、数据口径与后续实现方向。内容保持在“可指导实现”的层面，不展开到方法级细节。<br>术语沿用业务文档中的定义，但本文只说明实现映射，不重复展开业务语义。</p>
+</blockquote>
+<h2 id="1-技术定位"><a href="#1-技术定位" class="headerlink" title="1. 技术定位"></a>1. 技术定位</h2><p>时间性能系统的技术目标，是把产线时序数据加工成可解释的节拍知识，再进一步沉淀为瓶颈诊断与改善分析的标准输出。<br>系统不是单纯计算某个时长，而是要形成一条稳定的数据链路：</p>
+<ul>
+<li>从原始时序数据中提取有效节拍窗口</li>
+<li>为不同对象建立可比的节拍基准</li>
+<li>将实际节拍拆解为工作、等待、故障等结构</li>
+<li>归集为瓶颈、负载和节拍分布等管理指标</li>
+</ul>
+<p>更完整的业务含义见业务文档对应章节，本文只保留实现侧需要关注的映射关系。</p>
+<h2 id="2-技术架构总览"><a href="#2-技术架构总览" class="headerlink" title="2. 技术架构总览"></a>2. 技术架构总览</h2><table style="width:100%; border-collapse:collapse; text-align:center; margin: 12px 0;">
+  <tr>
+    <td style="width:18%; border:1px solid #999; background:#f7f7f7; padding:12px;">时序数据</td>
+    <td style="width:6%; border:none;">→</td>
+    <td style="width:18%; border:1px solid #999; background:#eef6ff; padding:12px;">节拍分段</td>
+    <td style="width:6%; border:none;">→</td>
+    <td style="width:18%; border:1px solid #999; background:#eef6ff; padding:12px;">基准生成</td>
+    <td style="width:6%; border:none;">→</td>
+    <td style="width:18%; border:1px solid #999; background:#fff4e5; padding:12px;">实际拆解</td>
+    <td style="width:6%; border:none;">→</td>
+    <td style="width:18%; border:1px solid #999; background:#f0fff4; padding:12px;">报表输出</td>
+  </tr>
+</table>
+
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 8px 0 18px;">
+  <tr>
+    <td style="width:25%; border:1px solid #ccc; background:#fafafa; padding:10px;">数据接入与清洗</td>
+    <td style="width:25%; border:1px solid #ccc; background:#fafafa; padding:10px;">节拍目标与基准</td>
+    <td style="width:25%; border:1px solid #ccc; background:#fafafa; padding:10px;">实际节拍与告警融合</td>
+    <td style="width:25%; border:1px solid #ccc; background:#fafafa; padding:10px;">瓶颈、负载、节拍分析</td>
+  </tr>
+</table>
+
+<p>说明：</p>
+<ul>
+<li>第一层解决“数据是否可用”，重点是时间窗、对象边界和异常数据过滤。</li>
+<li>第二层解决“应该拿什么作比较”，重点是长期基准和设计基准的分离。</li>
+<li>第三层解决“现场到底发生了什么”，重点是报警、等待和工艺耗时的拆解。</li>
+<li>第四层把结果固化为可复用的管理指标，支撑诊断、对比和追踪。</li>
+</ul>
+<h2 id="3-核心数据链路"><a href="#3-核心数据链路" class="headerlink" title="3. 核心数据链路"></a>3. 核心数据链路</h2><h3 id="3-1-目标数据链路"><a href="#3-1-目标数据链路" class="headerlink" title="3.1 目标数据链路"></a>3.1 目标数据链路</h3><p>系统存在两条并行但互补的基准链路：</p>
+<ul>
+<li>长周期基准：依托历史样本，强调跨工位的一致性和稳定性</li>
+<li>设计基准：依托工艺设计与规则逻辑，强调新产线、新工艺和初始导入场景</li>
+</ul>
+<p>两条链路最终都要落到统一的目标数据上，用于后续实际节拍拆解和报表汇总。<br>技术上更重要的不是“谁更准确”，而是“在什么场景下用哪一种基准更合适”。<br>更完整的业务解释见业务文档中“理论基准”的定义部分。</p>
+<h3 id="3-2-实际节拍链路"><a href="#3-2-实际节拍链路" class="headerlink" title="3.2 实际节拍链路"></a>3.2 实际节拍链路</h3><p>实际节拍以节拍窗口内的真实时长为主线，再把窗口内的告警片段叠加进去，形成可解释的结构化结果。<br>业务层面的损失解释见业务文档中的“节拍损失拆解图”，本文这里只描述技术处理顺序。</p>
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 12px 0 8px;">
+  <tr>
+    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">时序窗口</td>
+    <td style="border:none; width:4%;">→</td>
+    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">告警过滤</td>
+    <td style="border:none; width:4%;">→</td>
+    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">区间合并</td>
+    <td style="border:none; width:4%;">→</td>
+    <td style="border:1px solid #999; padding:12px; background:#fff4e5;">节拍拆解</td>
+  </tr>
+</table>
+
+<p>说明：</p>
+<ul>
+<li>先在节拍窗口内截取有效告警，再合并重叠或连续的告警段，避免重复计算。</li>
+<li>告警必须经过白名单和位号规则过滤，确保只保留与该研究对象相关的异常。</li>
+<li>结果不是简单的“报警总时长”，而是能进入节拍结构分析的标准片段。</li>
+</ul>
+<h2 id="4-关键算法"><a href="#4-关键算法" class="headerlink" title="4. 关键算法"></a>4. 关键算法</h2><h3 id="4-1-长周期基准生成"><a href="#4-1-长周期基准生成" class="headerlink" title="4.1 长周期基准生成"></a>4.1 长周期基准生成</h3><p>长周期基准的核心思想，是通过一组候选分位系数搜索出“跨对象更稳定”的基准值。</p>
+<p>基本过程可以概括为：</p>
+<ol>
+<li>先收集同一产线下满足条件的基准对象</li>
+<li>在候选分位系数范围内逐个试算</li>
+<li>对每个系数，计算各对象对应的分位值</li>
+<li>以对象间方差更小作为更优解</li>
+<li>输出最终的基准值和配套参数</li>
+</ol>
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 10px 0 18px;">
+  <tr>
+    <td style="border:1px solid #ccc; padding:10px; background:#fafafa;">候选系数扫描</td>
+    <td style="border:1px solid #ccc; padding:10px; background:#fafafa;">对象分位值计算</td>
+    <td style="border:1px solid #ccc; padding:10px; background:#fafafa;">跨对象方差评估</td>
+    <td style="border:1px solid #ccc; padding:10px; background:#fafafa;">选择最优基准</td>
+  </tr>
+</table>
+
+<p>说明：</p>
+<ul>
+<li>这里的分位系数不追求极值，而追求稳定性。</li>
+<li>关键不是“取最小或最大”，而是“让同类对象之间更一致”。</li>
+<li>同一系数通常会同时驱动多个目标口径，保证基准体系的一致性。</li>
+</ul>
+<h3 id="4-2-设计基准生成"><a href="#4-2-设计基准生成" class="headerlink" title="4.2 设计基准生成"></a>4.2 设计基准生成</h3><p>设计基准更偏规则驱动，适合新产线、初始导入或历史样本不足的场景。</p>
+<p>其关键点是：</p>
+<ul>
+<li>以设计时长作为基础输入</li>
+<li>通过逻辑表达式组合出上层口径</li>
+<li>在动态对象缺失时，允许用设计时长回退补齐</li>
+<li>让基准可随工艺配置变化而变化，而不是依赖大量历史样本</li>
+</ul>
+<p>说明：</p>
+<ul>
+<li>长周期基准解决“过去通常是多少”。</li>
+<li>设计基准解决“按工艺定义应当是多少”。</li>
+<li>两者不是替代关系，而是不同场景下的基准来源。</li>
+</ul>
+<h3 id="4-3-实际节拍拆解"><a href="#4-3-实际节拍拆解" class="headerlink" title="4.3 实际节拍拆解"></a>4.3 实际节拍拆解</h3><p>节拍拆解时，系统先识别节拍窗口内的有效报警，再把报警时长与实际时长差值做结构化拆分。</p>
+<p>可以理解为：</p>
+<ul>
+<li>报警时长优先归入故障贡献</li>
+<li>实际时长与基准时长的差值，再继续拆成工作偏差和等待偏差</li>
+<li>当实际时长短于基准时，保留负偏差，便于识别节拍压缩或提前完成</li>
+</ul>
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 12px 0 18px;">
+  <tr>
+    <td style="width:28%; border:1px solid #999; background:#eef6ff; padding:14px; font-weight:600;">理论节拍<br/>参考基线</td>
+    <td style="width:6%; border:none;">⇅</td>
+    <td style="width:66%; border:1px solid #999; background:#fff; padding:14px;">
+      <div style="margin-bottom:10px; font-weight:600;">实际节拍</div>
+      <table style="width:100%; border-collapse:collapse; text-align:center;">
+        <tr>
+          <td style="border:1px solid #ccc; padding:10px; background:#f7f7f7;">工作时间</td>
+          <td style="border:1px solid #ccc; padding:10px; background:#fff7e6;">必要等待</td>
+          <td style="border:1px solid #ccc; padding:10px; background:#fff1f0;">非必要等待</td>
+          <td style="border:1px solid #ccc; padding:10px; background:#ffe8e6;">故障时间</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<p>说明：</p>
+<ul>
+<li>理论节拍是参考基线，不与实际节拍处在同一维度。</li>
+<li>实际节拍中的各项构成才是分析对象。</li>
+<li>这个拆解图的目的，是把“偏快、偏慢、异常停顿”分开看，而不是简单相加。</li>
+</ul>
+<h3 id="4-4-口径聚合"><a href="#4-4-口径聚合" class="headerlink" title="4.4 口径聚合"></a>4.4 口径聚合</h3><p>聚合层主要做三件事：</p>
+<ul>
+<li>将单次节拍结果汇总成产线级和工位级指标</li>
+<li>将不同类型的节拍损失统一到一套口径里</li>
+<li>将时间比例和数量比例同时输出，便于横向比较</li>
+</ul>
+<p>核心上可归纳为三类结果：</p>
+<ul>
+<li>瓶颈结果：关注工作占比、等待占比、故障占比和总体利用率</li>
+<li>负载结果：关注浪费、搬运和工艺有效部分的结构关系</li>
+<li>节拍结果：关注分布、稳定性和离散程度</li>
+</ul>
+<h2 id="5-指标口径映射"><a href="#5-指标口径映射" class="headerlink" title="5. 指标口径映射"></a>5. 指标口径映射</h2><h3 id="5-1-瓶颈指标"><a href="#5-1-瓶颈指标" class="headerlink" title="5.1 瓶颈指标"></a>5.1 瓶颈指标</h3><p>瓶颈类结果在技术侧主要输出工作占比、等待占比、故障占比和总体利用率。<br>这些字段用于承接业务文档中的瓶颈解释，不在此重复展开判读逻辑。</p>
+<h3 id="5-2-负载指标"><a href="#5-2-负载指标" class="headerlink" title="5.2 负载指标"></a>5.2 负载指标</h3><p>负载类结果主要输出浪费、搬运和工艺有效部分的结构关系。<br>它们用于支撑业务文档中的负载分析结论，技术侧重点是保证口径一致。</p>
+<h2 id="6-异步与沉淀方式"><a href="#6-异步与沉淀方式" class="headerlink" title="6. 异步与沉淀方式"></a>6. 异步与沉淀方式</h2><p>系统更适合采用“分段计算、结果沉淀、报表读取”的方式，而不是每次查询都实时重算。</p>
+<p>原因很直接：</p>
+<ul>
+<li>节拍基准计算依赖样本搜索，成本较高</li>
+<li>实际节拍拆解需要处理告警合并，过程不轻</li>
+<li>报表通常按天、班次或周期生成，更适合读快照数据</li>
+</ul>
+<p>因此更合理的实现方向是：</p>
+<ul>
+<li>计算链路与查询链路分离</li>
+<li>目标结果和最终结果分层存储</li>
+<li>报表读取稳定快照，减少线上临时计算压力</li>
+</ul>
+<h2 id="7-后续实现方向"><a href="#7-后续实现方向" class="headerlink" title="7. 后续实现方向"></a>7. 后续实现方向</h2><p>这一部分对应业务文档的“后续优化方向”，这里仅补充实现侧需要优先建设的能力。</p>
+<h3 id="7-1-基准分层更明确"><a href="#7-1-基准分层更明确" class="headerlink" title="7.1 基准分层更明确"></a>7.1 基准分层更明确</h3><p>建议将基准体系明确分成三层：</p>
+<ol>
+<li>历史稳定基准</li>
+<li>设计定义基准</li>
+<li>现场校正基准</li>
+</ol>
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 10px 0 16px;">
+  <tr>
+    <td style="border:1px solid #ccc; padding:10px; background:#f7f7f7;">历史稳定</td>
+    <td style="border:none; width:4%;">→</td>
+    <td style="border:1px solid #ccc; padding:10px; background:#f7f7f7;">设计定义</td>
+    <td style="border:none; width:4%;">→</td>
+    <td style="border:1px solid #ccc; padding:10px; background:#f7f7f7;">现场校正</td>
+  </tr>
+</table>
+
+<p>说明：</p>
+<ul>
+<li>目标不是让三者互相替代，而是按场景选择最合适的基准。</li>
+<li>这样可以减少“历史样本不足”时的空窗，也可以保留设计意图。</li>
+</ul>
+<h3 id="7-2-瓶颈原因树"><a href="#7-2-瓶颈原因树" class="headerlink" title="7.2 瓶颈原因树"></a>7.2 瓶颈原因树</h3><p>建议把瓶颈结果进一步沉淀成原因树，形成“指标到原因”的稳定映射。</p>
+<table style="width:100%; border-collapse:collapse; text-align:center; margin: 10px 0 16px;">
+  <tr>
+    <td style="border:1px solid #999; padding:10px; background:#eef6ff;">瓶颈结果</td>
+    <td style="border:none; width:4%;">→</td>
+    <td style="border:1px solid #999; padding:10px; background:#fff4e5;">结构拆分</td>
+    <td style="border:none; width:4%;">→</td>
+    <td style="border:1px solid #999; padding:10px; background:#f0fff4;">原因树</td>
+  </tr>
+</table>
+
+<p>说明：</p>
+<ul>
+<li>先看损失结构，再看根因，不建议直接从单一指标跳到结论。</li>
+<li>原因树可以优先覆盖故障、等待、工艺三大类。</li>
+</ul>
+<h3 id="7-3-置信度和可用性"><a href="#7-3-置信度和可用性" class="headerlink" title="7.3 置信度和可用性"></a>7.3 置信度和可用性</h3><p>建议给基准结果补一层“可用性标签”，至少考虑：</p>
+<ul>
+<li>样本是否足够</li>
+<li>基准是否稳定</li>
+<li>告警是否完整</li>
+<li>逻辑配置是否有效</li>
+</ul>
+<p>说明：</p>
+<ul>
+<li>这样做的意义是让系统知道“能不能信”，而不是只知道“算出来了什么”。</li>
+<li>对于新产线和异常波动产线，这一层尤其重要。</li>
+</ul>
+<h3 id="7-4-可解释看板"><a href="#7-4-可解释看板" class="headerlink" title="7.4 可解释看板"></a>7.4 可解释看板</h3><p>建议后续把结果展示从“单表输出”升级为“诊断看板”，重点展示：</p>
+<ul>
+<li>基准与实际的偏差</li>
+<li>损失结构占比</li>
+<li>告警与等待的重叠关系</li>
+<li>瓶颈对象的变化趋势</li>
+</ul>
+<p>说明：</p>
+<ul>
+<li>看板的价值不在于图多，而在于让用户一眼看懂“慢在哪里、为什么慢、先改哪里”。</li>
+<li>这类展示适合配合产线、工位和工艺三级视角一起使用。</li>
+</ul>
+<h2 id="8-小结"><a href="#8-小结" class="headerlink" title="8. 小结"></a>8. 小结</h2><p>时间性能系统的技术核心，可以归纳为三句话：</p>
+<ul>
+<li>用稳定的基准把现场节拍统一到同一条比较线上</li>
+<li>用告警与窗口重叠关系把实际损失拆得可解释</li>
+<li>用分层聚合把结果沉淀成可执行的改善方向</li>
+</ul>
+<p>如果后续要继续优化系统，优先方向不是增加更多口径，而是让基准更清晰、损失更可解释、报表更易落地。</p>
+]]></content>
+      <categories>
+        <category>工作笔记</category>
+      </categories>
+      <tags>
+        <tag>时间性能分析</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>预测性维护 PDM 业务领域知识</title>
     <url>/2026/06/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/00%20PDM%E4%B8%9A%E5%8A%A1%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>说明：本文结合当前后端实现整理。若文档描述与系统实现存在差异，以系统实现为准。本文刻意区分“领域知识”和“系统知识”：前者回答预测性维护是什么，后者回答本系统如何承载预测性维护。</p>
@@ -7154,248 +8004,6 @@
       </tags>
   </entry>
   <entry>
-    <title>时间性能分析系统技术实现知识</title>
-    <url>/2026/06/24/manulism-work/20_Domain_Knowledge/23%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/01%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/</url>
-    <content><![CDATA[<blockquote>
-<p>作为业务领域知识的补充，本文聚焦系统架构、关键算法、数据口径与后续实现方向。内容保持在“可指导实现”的层面，不展开到方法级细节。<br>术语沿用业务文档中的定义，但本文只说明实现映射，不重复展开业务语义。</p>
-</blockquote>
-<h2 id="1-技术定位"><a href="#1-技术定位" class="headerlink" title="1. 技术定位"></a>1. 技术定位</h2><p>时间性能系统的技术目标，是把产线时序数据加工成可解释的节拍知识，再进一步沉淀为瓶颈诊断与改善分析的标准输出。<br>系统不是单纯计算某个时长，而是要形成一条稳定的数据链路：</p>
-<ul>
-<li>从原始时序数据中提取有效节拍窗口</li>
-<li>为不同对象建立可比的节拍基准</li>
-<li>将实际节拍拆解为工作、等待、故障等结构</li>
-<li>归集为瓶颈、负载和节拍分布等管理指标</li>
-</ul>
-<p>更完整的业务含义见业务文档对应章节，本文只保留实现侧需要关注的映射关系。</p>
-<h2 id="2-技术架构总览"><a href="#2-技术架构总览" class="headerlink" title="2. 技术架构总览"></a>2. 技术架构总览</h2><table style="width:100%; border-collapse:collapse; text-align:center; margin: 12px 0;">
-  <tr>
-    <td style="width:18%; border:1px solid #999; background:#f7f7f7; padding:12px;">时序数据</td>
-    <td style="width:6%; border:none;">→</td>
-    <td style="width:18%; border:1px solid #999; background:#eef6ff; padding:12px;">节拍分段</td>
-    <td style="width:6%; border:none;">→</td>
-    <td style="width:18%; border:1px solid #999; background:#eef6ff; padding:12px;">基准生成</td>
-    <td style="width:6%; border:none;">→</td>
-    <td style="width:18%; border:1px solid #999; background:#fff4e5; padding:12px;">实际拆解</td>
-    <td style="width:6%; border:none;">→</td>
-    <td style="width:18%; border:1px solid #999; background:#f0fff4; padding:12px;">报表输出</td>
-  </tr>
-</table>
-
-<table style="width:100%; border-collapse:collapse; text-align:center; margin: 8px 0 18px;">
-  <tr>
-    <td style="width:25%; border:1px solid #ccc; background:#fafafa; padding:10px;">数据接入与清洗</td>
-    <td style="width:25%; border:1px solid #ccc; background:#fafafa; padding:10px;">节拍目标与基准</td>
-    <td style="width:25%; border:1px solid #ccc; background:#fafafa; padding:10px;">实际节拍与告警融合</td>
-    <td style="width:25%; border:1px solid #ccc; background:#fafafa; padding:10px;">瓶颈、负载、节拍分析</td>
-  </tr>
-</table>
-
-<p>说明：</p>
-<ul>
-<li>第一层解决“数据是否可用”，重点是时间窗、对象边界和异常数据过滤。</li>
-<li>第二层解决“应该拿什么作比较”，重点是长期基准和设计基准的分离。</li>
-<li>第三层解决“现场到底发生了什么”，重点是报警、等待和工艺耗时的拆解。</li>
-<li>第四层把结果固化为可复用的管理指标，支撑诊断、对比和追踪。</li>
-</ul>
-<h2 id="3-核心数据链路"><a href="#3-核心数据链路" class="headerlink" title="3. 核心数据链路"></a>3. 核心数据链路</h2><h3 id="3-1-目标数据链路"><a href="#3-1-目标数据链路" class="headerlink" title="3.1 目标数据链路"></a>3.1 目标数据链路</h3><p>系统存在两条并行但互补的基准链路：</p>
-<ul>
-<li>长周期基准：依托历史样本，强调跨工位的一致性和稳定性</li>
-<li>设计基准：依托工艺设计与规则逻辑，强调新产线、新工艺和初始导入场景</li>
-</ul>
-<p>两条链路最终都要落到统一的目标数据上，用于后续实际节拍拆解和报表汇总。<br>技术上更重要的不是“谁更准确”，而是“在什么场景下用哪一种基准更合适”。<br>更完整的业务解释见业务文档中“理论基准”的定义部分。</p>
-<h3 id="3-2-实际节拍链路"><a href="#3-2-实际节拍链路" class="headerlink" title="3.2 实际节拍链路"></a>3.2 实际节拍链路</h3><p>实际节拍以节拍窗口内的真实时长为主线，再把窗口内的告警片段叠加进去，形成可解释的结构化结果。<br>业务层面的损失解释见业务文档中的“节拍损失拆解图”，本文这里只描述技术处理顺序。</p>
-<table style="width:100%; border-collapse:collapse; text-align:center; margin: 12px 0 8px;">
-  <tr>
-    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">时序窗口</td>
-    <td style="border:none; width:4%;">→</td>
-    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">告警过滤</td>
-    <td style="border:none; width:4%;">→</td>
-    <td style="border:1px solid #999; padding:12px; background:#eef6ff;">区间合并</td>
-    <td style="border:none; width:4%;">→</td>
-    <td style="border:1px solid #999; padding:12px; background:#fff4e5;">节拍拆解</td>
-  </tr>
-</table>
-
-<p>说明：</p>
-<ul>
-<li>先在节拍窗口内截取有效告警，再合并重叠或连续的告警段，避免重复计算。</li>
-<li>告警必须经过白名单和位号规则过滤，确保只保留与该研究对象相关的异常。</li>
-<li>结果不是简单的“报警总时长”，而是能进入节拍结构分析的标准片段。</li>
-</ul>
-<h2 id="4-关键算法"><a href="#4-关键算法" class="headerlink" title="4. 关键算法"></a>4. 关键算法</h2><h3 id="4-1-长周期基准生成"><a href="#4-1-长周期基准生成" class="headerlink" title="4.1 长周期基准生成"></a>4.1 长周期基准生成</h3><p>长周期基准的核心思想，是通过一组候选分位系数搜索出“跨对象更稳定”的基准值。</p>
-<p>基本过程可以概括为：</p>
-<ol>
-<li>先收集同一产线下满足条件的基准对象</li>
-<li>在候选分位系数范围内逐个试算</li>
-<li>对每个系数，计算各对象对应的分位值</li>
-<li>以对象间方差更小作为更优解</li>
-<li>输出最终的基准值和配套参数</li>
-</ol>
-<table style="width:100%; border-collapse:collapse; text-align:center; margin: 10px 0 18px;">
-  <tr>
-    <td style="border:1px solid #ccc; padding:10px; background:#fafafa;">候选系数扫描</td>
-    <td style="border:1px solid #ccc; padding:10px; background:#fafafa;">对象分位值计算</td>
-    <td style="border:1px solid #ccc; padding:10px; background:#fafafa;">跨对象方差评估</td>
-    <td style="border:1px solid #ccc; padding:10px; background:#fafafa;">选择最优基准</td>
-  </tr>
-</table>
-
-<p>说明：</p>
-<ul>
-<li>这里的分位系数不追求极值，而追求稳定性。</li>
-<li>关键不是“取最小或最大”，而是“让同类对象之间更一致”。</li>
-<li>同一系数通常会同时驱动多个目标口径，保证基准体系的一致性。</li>
-</ul>
-<h3 id="4-2-设计基准生成"><a href="#4-2-设计基准生成" class="headerlink" title="4.2 设计基准生成"></a>4.2 设计基准生成</h3><p>设计基准更偏规则驱动，适合新产线、初始导入或历史样本不足的场景。</p>
-<p>其关键点是：</p>
-<ul>
-<li>以设计时长作为基础输入</li>
-<li>通过逻辑表达式组合出上层口径</li>
-<li>在动态对象缺失时，允许用设计时长回退补齐</li>
-<li>让基准可随工艺配置变化而变化，而不是依赖大量历史样本</li>
-</ul>
-<p>说明：</p>
-<ul>
-<li>长周期基准解决“过去通常是多少”。</li>
-<li>设计基准解决“按工艺定义应当是多少”。</li>
-<li>两者不是替代关系，而是不同场景下的基准来源。</li>
-</ul>
-<h3 id="4-3-实际节拍拆解"><a href="#4-3-实际节拍拆解" class="headerlink" title="4.3 实际节拍拆解"></a>4.3 实际节拍拆解</h3><p>节拍拆解时，系统先识别节拍窗口内的有效报警，再把报警时长与实际时长差值做结构化拆分。</p>
-<p>可以理解为：</p>
-<ul>
-<li>报警时长优先归入故障贡献</li>
-<li>实际时长与基准时长的差值，再继续拆成工作偏差和等待偏差</li>
-<li>当实际时长短于基准时，保留负偏差，便于识别节拍压缩或提前完成</li>
-</ul>
-<table style="width:100%; border-collapse:collapse; text-align:center; margin: 12px 0 18px;">
-  <tr>
-    <td style="width:28%; border:1px solid #999; background:#eef6ff; padding:14px; font-weight:600;">理论节拍<br/>参考基线</td>
-    <td style="width:6%; border:none;">⇅</td>
-    <td style="width:66%; border:1px solid #999; background:#fff; padding:14px;">
-      <div style="margin-bottom:10px; font-weight:600;">实际节拍</div>
-      <table style="width:100%; border-collapse:collapse; text-align:center;">
-        <tr>
-          <td style="border:1px solid #ccc; padding:10px; background:#f7f7f7;">工作时间</td>
-          <td style="border:1px solid #ccc; padding:10px; background:#fff7e6;">必要等待</td>
-          <td style="border:1px solid #ccc; padding:10px; background:#fff1f0;">非必要等待</td>
-          <td style="border:1px solid #ccc; padding:10px; background:#ffe8e6;">故障时间</td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-
-<p>说明：</p>
-<ul>
-<li>理论节拍是参考基线，不与实际节拍处在同一维度。</li>
-<li>实际节拍中的各项构成才是分析对象。</li>
-<li>这个拆解图的目的，是把“偏快、偏慢、异常停顿”分开看，而不是简单相加。</li>
-</ul>
-<h3 id="4-4-口径聚合"><a href="#4-4-口径聚合" class="headerlink" title="4.4 口径聚合"></a>4.4 口径聚合</h3><p>聚合层主要做三件事：</p>
-<ul>
-<li>将单次节拍结果汇总成产线级和工位级指标</li>
-<li>将不同类型的节拍损失统一到一套口径里</li>
-<li>将时间比例和数量比例同时输出，便于横向比较</li>
-</ul>
-<p>核心上可归纳为三类结果：</p>
-<ul>
-<li>瓶颈结果：关注工作占比、等待占比、故障占比和总体利用率</li>
-<li>负载结果：关注浪费、搬运和工艺有效部分的结构关系</li>
-<li>节拍结果：关注分布、稳定性和离散程度</li>
-</ul>
-<h2 id="5-指标口径映射"><a href="#5-指标口径映射" class="headerlink" title="5. 指标口径映射"></a>5. 指标口径映射</h2><h3 id="5-1-瓶颈指标"><a href="#5-1-瓶颈指标" class="headerlink" title="5.1 瓶颈指标"></a>5.1 瓶颈指标</h3><p>瓶颈类结果在技术侧主要输出工作占比、等待占比、故障占比和总体利用率。<br>这些字段用于承接业务文档中的瓶颈解释，不在此重复展开判读逻辑。</p>
-<h3 id="5-2-负载指标"><a href="#5-2-负载指标" class="headerlink" title="5.2 负载指标"></a>5.2 负载指标</h3><p>负载类结果主要输出浪费、搬运和工艺有效部分的结构关系。<br>它们用于支撑业务文档中的负载分析结论，技术侧重点是保证口径一致。</p>
-<h2 id="6-异步与沉淀方式"><a href="#6-异步与沉淀方式" class="headerlink" title="6. 异步与沉淀方式"></a>6. 异步与沉淀方式</h2><p>系统更适合采用“分段计算、结果沉淀、报表读取”的方式，而不是每次查询都实时重算。</p>
-<p>原因很直接：</p>
-<ul>
-<li>节拍基准计算依赖样本搜索，成本较高</li>
-<li>实际节拍拆解需要处理告警合并，过程不轻</li>
-<li>报表通常按天、班次或周期生成，更适合读快照数据</li>
-</ul>
-<p>因此更合理的实现方向是：</p>
-<ul>
-<li>计算链路与查询链路分离</li>
-<li>目标结果和最终结果分层存储</li>
-<li>报表读取稳定快照，减少线上临时计算压力</li>
-</ul>
-<h2 id="7-后续实现方向"><a href="#7-后续实现方向" class="headerlink" title="7. 后续实现方向"></a>7. 后续实现方向</h2><p>这一部分对应业务文档的“后续优化方向”，这里仅补充实现侧需要优先建设的能力。</p>
-<h3 id="7-1-基准分层更明确"><a href="#7-1-基准分层更明确" class="headerlink" title="7.1 基准分层更明确"></a>7.1 基准分层更明确</h3><p>建议将基准体系明确分成三层：</p>
-<ol>
-<li>历史稳定基准</li>
-<li>设计定义基准</li>
-<li>现场校正基准</li>
-</ol>
-<table style="width:100%; border-collapse:collapse; text-align:center; margin: 10px 0 16px;">
-  <tr>
-    <td style="border:1px solid #ccc; padding:10px; background:#f7f7f7;">历史稳定</td>
-    <td style="border:none; width:4%;">→</td>
-    <td style="border:1px solid #ccc; padding:10px; background:#f7f7f7;">设计定义</td>
-    <td style="border:none; width:4%;">→</td>
-    <td style="border:1px solid #ccc; padding:10px; background:#f7f7f7;">现场校正</td>
-  </tr>
-</table>
-
-<p>说明：</p>
-<ul>
-<li>目标不是让三者互相替代，而是按场景选择最合适的基准。</li>
-<li>这样可以减少“历史样本不足”时的空窗，也可以保留设计意图。</li>
-</ul>
-<h3 id="7-2-瓶颈原因树"><a href="#7-2-瓶颈原因树" class="headerlink" title="7.2 瓶颈原因树"></a>7.2 瓶颈原因树</h3><p>建议把瓶颈结果进一步沉淀成原因树，形成“指标到原因”的稳定映射。</p>
-<table style="width:100%; border-collapse:collapse; text-align:center; margin: 10px 0 16px;">
-  <tr>
-    <td style="border:1px solid #999; padding:10px; background:#eef6ff;">瓶颈结果</td>
-    <td style="border:none; width:4%;">→</td>
-    <td style="border:1px solid #999; padding:10px; background:#fff4e5;">结构拆分</td>
-    <td style="border:none; width:4%;">→</td>
-    <td style="border:1px solid #999; padding:10px; background:#f0fff4;">原因树</td>
-  </tr>
-</table>
-
-<p>说明：</p>
-<ul>
-<li>先看损失结构，再看根因，不建议直接从单一指标跳到结论。</li>
-<li>原因树可以优先覆盖故障、等待、工艺三大类。</li>
-</ul>
-<h3 id="7-3-置信度和可用性"><a href="#7-3-置信度和可用性" class="headerlink" title="7.3 置信度和可用性"></a>7.3 置信度和可用性</h3><p>建议给基准结果补一层“可用性标签”，至少考虑：</p>
-<ul>
-<li>样本是否足够</li>
-<li>基准是否稳定</li>
-<li>告警是否完整</li>
-<li>逻辑配置是否有效</li>
-</ul>
-<p>说明：</p>
-<ul>
-<li>这样做的意义是让系统知道“能不能信”，而不是只知道“算出来了什么”。</li>
-<li>对于新产线和异常波动产线，这一层尤其重要。</li>
-</ul>
-<h3 id="7-4-可解释看板"><a href="#7-4-可解释看板" class="headerlink" title="7.4 可解释看板"></a>7.4 可解释看板</h3><p>建议后续把结果展示从“单表输出”升级为“诊断看板”，重点展示：</p>
-<ul>
-<li>基准与实际的偏差</li>
-<li>损失结构占比</li>
-<li>告警与等待的重叠关系</li>
-<li>瓶颈对象的变化趋势</li>
-</ul>
-<p>说明：</p>
-<ul>
-<li>看板的价值不在于图多，而在于让用户一眼看懂“慢在哪里、为什么慢、先改哪里”。</li>
-<li>这类展示适合配合产线、工位和工艺三级视角一起使用。</li>
-</ul>
-<h2 id="8-小结"><a href="#8-小结" class="headerlink" title="8. 小结"></a>8. 小结</h2><p>时间性能系统的技术核心，可以归纳为三句话：</p>
-<ul>
-<li>用稳定的基准把现场节拍统一到同一条比较线上</li>
-<li>用告警与窗口重叠关系把实际损失拆得可解释</li>
-<li>用分层聚合把结果沉淀成可执行的改善方向</li>
-</ul>
-<p>如果后续要继续优化系统，优先方向不是增加更多口径，而是让基准更清晰、损失更可解释、报表更易落地。</p>
-]]></content>
-      <categories>
-        <category>工作笔记</category>
-      </categories>
-      <tags>
-        <tag>时间性能分析</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>预测性维护 PDM 技术实现知识</title>
     <url>/2026/06/24/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/01%20PDM%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文重点说明系统如何支撑业务落地。本文只展开架构和关键技术实现，其他算法、聚合策略和局部实现不再细写，便于后续继续补充。</p>
@@ -7497,463 +8105,6 @@
       </categories>
       <tags>
         <tag>预测性维护</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>AI 与智能体基础知识沉淀</title>
-    <url>/2026/06/16/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93%E7%9F%A5%E8%AF%86%E6%B2%89%E6%B7%80/</url>
-    <content><![CDATA[<h2 id="阅读导引"><a href="#阅读导引" class="headerlink" title="阅读导引"></a>阅读导引</h2><p>这篇笔记把 AI、智能体、ChatBI、知识库、RAG、提示工程和模型实践相关内容整理成可复用知识。</p>
-<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><h3 id="1-工业-AI-的知识库重点不只是-RAG，而是可验证"><a href="#1-工业-AI-的知识库重点不只是-RAG，而是可验证" class="headerlink" title="1. 工业 AI 的知识库重点不只是 RAG，而是可验证"></a>1. 工业 AI 的知识库重点不只是 RAG，而是可验证</h3><p>传统 RAG 常见链路是“问题 → 向量检索 → Top-K Chunk → LLM 回答”。但在工业场景里，仅能回答还不够，关键是：</p>
-<ul>
-<li>回答能否追溯到明确来源；</li>
-<li>检索结果是否经过重排和验证；</li>
-<li>答案是否能解释边界条件和不确定性；</li>
-<li>是否能把项目文档、说明书、接口和历史经验统一管理。</li>
-</ul>
-<p>因此，知识库建设应优先关注 <strong>Citation（可追溯引用）</strong> 和 <strong>Verification（验证）</strong>。</p>
-<h3 id="2-ChatBI-的关键在语义层，而不是让模型直接写-SQL"><a href="#2-ChatBI-的关键在语义层，而不是让模型直接写-SQL" class="headerlink" title="2. ChatBI 的关键在语义层，而不是让模型直接写 SQL"></a>2. ChatBI 的关键在语义层，而不是让模型直接写 SQL</h3><p>ChatBI 类系统要稳定落地，需要在数据库和自然语言之间建立语义层：</p>
-<div style="margin: 18px 0; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc;">
-  <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; align-items: stretch;">
-    <div style="padding: 12px; border: 1px solid #bfdbfe; border-radius: 8px; background: #eff6ff;"><strong>用户问题</strong><br><span style="color: #475569;">自然语言输入</span></div>
-    <div style="padding: 12px; border: 1px solid #99f6e4; border-radius: 8px; background: #ecfdf5;"><strong>意图理解</strong><br><span style="color: #475569;">识别查询目标</span></div>
-    <div style="padding: 12px; border: 1px solid #fde68a; border-radius: 8px; background: #fffbeb;"><strong>指标 / 维度语义层</strong><br><span style="color: #475569;">统一业务口径</span></div>
-    <div style="padding: 12px; border: 1px solid #ddd6fe; border-radius: 8px; background: #f5f3ff;"><strong>查询生成</strong><br><span style="color: #475569;">生成受控查询</span></div>
-    <div style="padding: 12px; border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2;"><strong>数据库</strong><br><span style="color: #475569;">执行查询</span></div>
-    <div style="padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff;"><strong>结果解释与图表</strong><br><span style="color: #475569;">返回可理解结论</span></div>
-  </div>
-  <div style="margin-top: 10px; color: #64748b; text-align: center; font-weight: 700;">用户问题 → 意图理解 → 语义层约束 → 查询生成 → 数据库 → 结果解释</div>
-</div>
-
-<p>如果缺少语义层，模型直接生成 SQL 会带来字段歧义、指标口径不一致、权限和安全问题。</p>
-<h3 id="3-多智能体适合工业系统，但要控制上下文污染"><a href="#3-多智能体适合工业系统，但要控制上下文污染" class="headerlink" title="3. 多智能体适合工业系统，但要控制上下文污染"></a>3. 多智能体适合工业系统，但要控制上下文污染</h3><p>OneNote 中多次讨论了分层智能体&#x2F;多智能体：主智能体负责协调，领域智能体负责具体系统，例如 IRUN、拧紧、产线性能等。这种模式适合工业平台，但要注意：</p>
-<ul>
-<li>主智能体不能越权直接执行子智能体技能；</li>
-<li>子智能体需要保留自己的领域记忆；</li>
-<li>调度链路过长会导致延迟和上下文污染；</li>
-<li>用户入口应尽量统一，内部再做路由。</li>
-</ul>
-<h3 id="4-提示工程是产品能力，不只是技巧"><a href="#4-提示工程是产品能力，不只是技巧" class="headerlink" title="4. 提示工程是产品能力，不只是技巧"></a>4. 提示工程是产品能力，不只是技巧</h3><p>提示工程可分为指令、上下文、输入数据和输出格式四部分。工业场景中尤其要强调：</p>
-<ul>
-<li>输出格式稳定；</li>
-<li>引用来源清楚；</li>
-<li>对不确定数据明确说明；</li>
-<li>避免模型把推测当事实；</li>
-<li>对操作类任务保留确认机制。</li>
-</ul>
-<h3 id="5-模型选型应按任务拆分"><a href="#5-模型选型应按任务拆分" class="headerlink" title="5. 模型选型应按任务拆分"></a>5. 模型选型应按任务拆分</h3><p>不同模型适合不同任务：</p>
-<ul>
-<li>LLM：综合理解、问答、规划、报告生成；</li>
-<li>Embedding：文档召回；</li>
-<li>Reranker：提升检索质量；</li>
-<li>专用模型：曲线异常、质量诊断、预测维护。</li>
-</ul>
-<p>工业 AI 平台不应只依赖一个大模型，而应采用“LLM + 检索 + 专用模型 + 工具”的组合。</p>
-]]></content>
-      <categories>
-        <category>工作笔记</category>
-      </categories>
-      <tags>
-        <tag>AI与智能体</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>HTTPS 与 TLS 安全通信基础</title>
-    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80/</url>
-    <content><![CDATA[<h1 id="HTTPS-与-TLS-基础"><a href="#HTTPS-与-TLS-基础" class="headerlink" title="HTTPS 与 TLS 基础"></a>HTTPS 与 TLS 基础</h1><p>HTTPS 可以理解为 <code>HTTP + TLS</code>。它解决的不是“更快传输”，而是“更可信、更保密地传输”。</p>
-<h2 id="1-HTTPS-解决什么问题"><a href="#1-HTTPS-解决什么问题" class="headerlink" title="1. HTTPS 解决什么问题"></a>1. HTTPS 解决什么问题</h2><ul>
-<li>机密性：传输中的内容不容易被旁路窃听直接读到。</li>
-<li>完整性：传输中的内容不容易被悄悄篡改。</li>
-<li>身份认证：客户端可以确认自己连到的确实是目标服务。</li>
-</ul>
-<h2 id="2-TLS-握手在做什么"><a href="#2-TLS-握手在做什么" class="headerlink" title="2. TLS 握手在做什么"></a>2. TLS 握手在做什么</h2><p>一个简化版流程如下：</p>
-<ol>
-<li>客户端发起连接，并声明支持的 TLS 版本和加密套件。</li>
-<li>服务端返回证书，并选择本次会话参数。</li>
-<li>客户端验证证书链、域名和有效期。</li>
-<li>双方协商出会话密钥。</li>
-<li>后续业务数据都使用会话密钥加密传输。</li>
-</ol>
-<pre>
-客户端  ── ClientHello ──▶  服务端
-客户端  ◀─ ServerHello + 证书 ──
-客户端  ── 验证证书与参数 ──▶
-双方    ── 协商会话密钥 ──▶
-后续数据 ── 使用对称加密传输 ──▶
-</pre>
-
-<h2 id="3-排查时优先看什么"><a href="#3-排查时优先看什么" class="headerlink" title="3. 排查时优先看什么"></a>3. 排查时优先看什么</h2><ul>
-<li>域名是否和证书中的 <code>Subject Alternative Name</code> 匹配。</li>
-<li>证书是否过期。</li>
-<li>证书链是否完整。</li>
-<li>服务端私钥是否和证书配套。</li>
-<li>客户端系统时间是否正确。</li>
-</ul>
-<h2 id="4-和证书页的关系"><a href="#4-和证书页的关系" class="headerlink" title="4. 和证书页的关系"></a>4. 和证书页的关系</h2><p>握手之所以成立，前提是证书链和私钥验证都通过。证书结构和信任链可以继续看 <a href="./02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE.md">x509 证书与信任链</a>。</p>
-]]></content>
-      <categories>
-        <category>工作笔记</category>
-      </categories>
-      <tags>
-        <tag>架构和开发</tag>
-        <tag>Https</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>x509 证书与信任链机制</title>
-    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE/</url>
-    <content><![CDATA[<h1 id="x509-证书与信任链"><a href="#x509-证书与信任链" class="headerlink" title="x509 证书与信任链"></a>x509 证书与信任链</h1><p>HTTPS 的身份基础通常是 <code>x509</code> 证书。它把“身份信息”和“公钥”绑定在一起，再通过 CA 的签名形成可验证的信任关系。</p>
-<h2 id="1-x509-证书里通常有什么"><a href="#1-x509-证书里通常有什么" class="headerlink" title="1. x509 证书里通常有什么"></a>1. x509 证书里通常有什么</h2><ul>
-<li>版本号</li>
-<li>序列号</li>
-<li>签名算法</li>
-<li>颁发者</li>
-<li>有效期</li>
-<li>使用者</li>
-<li>公钥信息</li>
-<li>扩展信息</li>
-</ul>
-<h2 id="2-证书和私钥的关系"><a href="#2-证书和私钥的关系" class="headerlink" title="2. 证书和私钥的关系"></a>2. 证书和私钥的关系</h2><ul>
-<li>证书相当于公开身份证明，可以发给别人看。</li>
-<li>私钥必须只保留在持有者手里，用来完成签名、解密或握手中的关键运算。</li>
-<li>公钥通常放在证书里，任何人都可以拿到。</li>
-</ul>
-<h2 id="3-证书链和信任链"><a href="#3-证书链和信任链" class="headerlink" title="3. 证书链和信任链"></a>3. 证书链和信任链</h2><p>浏览器或设备并不是直接信任某一张业务证书，而是沿着“业务证书 -&gt; 中间证书 -&gt; 根证书”去验证整条链。</p>
-<pre>
-客户端
-  │
-  │ 1. 收到服务器证书
-  ▼
-业务证书
-  │
-  │ 2. 验证签发者
-  ▼
-中间证书
-  │
-  │ 3. 验证根证书
-  ▼
-根证书
-  │
-  │ 4. 证书链可信，建立安全连接
-  ▼
-HTTPS 通信成立
-</pre>
-
-<h2 id="4-常见检查项"><a href="#4-常见检查项" class="headerlink" title="4. 常见检查项"></a>4. 常见检查项</h2><ul>
-<li>域名是否覆盖在 <code>SAN</code> 里。</li>
-<li>有效期是否过期。</li>
-<li>颁发者链是否完整。</li>
-<li>证书和私钥是否匹配。</li>
-</ul>
-<h2 id="5-这个专题和其他页的关系"><a href="#5-这个专题和其他页的关系" class="headerlink" title="5. 这个专题和其他页的关系"></a>5. 这个专题和其他页的关系</h2><ul>
-<li>证书验证流程会在 <a href="./01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80.md">HTTPS 与 TLS 基础</a> 里用到。</li>
-<li>设备证书生成和验证会在 <a href="./03-%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x509%E8%AF%81%E4%B9%A6.md">设备认证中的 x509 证书</a> 里展开。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>工作笔记</category>
-      </categories>
-      <tags>
-        <tag>架构和开发</tag>
-        <tag>Https</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>工业设备认证中的 x509 证书应用</title>
-    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/03-%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x509%E8%AF%81%E4%B9%A6/</url>
-    <content><![CDATA[<h1 id="设备认证中的-x509-证书"><a href="#设备认证中的-x509-证书" class="headerlink" title="设备认证中的 x509 证书"></a>设备认证中的 x509 证书</h1><p>在设备接入场景里，证书不只是给网页用，也常用于设备身份识别。核心目标是让平台确认“设备是谁”，并确认“设备确实持有对应私钥”。</p>
-<h2 id="1-为什么设备也要用证书"><a href="#1-为什么设备也要用证书" class="headerlink" title="1. 为什么设备也要用证书"></a>1. 为什么设备也要用证书</h2><ul>
-<li>设备需要向平台证明身份。</li>
-<li>平台需要确认这台设备是不是可信主体。</li>
-<li>连接建立后，还需要保证通信内容只能被双方读懂。</li>
-</ul>
-<h2 id="2-CA-分级思路"><a href="#2-CA-分级思路" class="headerlink" title="2. CA 分级思路"></a>2. CA 分级思路</h2><p>证书签发机构应该是可信第三方。企业内部通常会按用途划分为多级 CA：</p>
-<ul>
-<li>企业根 CA：最高信任锚点。</li>
-<li>中间 CA：负责具体业务域的签发和管理。</li>
-<li>设备证书：发给具体设备，用于接入认证。</li>
-</ul>
-<pre>
-企业根 CA
-  │
-  ├─ 中间 CA 1
-  │    ├─ 设备证书 A
-  │    └─ 设备证书 B
-  │
-  └─ 中间 CA 2
-       ├─ 供应商证书 C
-       └─ 供应商证书 D
-</pre>
-
-<h2 id="3-设备证书的生成"><a href="#3-设备证书的生成" class="headerlink" title="3. 设备证书的生成"></a>3. 设备证书的生成</h2><p>设备证书通常走“生成密钥对 -&gt; 创建 CSR -&gt; 用 CA 签发”的流程。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 生成密钥对</span><br>openssl genrsa -out e01.key 2048<br><br><span class="hljs-comment"># 生成证书签名请求</span><br>openssl req -new -key e01.key -out e01.csr<br><br><span class="hljs-comment"># 由中间 CA 签发设备证书</span><br>openssl x509 -req \<br>  -<span class="hljs-keyword">in</span> e01.csr \<br>  -CA ca.pem \<br>  -CAkey ca.key \<br>  -CAcreateserial \<br>  -out e01.pem \<br>  -days 500 -sha256<br></code></pre></td></tr></table></figure>
-
-<h2 id="4-设备证书的验证"><a href="#4-设备证书的验证" class="headerlink" title="4. 设备证书的验证"></a>4. 设备证书的验证</h2><p>设备认证通常分两步：</p>
-<ol>
-<li>验证证书链是否可信。</li>
-<li>验证持有证书私钥的主体，确实是证书对应的那台设备。</li>
-</ol>
-<h3 id="4-1-证书可信验证"><a href="#4-1-证书可信验证" class="headerlink" title="4.1 证书可信验证"></a>4.1 证书可信验证</h3><p>平台接收到设备证书后，通常会做这些事：</p>
-<ol>
-<li>读取证书颁发者信息，确认它是谁签发的。</li>
-<li>用上级 CA 的公钥验证证书签名。</li>
-<li>检查证书主体信息、有效期、用途扩展和撤销状态。</li>
-<li>如果链路完整，则认为证书可信。</li>
-</ol>
-<h3 id="4-2-实体可信验证"><a href="#4-2-实体可信验证" class="headerlink" title="4.2 实体可信验证"></a>4.2 实体可信验证</h3><p>平台还要确认“对面是否真的持有私钥”，常见做法是：</p>
-<ol>
-<li>平台生成随机数或会话密钥。</li>
-<li>用设备证书中的公钥相关能力进行加密或挑战。</li>
-<li>设备用私钥完成解密或签名响应。</li>
-<li>能正确响应的一方，才算真正持有该证书对应的私钥。</li>
-</ol>
-<pre>
-设备身份认证
-  ├─ 设备持有自己的证书和私钥
-  ├─ 平台校验证书链和签名
-  ├─ 平台发起挑战，确认私钥持有权
-  └─ 双方基于 TLS 建立加密通道
-</pre>
-
-<h2 id="5-和-HTTPS-的关系"><a href="#5-和-HTTPS-的关系" class="headerlink" title="5. 和 HTTPS 的关系"></a>5. 和 HTTPS 的关系</h2><p>设备认证本质上和 HTTPS 的服务端认证是同一类问题：</p>
-<ul>
-<li>都依赖证书链。</li>
-<li>都依赖 CA 信任锚。</li>
-<li>都依赖私钥持有证明。</li>
-<li>都依赖 TLS 作为传输安全底座。</li>
-</ul>
-<h2 id="6-相关入口"><a href="#6-相关入口" class="headerlink" title="6. 相关入口"></a>6. 相关入口</h2><ul>
-<li>证书结构和信任链： <a href="./02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE.md">x509 证书与信任链</a></li>
-<li>TLS 连接如何建立： <a href="./01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80.md">HTTPS 与 TLS 基础</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>工作笔记</category>
-      </categories>
-      <tags>
-        <tag>架构和开发</tag>
-        <tag>Https</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Let&#39;s Encrypt 与 Nginx HTTPS 快速部署</title>
-    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/04-LetsEncrypt%E4%B8%8ENginx%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2/</url>
-    <content><![CDATA[<h1 id="Let’s-Encrypt-与-Nginx-快速部署"><a href="#Let’s-Encrypt-与-Nginx-快速部署" class="headerlink" title="Let’s Encrypt 与 Nginx 快速部署"></a>Let’s Encrypt 与 Nginx 快速部署</h1><p>如果只是想快速把站点切到 HTTPS，最常见的方式是让 Nginx 终止 TLS，然后通过 Let’s Encrypt 自动申请和续期证书。</p>
-<h2 id="1-为什么选这个方案"><a href="#1-为什么选这个方案" class="headerlink" title="1. 为什么选这个方案"></a>1. 为什么选这个方案</h2><ul>
-<li>Nginx 很适合作为统一入口，终止 TLS。</li>
-<li>Let’s Encrypt 提供免费证书。</li>
-<li>申请和续期可以自动化，手工运维成本低。</li>
-</ul>
-<h2 id="2-Let’s-Encrypt-的原理"><a href="#2-Let’s-Encrypt-的原理" class="headerlink" title="2. Let’s Encrypt 的原理"></a>2. Let’s Encrypt 的原理</h2><p>Let’s Encrypt 的核心是 <code>ACME</code> 协议。它不是“直接给你一张证书”，而是先验证你对域名的控制权，再签发证书。</p>
-<p>运作逻辑可以概括为：</p>
-<ol>
-<li>申请者生成自己的私钥。</li>
-<li>申请者向 ACME 服务端发起签发请求。</li>
-<li>ACME 要求申请者完成域名控制验证。</li>
-<li>通过验证后，CA 签发域名证书。</li>
-<li>证书有效期较短，需要自动续期。</li>
-</ol>
-<h2 id="3-常见验证方式"><a href="#3-常见验证方式" class="headerlink" title="3. 常见验证方式"></a>3. 常见验证方式</h2><ul>
-<li><code>HTTP-01</code>：在网站上放一个指定的校验文件，证明你能控制这个 HTTP 服务。</li>
-<li><code>DNS-01</code>：在 DNS 里放一个指定记录，适合通配符证书，也适合无法开放 80 端口的场景。</li>
-<li><code>TLS-ALPN-01</code>：通过 TLS 握手阶段完成验证，适合一些更专门的部署场景。</li>
-</ul>
-<pre>
-证书申请流程
-  ├─ 申请人生成私钥
-  ├─ 向 ACME 发起申请
-  ├─ 完成域名控制验证
-  ├─ CA 签发证书
-  └─ 自动续期并更新服务端配置
-</pre>
-
-<h2 id="4-两种常见实施方式"><a href="#4-两种常见实施方式" class="headerlink" title="4. 两种常见实施方式"></a>4. 两种常见实施方式</h2><h3 id="4-1-让-Certbot-直接接管-Nginx"><a href="#4-1-让-Certbot-直接接管-Nginx" class="headerlink" title="4.1 让 Certbot 直接接管 Nginx"></a>4.1 让 Certbot 直接接管 Nginx</h3><p>适合已经由 Nginx 代理站点的场景，Certbot 可以自动改写配置并申请证书。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">certbot --nginx -d example.com -d www.example.com<br></code></pre></td></tr></table></figure>
-
-<p>优点是简单，适合快速落地；缺点是对 Nginx 配置自动化改动比较多，需要保留好原始配置。</p>
-<h3 id="4-2-使用-webroot-模式"><a href="#4-2-使用-webroot-模式" class="headerlink" title="4.2 使用 webroot 模式"></a>4.2 使用 webroot 模式</h3><p>适合你想自己掌控 Nginx 配置，只让 Certbot 负责签发和续期。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">certbot certonly --webroot -w /var/www/html -d example.com -d www.example.com<br></code></pre></td></tr></table></figure>
-
-<p>这种方式下，Certbot 会把 ACME 验证文件放到指定站点目录里，再由 Nginx 对外提供访问。</p>
-<h2 id="5-HTTP-01-的-Nginx-配置"><a href="#5-HTTP-01-的-Nginx-配置" class="headerlink" title="5. HTTP-01 的 Nginx 配置"></a>5. HTTP-01 的 Nginx 配置</h2><p>HTTP-01 验证的关键点是：</p>
-<ul>
-<li>CA 会访问 <code>http://example.com/.well-known/acme-challenge/...</code></li>
-<li>你的网站必须能把这个验证文件正确返回给外部</li>
-<li>只有域名确实指向你当前的服务器，这一步才会成功</li>
-</ul>
-<figure class="highlight nginx"><table><tr><td class="code"><pre><code class="hljs nginx"><span class="hljs-section">server</span> &#123;<br>    <span class="hljs-attribute">listen</span> <span class="hljs-number">80</span>;<br>    <span class="hljs-attribute">server_name</span> example.com;<br><br>    <span class="hljs-section">location</span> /.well-known/acme-challenge/ &#123;<br>        <span class="hljs-attribute">root</span> /var/www/html;<br>    &#125;<br><br>    <span class="hljs-section">location</span> / &#123;<br>        <span class="hljs-attribute">return</span> <span class="hljs-number">301</span> https://<span class="hljs-variable">$host</span><span class="hljs-variable">$request_uri</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>如果你用的是 <code>webroot</code>，就让 Certbot 把验证文件写到 <code>/var/www/html/.well-known/acme-challenge/</code>，CA 再来取文件完成校验。</p>
-<h2 id="6-DNS-01-适合什么情况"><a href="#6-DNS-01-适合什么情况" class="headerlink" title="6. DNS-01 适合什么情况"></a>6. DNS-01 适合什么情况</h2><p>DNS-01 的思路不是访问网站，而是验证你是否能修改域名 DNS 记录。</p>
-<ul>
-<li>适合通配符证书，例如 <code>*.example.com</code></li>
-<li>适合 80 端口不方便暴露的环境</li>
-<li>适合有自动化 DNS API 的云环境</li>
-</ul>
-<h2 id="7-自动续期"><a href="#7-自动续期" class="headerlink" title="7. 自动续期"></a>7. 自动续期</h2><p>Let’s Encrypt 证书有效期较短，运维重点不是“申请一次就完了”，而是“把续期做自动化”。</p>
-<p>常见做法：</p>
-<ol>
-<li>定期执行续期命令。</li>
-<li>证书更新后 reload Nginx。</li>
-<li>用定时任务或 systemd timer 托管。</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">certbot renew --quiet<br>nginx -t &amp;&amp; systemctl reload nginx<br></code></pre></td></tr></table></figure>
-
-<h2 id="8-部署检查项"><a href="#8-部署检查项" class="headerlink" title="8. 部署检查项"></a>8. 部署检查项</h2><ul>
-<li>域名解析是否正确指向服务器。</li>
-<li>80 端口是否可达，HTTP-01 是否会被外部访问到。</li>
-<li>Nginx 是否允许 <code>/.well-known/acme-challenge/</code> 路径正常返回。</li>
-<li>证书是否已经自动续期。</li>
-<li>续期后是否成功 reload 了 Nginx。</li>
-<li>是否需要通配符证书，如果需要就优先考虑 DNS-01。</li>
-</ul>
-<h2 id="9-和其他专题的关系"><a href="#9-和其他专题的关系" class="headerlink" title="9. 和其他专题的关系"></a>9. 和其他专题的关系</h2><ul>
-<li>想看证书结构，去看 <a href="./02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE.md">x509 证书与信任链</a></li>
-<li>想看 TLS 连接如何建立，去看 <a href="./01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80.md">HTTPS 与 TLS 基础</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>工作笔记</category>
-      </categories>
-      <tags>
-        <tag>架构和开发</tag>
-        <tag>Https</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>HTTPS、TLS 与 x509 专题索引</title>
-    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/README/</url>
-    <content><![CDATA[<h1 id="HTTPS-知识索引"><a href="#HTTPS-知识索引" class="headerlink" title="HTTPS 知识索引"></a>HTTPS 知识索引</h1><p>这组笔记按“小专题”拆开，方便单独阅读，也方便后续持续补充。</p>
-<h2 id="阅读顺序"><a href="#阅读顺序" class="headerlink" title="阅读顺序"></a>阅读顺序</h2><ol>
-<li><a href="./01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80.md">HTTPS 与 TLS 基础</a></li>
-<li><a href="./02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE.md">x509 证书与信任链</a></li>
-<li><a href="./03-%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x509%E8%AF%81%E4%B9%A6.md">设备认证中的 x509 证书</a></li>
-<li><a href="./04-LetsEncrypt%E4%B8%8ENginx%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2.md">Let’s Encrypt 与 Nginx 快速部署</a></li>
-<li><a href="./05%20%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8Https%E6%9C%8D%E5%8A%A1.md">调用外部 HTTPS 服务</a></li>
-</ol>
-<h2 id="主题地图"><a href="#主题地图" class="headerlink" title="主题地图"></a>主题地图</h2><ul>
-<li>协议层：HTTPS 做了什么，TLS 握手如何工作。</li>
-<li>证书层：x509 证书包含什么，信任链如何建立。</li>
-<li>设备层：设备如何用证书证明身份并完成接入。</li>
-<li>运维层：如何用 Nginx 和 Let’s Encrypt 快速部署 HTTPS。</li>
-<li>应用层：Java 程序如何信任外部 HTTPS 服务。</li>
-</ul>
-<h2 id="快速入口"><a href="#快速入口" class="headerlink" title="快速入口"></a>快速入口</h2><ul>
-<li>想先理解整体流程，去看 <a href="./01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80.md">HTTPS 与 TLS 基础</a></li>
-<li>想理解证书结构和验证逻辑，去看 <a href="./02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE.md">x509 证书与信任链</a></li>
-<li>想看工业&#x2F;IoT 设备接入，去看 <a href="./03-%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x509%E8%AF%81%E4%B9%A6.md">设备认证中的 x509 证书</a></li>
-<li>想快速上线站点 HTTPS，去看 <a href="./04-LetsEncrypt%E4%B8%8ENginx%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2.md">Let’s Encrypt 与 Nginx 快速部署</a></li>
-<li>想排查 Java 调外部 HTTPS 服务报错，去看 <a href="./05%20%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8Https%E6%9C%8D%E5%8A%A1.md">调用外部 HTTPS 服务</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>工作笔记</category>
-      </categories>
-      <tags>
-        <tag>架构和开发</tag>
-        <tag>Https</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Java 调用外部 HTTPS 服务与证书信任处理</title>
-    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/05%20%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8Https%E6%9C%8D%E5%8A%A1/</url>
-    <content><![CDATA[<h1 id="调用外部-HTTPS-服务"><a href="#调用外部-HTTPS-服务" class="headerlink" title="调用外部 HTTPS 服务"></a>调用外部 HTTPS 服务</h1><p>当 Java 程序调用外部 HTTPS 服务时，如果 JVM 不信任对方证书，就会出现证书链校验失败。</p>
-<p>常见报错如下：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><code class="hljs text">sun.security.validator.ValidatorException: PKIX path building failed:<br>sun.security.provider.certpath.SunCertPathBuilderException:<br>unable to find valid certification path to requested target<br></code></pre></td></tr></table></figure>
-
-<p>这类问题的本质通常不是“网络不通”，而是“JVM 无法把目标服务的证书链连接到自己信任的根证书”。</p>
-<h2 id="1-问题现象"><a href="#1-问题现象" class="headerlink" title="1. 问题现象"></a>1. 问题现象</h2><ul>
-<li>程序可以连到目标地址，但 HTTPS 握手失败。</li>
-<li>报错通常出现在 <code>RestTemplate</code>、<code>WebClient</code>、<code>HttpClient</code> 或第三方 SDK 中。</li>
-<li>目标服务在浏览器里可能是正常的，但 Java 进程仍然报不信任。</li>
-</ul>
-<h2 id="2-常见原因"><a href="#2-常见原因" class="headerlink" title="2. 常见原因"></a>2. 常见原因</h2><ul>
-<li>目标服务使用了自签名证书。</li>
-<li>目标服务证书链不完整。</li>
-<li>证书由内部 CA 签发，但 JVM truststore 里没有对应 CA。</li>
-<li>使用了新的证书，但应用还在读旧的 truststore。</li>
-<li>证书域名和访问域名不匹配，触发了额外校验失败。</li>
-</ul>
-<h2 id="3-解决思路"><a href="#3-解决思路" class="headerlink" title="3. 解决思路"></a>3. 解决思路</h2><p>通常有两种做法：</p>
-<ol>
-<li>把目标服务信任链导入 JVM 的 truststore，让 JVM 直接信任它。</li>
-<li>在应用里显式指定自定义信任库或证书工厂，只让这一个客户端信任目标服务。</li>
-</ol>
-<p>一般建议优先选择第一种，因为它更符合生产环境的信任管理方式。</p>
-<h2 id="4-方案一：导入-JVM-truststore"><a href="#4-方案一：导入-JVM-truststore" class="headerlink" title="4. 方案一：导入 JVM truststore"></a>4. 方案一：导入 JVM truststore</h2><p>这是最常见、也最容易长期维护的方案。</p>
-<h3 id="4-1-适合什么场景"><a href="#4-1-适合什么场景" class="headerlink" title="4.1 适合什么场景"></a>4.1 适合什么场景</h3><ul>
-<li>内部系统调用固定域名的 HTTPS 服务。</li>
-<li>目标证书链稳定。</li>
-<li>希望所有基于该 JVM 的客户端都能信任这个服务。</li>
-</ul>
-<h3 id="4-2-推荐做法"><a href="#4-2-推荐做法" class="headerlink" title="4.2 推荐做法"></a>4.2 推荐做法</h3><p>通常更建议导入签发目标服务证书的 CA 证书或中间证书链，而不是只导入单张叶子证书。这样后续服务端证书更新时，客户端侧不一定要频繁改。</p>
-<h3 id="4-3-导入命令"><a href="#4-3-导入命令" class="headerlink" title="4.3 导入命令"></a>4.3 导入命令</h3><figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">keytool -importcert ^<br>  -<span class="hljs-built_in">alias</span> target-service-ca ^<br>  -file C:\Users\manulism\Desktop\fsdownload\chain.pem ^<br>  -keystore D:\develop\jdk1.8.0_121\jre\lib\security\cacerts<br></code></pre></td></tr></table></figure>
-
-<p>执行过程中通常需要输入 truststore 密码，默认 JDK <code>cacerts</code> 常见密码是 <code>changeit</code>。</p>
-<h3 id="4-4-导入后要做什么"><a href="#4-4-导入后要做什么" class="headerlink" title="4.4 导入后要做什么"></a>4.4 导入后要做什么</h3><ul>
-<li>重启 Java 应用进程。</li>
-<li>如果是容器化部署，确认镜像里的 truststore 已经更新。</li>
-<li>如果服务有多个 JVM 实例，要确认每个实例都加载了新的 truststore。</li>
-</ul>
-<h3 id="4-5-注意事项"><a href="#4-5-注意事项" class="headerlink" title="4.5 注意事项"></a>4.5 注意事项</h3><ul>
-<li>不要随意把不可信的公钥或证书导入全局 truststore。</li>
-<li>如果是生产环境，最好使用独立 truststore，而不是直接改 JDK 自带的 <code>cacerts</code>。</li>
-<li>如果证书是轮换发布的，要确认链路里有稳定的 CA 证书可用。</li>
-</ul>
-<h2 id="5-方案二：应用内指定信任库"><a href="#5-方案二：应用内指定信任库" class="headerlink" title="5. 方案二：应用内指定信任库"></a>5. 方案二：应用内指定信任库</h2><p>如果只想让某一个调用外部 HTTPS 的客户端信任特定证书，可以在代码里创建定制化的 SSL 请求工厂。</p>
-<h3 id="5-1-适合什么场景"><a href="#5-1-适合什么场景" class="headerlink" title="5.1 适合什么场景"></a>5.1 适合什么场景</h3><ul>
-<li>只想影响某一个服务调用，不想修改全局 JVM truststore。</li>
-<li>目标服务证书是临时环境、测试环境或专属内网服务。</li>
-<li>应用里有明确的证书加载逻辑和配置管理。</li>
-</ul>
-<h3 id="5-2-RestTemplate-示例"><a href="#5-2-RestTemplate-示例" class="headerlink" title="5.2 RestTemplate 示例"></a>5.2 RestTemplate 示例</h3><figure class="highlight java"><table><tr><td class="code"><pre><code class="hljs java"><span class="hljs-type">ClientHttpRequestFactory</span> <span class="hljs-variable">requestFactory</span> <span class="hljs-operator">=</span><br>    createSslAwareRequestFactory(resourceLoader, environment);<br><br><span class="hljs-keyword">if</span> (requestFactory != <span class="hljs-literal">null</span>) &#123;<br>    restTemplate.setRequestFactory(requestFactory);<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p>这段代码的重点不在于 <code>RestTemplate</code> 本身，而在于 <code>createSslAwareRequestFactory(...)</code> 里创建的 SSL 上下文。</p>
-<p>通常实现上会做这些事：</p>
-<ul>
-<li>从配置文件或资源目录加载证书文件。</li>
-<li>构建 <code>KeyStore</code> 或 <code>TrustStore</code>。</li>
-<li>使用该 truststore 初始化 <code>SSLContext</code>。</li>
-<li>把 <code>SSLContext</code> 注入 HTTP 客户端。</li>
-</ul>
-<h3 id="5-3-这种方式的优缺点"><a href="#5-3-这种方式的优缺点" class="headerlink" title="5.3 这种方式的优缺点"></a>5.3 这种方式的优缺点</h3><p>优点：</p>
-<ul>
-<li>隔离性好，不影响其他 HTTP 调用。</li>
-<li>便于做多环境切换。</li>
-<li>适合局部定制信任策略。</li>
-</ul>
-<p>缺点：</p>
-<ul>
-<li>代码复杂度更高。</li>
-<li>需要自己维护证书加载和更新逻辑。</li>
-<li>如果项目里有多个 HTTP 客户端，容易出现配置不一致。</li>
-</ul>
-<h2 id="6-排查顺序"><a href="#6-排查顺序" class="headerlink" title="6. 排查顺序"></a>6. 排查顺序</h2><p>当你看到 <code>PKIX path building failed</code> 时，可以按下面顺序查：</p>
-<ol>
-<li>先确认目标服务证书链是否完整。</li>
-<li>再确认 JVM 是否已经信任对应 CA。</li>
-<li>再确认访问域名和证书 <code>SAN</code> 是否匹配。</li>
-<li>再确认应用加载的是不是正确的 truststore。</li>
-<li>最后再看是否是代理、网关或中间层改写了 TLS 链路。</li>
-</ol>
-<h2 id="7-建议的实践"><a href="#7-建议的实践" class="headerlink" title="7. 建议的实践"></a>7. 建议的实践</h2><ul>
-<li>生产环境尽量使用独立 truststore。</li>
-<li>内部服务优先信任 CA，而不是单独信任某一张叶子证书。</li>
-<li>证书更新时同步检查应用配置和重启策略。</li>
-<li>不要把关闭证书校验当作长期方案。</li>
-</ul>
-<h2 id="8-小结"><a href="#8-小结" class="headerlink" title="8. 小结"></a>8. 小结</h2><p>调用外部 HTTPS 服务报错时，核心问题几乎总是“信任链不成立”。</p>
-<ul>
-<li>如果希望全局生效，就把 CA 链导入 JVM truststore。</li>
-<li>如果只想局部生效，就在客户端里注入自定义 SSL 配置。</li>
-<li>如果是长期生产场景，优先考虑稳定的 CA 管理和证书更新流程。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>工作笔记</category>
-      </categories>
-      <tags>
-        <tag>架构和开发</tag>
-        <tag>Https</tag>
       </tags>
   </entry>
   <entry>
@@ -8506,7 +8657,7 @@ HTTPS 通信成立
 ---
 
 <h2 id="3-算法核心逻辑"><a href="#3-算法核心逻辑" class="headerlink" title="3. 算法核心逻辑"></a>3. 算法核心逻辑</h2><h3 id="3-1-无约束时"><a href="#3-1-无约束时" class="headerlink" title="3.1 无约束时"></a>3.1 无约束时</h3><p>如果当前点不靠近约束边界，直接用<strong>负梯度方向</strong>：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><code class="hljs text">direction = -∇f(x)<br></code></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">direction = -∇f(x)</span><br></pre></td></tr></table></figure>
 
 <p>意思很简单：朝着能耗下降最快的方向走。</p>
 <h3 id="3-2-有约束时"><a href="#3-2-有约束时" class="headerlink" title="3.2 有约束时"></a>3.2 有约束时</h3><p>如果当前点已经接近约束边界，单纯的负梯度可能会把点带出可行域，所以需要先做两步：</p>
@@ -8543,7 +8694,7 @@ HTTPS 通信成立
 <hr>
 <h2 id="5-神经网络怎么升级"><a href="#5-神经网络怎么升级" class="headerlink" title="5. 神经网络怎么升级"></a>5. 神经网络怎么升级</h2><p>如果想做得更“精确”和“前沿”，最推荐的方向不是直接拿神经网络替代全部优化，而是做成<strong>神经网络 + 约束优化的混合框架</strong>。</p>
 <h3 id="5-1-推荐方案：监督学习-surrogate-可微优化"><a href="#5-1-推荐方案：监督学习-surrogate-可微优化" class="headerlink" title="5.1 推荐方案：监督学习 surrogate + 可微优化"></a>5.1 推荐方案：监督学习 surrogate + 可微优化</h3><p>把当前的能耗方程替换成一个神经网络近似模型：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><code class="hljs text">输入: 温度、湿度、环境温度、季节、产线负荷、设备状态...<br>输出: 预测能耗<br></code></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">输入: 温度、湿度、环境温度、季节、产线负荷、设备状态...</span><br><span class="line">输出: 预测能耗</span><br></pre></td></tr></table></figure>
 
 <p>然后在这个可微模型上继续做优化：</p>
 <ul>
@@ -8676,248 +8827,6 @@ HTTPS 通信成立
       <tags>
         <tag>AI与智能体</tag>
         <tag>工业算法</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>前端多语言资源按需加载</title>
-    <url>/2026/09/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD/</url>
-    <content><![CDATA[<h2 id="1-阅读导引"><a href="#1-阅读导引" class="headerlink" title="1. 阅读导引"></a>1. 阅读导引</h2><p>当一个前端应用包含多个业务模块或子应用时，如果在启动阶段一次性加载全部语言资源，会增加首屏资源体积和初始化耗时。更合适的做法是将资源按使用范围拆分：公共资源随应用初始化加载，业务模块资源在真正进入模块时，按照当前语言按需加载。</p>
-<p>本文结合 <code>tighten</code>、<code>pdm</code>、<code>pressFit</code> 等 App 的资源组织方式，介绍资源分层、命名约定、加载时机、缓存、合并和运行时切换等问题。除了为全新 App 建立独立页面和语言资源，方案还需要支持 <code>pressFit</code> 这类复用已有 App 页面、但使用自身业务术语的场景。</p>
-<p>本次优化主要实现以下目标：</p>
-<ul>
-<li>公共资源常驻，业务 App 资源按当前语言加载，控制首屏资源体积。</li>
-<li>全新 App 可以建立独立页面、namespace 和语言资源。</li>
-<li>复用 App 可以沿用既有页面和翻译 key，同时通过独立语言文件呈现自身术语。</li>
-<li>App 切换和语言切换时正确应用目标资源，避免共享 namespace 带来的文案残留。</li>
-</ul>
-<p>示例用于说明方案如何落地，具体实现仍可以由项目使用的国际化库和构建工具负责承载。</p>
-<h2 id="2-资源分层与命名约定"><a href="#2-资源分层与命名约定" class="headerlink" title="2. 资源分层与命名约定"></a>2. 资源分层与命名约定</h2><h3 id="2-1-资源分层"><a href="#2-1-资源分层" class="headerlink" title="2.1 资源分层"></a>2.1 资源分层</h3><p>多语言资源可以按使用范围分为两类：</p>
-<table>
-<thead>
-<tr>
-<th>类型</th>
-<th>资源范围</th>
-<th>加载时机</th>
-<th>适用场景</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>公共资源</td>
-<td>导航、登录、基础组件、平台级功能</td>
-<td>应用初始化时</td>
-<td>多个模块都会使用的通用文案</td>
-</tr>
-<tr>
-<td>业务资源</td>
-<td><code>tighten</code>、<code>pdm</code>、<code>irun</code>、<code>energy</code> 等 App 的专属文案</td>
-<td>进入对应 App 时</td>
-<td>仅部分用户或部分页面会使用的文案</td>
-</tr>
-</tbody></table>
-<p>公共资源应保持稳定、精简，避免把大量业务文案不断加入公共资源。业务资源则以模块为边界拆分，使资源加载范围与用户当前访问范围保持一致。</p>
-<h3 id="2-2-命名约定"><a href="#2-2-命名约定" class="headerlink" title="2.2 命名约定"></a>2.2 命名约定</h3><p>每个业务模块需要有一个稳定的资源前缀，资源文件名由模块前缀、标准化语言标识和扩展名组成：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">&#123;module&#125;_&#123;locale&#125;.json</span><br></pre></td></tr></table></figure>
-
-<p>例如，<code>tighten</code> App 的资源前缀为 <code>tighten</code>，中文和英文资源可以命名为：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">tighten_zh-CN.json</span><br><span class="line">tighten_en.json</span><br></pre></td></tr></table></figure>
-
-<p>App 配置只需要保存资源前缀，不应同时保存语言标识和文件扩展名。例如，数据库字段 <code>lang_file</code> 保存 <code>tighten</code>，后端返回给前端的 App 配置可表示为 <code>langFile: &quot;tighten&quot;</code>。语言标识由当前用户语言统一计算，避免配置与实际语言状态不一致。</p>
-<p>如果某个模块没有额外语言资源，可以将资源前缀配置为空，加载器应直接跳过请求。</p>
-<p>资源配置的职责是选择已经随前端版本发布的资源，而不是让前端任意从服务端下载 JSON。新增或修改资源后，应与前端版本一起构建和发布。</p>
-<h2 id="3-目录组织"><a href="#3-目录组织" class="headerlink" title="3. 目录组织"></a>3. 目录组织</h2><p>推荐将公共资源和业务资源分开存放：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">locale/</span><br><span class="line">├── base/                    # 公共资源</span><br><span class="line">│   ├── common_zh-CN.json</span><br><span class="line">│   ├── common_en.json</span><br><span class="line">│   ├── core_zh-CN.json</span><br><span class="line">│   └── core_en.json</span><br><span class="line">└── apps/                    # 业务 App 资源</span><br><span class="line">    ├── tighten_zh-CN.json</span><br><span class="line">    ├── tighten_en.json</span><br><span class="line">    ├── pdm_zh-CN.json</span><br><span class="line">    ├── pdm_en.json</span><br><span class="line">    └── ...</span><br></pre></td></tr></table></figure>
-
-<p>目录名称可以根据项目习惯调整，但应保证公共资源和业务资源有明确边界。构建工具的按需加载范围只应覆盖业务资源目录，避免公共资源被重复打包或重复请求。</p>
-<h2 id="4-应用初始化与公共资源"><a href="#4-应用初始化与公共资源" class="headerlink" title="4. 应用初始化与公共资源"></a>4. 应用初始化与公共资源</h2><p>应用初始化阶段只注册公共资源和基础组件所需的语言资源。例如，<code>common</code> 可以承载登录、导航等通用文案，<code>core</code> 可以承载平台管理等核心功能文案。初始化完成后，这些页面可以直接使用公共翻译。</p>
-<p>初始化阶段不应根据菜单或权限列表批量加载所有业务模块资源。菜单和权限信息可以用于生成可访问路由，但不应因此触发业务语言文件的加载。</p>
-<p>这种划分可以将“应用能够启动所必需的资源”和“用户访问特定功能后才需要的资源”分开，降低首屏加载压力。</p>
-<h2 id="5-进入业务模块时的加载流程"><a href="#5-进入业务模块时的加载流程" class="headerlink" title="5. 进入业务模块时的加载流程"></a>5. 进入业务模块时的加载流程</h2><p>资源加载应发生在页面首次渲染之前。以用户首次进入 <code>tighten</code> App、当前语言为 <code>zh-CN</code> 为例，完整流程如下：</p>
-<ol>
-<li>路由或页面上下文确定当前所属 App 为 <code>tighten</code>。</li>
-<li>从 App 配置中取得资源前缀 <code>tighten</code>，并读取当前生效的语言 <code>zh-CN</code>。</li>
-<li>将不同格式的语言标识统一为系统支持的标准格式，例如将多种中文写法统一为 <code>zh-CN</code>，将英文区域语言统一为 <code>en</code>。</li>
-<li>根据资源前缀和标准语言标识生成资源请求键 <code>./tighten_zh-CN.json</code>。</li>
-<li>通过构建工具提供的静态资源映射或按需加载机制请求该资源。</li>
-<li>资源加载完成后，将 <code>tighten</code> 的 messages 合并到 <code>zh-CN</code> 语言的资源集合中。</li>
-<li>确认资源准备完成后，再继续路由跳转或页面渲染。</li>
-</ol>
-<p>资源加载属于页面进入流程的一部分，而不是组件渲染后的补救动作。这样可以避免页面短暂显示翻译 key，也能让资源加载失败进入统一的错误处理流程。</p>
-<h2 id="6-公共资源判断"><a href="#6-公共资源判断" class="headerlink" title="6. 公共资源判断"></a>6. 公共资源判断</h2><p>资源加载器应维护公共资源前缀集合，例如：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">&#123;common, core&#125;</span><br></pre></td></tr></table></figure>
-
-<p>当 <code>langFile</code> 为 <code>common</code>、<code>core</code> 或空值时，加载器直接复用初始化阶段已经注册的 messages，不再发起业务资源请求。公共资源集合应集中维护，并在新增公共模块时同步更新。</p>
-<h2 id="7-按需加载与缓存策略"><a href="#7-按需加载与缓存策略" class="headerlink" title="7. 按需加载与缓存策略"></a>7. 按需加载与缓存策略</h2><h3 id="7-1-资源映射"><a href="#7-1-资源映射" class="headerlink" title="7.1 资源映射"></a>7.1 资源映射</h3><p>动态资源加载需要依赖构建阶段生成的静态资源映射。运行时请求的资源键必须与构建工具收集到的资源键保持一致，例如使用映射中的 <code>./tighten_zh-CN.json</code>，而不是自行拼出一段无法与构建结果对应的完整目录路径。</p>
-<p>这种约束可以让构建工具提前发现资源引用，并将业务语言文件拆分为独立资源。目录、文件名或语言标识不一致时，应在构建或发布阶段尽早暴露问题。</p>
-<h3 id="7-2-缓存维度"><a href="#7-2-缓存维度" class="headerlink" title="7.2 缓存维度"></a>7.2 缓存维度</h3><p>缓存键至少应包含业务模块和语言两个维度：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">&#123;langFile&#125;_&#123;locale&#125;</span><br></pre></td></tr></table></figure>
-
-<p>推荐遵循以下规则：</p>
-<ul>
-<li>加载中的请求缓存为 Promise，避免并发进入同一模块时重复请求。</li>
-<li>加载成功后缓存解析后的 messages，后续进入同一模块时直接复用。</li>
-<li>每次进入模块时重新应用该模块的 messages，以支持多个模块复用同一个 namespace。</li>
-<li>加载失败时清理对应缓存，允许后续重新尝试。</li>
-<li>不同语言分别缓存，例如 <code>tighten_zh-CN</code> 与 <code>tighten_en</code> 互不影响。</li>
-</ul>
-<p>缓存应区分“正在加载的请求”和“已经加载完成的资源”，这样既能合并并发请求，也能避免把失败状态永久留在缓存中。</p>
-<h2 id="8-运行时切换语言"><a href="#8-运行时切换语言" class="headerlink" title="8. 运行时切换语言"></a>8. 运行时切换语言</h2><p>运行时切换语言时，不能只更新全局语言标识，还需要确保当前页面所需的目标语言资源已经准备完成。推荐的处理顺序如下：</p>
-<ol>
-<li>规范化目标语言。</li>
-<li>确定当前页面所属的业务模块。</li>
-<li>如果当前页面属于业务模块，加载并合并该模块的目标语言资源；如果只依赖公共资源，则直接复用已有资源。</li>
-<li>资源准备完成后，更新全局语言状态。</li>
-<li>触发页面重新渲染，使公共文案和业务文案同时切换。</li>
-</ol>
-<p>例如，用户在 <code>tighten</code> 页面从中文切换到英文时，只需加载并合并 <code>tighten_en.json</code>，不需要同时加载 <code>pdm_en.json</code>、<code>irun_en.json</code> 等其他 App 资源。用户之后进入其他 App 时，再按相同规则加载对应资源。</p>
-<h2 id="9-messages-合并规则"><a href="#9-messages-合并规则" class="headerlink" title="9. messages 合并规则"></a>9. messages 合并规则</h2><p>业务资源通常以 namespace 组织，并合并到当前语言已有的 messages 中。建议明确以下规则：</p>
-<ul>
-<li>对象节点采用递归合并，保留未被覆盖的其他资源。</li>
-<li>普通值和数组由新资源覆盖，避免产生不明确的部分合并结果。</li>
-<li>合并前复制资源对象，避免修改缓存中的原始内容。</li>
-<li>业务模块的默认 namespace 与资源前缀保持一致，便于定位和维护。</li>
-<li>如果多个模块需要复用同一套页面文案，可以显式共享 namespace，但应记录复用关系。</li>
-</ul>
-<p>例如，模块资源可以使用以下结构：</p>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;tighten&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;example&quot;</span><span class="punctuation">:</span> <span class="string">&quot;示例&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>通常，App 的顶层 namespace 与 <code>langFile</code> 一致。需要复用既有页面时，也可以共享 namespace。例如，<code>pressFit_zh-CN.json</code> 的顶层仍使用 <code>tighten</code>，从而复用页面中的 <code>tighten.example</code> 等完整翻译 key，而不必复制和改写整套页面文案。</p>
-<p>资源加载器需要分别缓存 <code>tighten</code> 和 <code>pressFit</code> 的 messages，并在进入 App 时重新应用当前资源。这样即使两个 App 共享 namespace，也不会遗留上一个 App 对同名术语的覆盖结果。</p>
-<h2 id="10-新增-App-的两种接入方式"><a href="#10-新增-App-的两种接入方式" class="headerlink" title="10. 新增 App 的两种接入方式"></a>10. 新增 App 的两种接入方式</h2><p>新增 App 时，首先需要判断它是拥有独立业务页面，还是复用已有 App 的页面。两种场景都需要独立的 App 配置，但页面、namespace 和语言资源的组织方式不同。</p>
-<h3 id="10-1-全新-App：新增一套页面"><a href="#10-1-全新-App：新增一套页面" class="headerlink" title="10.1 全新 App：新增一套页面"></a>10.1 全新 App：新增一套页面</h3><p>全新 App 拥有独立的业务页面和术语体系，适合使用独立的资源前缀与 namespace。以新增质量管理 App <code>quality</code> 为例：</p>
-<ol>
-<li>新增 <code>quality</code> 对应的页面和路由，并让路由能够关联到该 App。</li>
-<li>在 App 配置中设置 <code>lang_file = quality</code>，前端取得 <code>langFile: &quot;quality&quot;</code>。</li>
-<li>创建 <code>quality_zh-CN.json</code>、<code>quality_en.json</code> 等语言资源。</li>
-<li>语言文件使用 <code>quality</code> 作为顶层 namespace。</li>
-<li>新页面统一使用 <code>quality.xxx</code> 形式的翻译 key。</li>
-<li>将页面和语言资源一起构建发布，再启用对应的 App 配置。</li>
-</ol>
-<div style="font-family:Arial,'Microsoft YaHei',sans-serif;margin:16px 0;padding:14px;border:1px solid #d7dde8;border-radius:10px;background:#f8fafc;">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-    <div style="font-size:16px;font-weight:700;color:#1f3b57;">全新 App 接入流程</div>
-    <div style="font-size:12px;font-weight:700;color:#1d4ed8;background:#eaf2ff;border:1px solid #bfdbfe;border-radius:999px;padding:4px 9px;">独立页面模式 · quality</div>
-  </div>
-  <div style="display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;">
-    <div style="flex:1 1 170px;min-width:150px;border:1px solid #bfdbfe;border-top:4px solid #2563eb;border-radius:8px;background:#ffffff;padding:12px;">
-      <div style="font-size:12px;font-weight:700;color:#2563eb;margin-bottom:6px;">01 · APP 与页面</div>
-      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">创建 quality App</div>
-      <div style="font-size:13px;line-height:1.65;color:#475569;">新增独立页面<br/>新增独立路由</div>
-    </div>
-    <div style="flex:1 1 170px;min-width:150px;border:1px solid #a7d8b7;border-top:4px solid #2e8b57;border-radius:8px;background:#ffffff;padding:12px;">
-      <div style="font-size:12px;font-weight:700;color:#24713b;margin-bottom:6px;">02 · 配置与资源</div>
-      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">langFile: quality</div>
-      <div style="font-size:13px;line-height:1.65;color:#475569;">quality_zh-CN.json<br/>quality_en.json</div>
-    </div>
-    <div style="flex:1 1 170px;min-width:150px;border:1px solid #e7c995;border-top:4px solid #d97706;border-radius:8px;background:#ffffff;padding:12px;">
-      <div style="font-size:12px;font-weight:700;color:#a65f00;margin-bottom:6px;">03 · 翻译契约</div>
-      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">namespace: quality</div>
-      <div style="font-size:13px;line-height:1.65;color:#475569;">页面保持独立<br/>翻译 key 使用 quality.xxx</div>
-    </div>
-    <div style="flex:1 1 170px;min-width:150px;border:1px solid #d4c4f4;border-top:4px solid #7c3aed;border-radius:8px;background:#ffffff;padding:12px;">
-      <div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:6px;">04 · 发布与运行</div>
-      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">按当前语言加载</div>
-      <div style="font-size:13px;line-height:1.65;color:#475569;">构建并发布前端<br/>启用 App 配置后加载资源</div>
-    </div>
-  </div>
-</div>
-
-<p>这种方式的关键是让 App、页面、资源前缀和 namespace 保持一致。读者看到 <code>quality</code>，就能直接定位到对应页面和语言资源，后续维护成本较低。</p>
-<h3 id="10-2-复用-App：沿用已有页面"><a href="#10-2-复用-App：沿用已有页面" class="headerlink" title="10.2 复用 App：沿用已有页面"></a>10.2 复用 App：沿用已有页面</h3><p>复用 App 不新增一套完整页面，而是沿用已有 App 的页面结构和翻译 key，同时通过独立语言文件替换业务术语。以 <code>pressFit</code> 复用 <code>tighten</code> 页面为例：</p>
-<ol>
-<li>创建 <code>pressFit</code> 的 App 配置和路由入口，但路由仍指向 <code>tighten</code> 的已有页面。</li>
-<li>为 <code>pressFit</code> 配置独立资源前缀，即 <code>langFile: &quot;pressFit&quot;</code>。</li>
-<li>创建 <code>pressFit_zh-CN.json</code>、<code>pressFit_en.json</code> 等语言资源。</li>
-<li>语言文件的顶层 namespace 仍使用 <code>tighten</code>，并保持与原页面一致的 key 结构。</li>
-<li>进入 <code>pressFit</code> 时加载其语言文件，再把 messages 合并到 <code>tighten</code> namespace。</li>
-<li>复用页面继续使用 <code>tighten.xxx</code>，但最终展示的是 <code>pressFit</code> 对应的业务术语。</li>
-</ol>
-<div style="font-family:Arial,'Microsoft YaHei',sans-serif;margin:16px 0;padding:14px;border:1px solid #d7dde8;border-radius:10px;background:#f8fafc;">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-    <div style="font-size:16px;font-weight:700;color:#1f3b57;">复用 App 接入流程</div>
-    <div style="font-size:12px;font-weight:700;color:#6d28d9;background:#f3e8ff;border:1px solid #d4c4f4;border-radius:999px;padding:4px 9px;">页面复用模式 · pressFit</div>
-  </div>
-  <div style="display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;">
-    <div style="flex:1 1 170px;min-width:150px;border:1px solid #bfdbfe;border-top:4px solid #2563eb;border-radius:8px;background:#ffffff;padding:12px;">
-      <div style="font-size:12px;font-weight:700;color:#2563eb;margin-bottom:6px;">01 · APP 与页面</div>
-      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">创建 pressFit App</div>
-      <div style="font-size:13px;line-height:1.65;color:#475569;">建立独立路由入口<br/>复用 tighten 页面</div>
-    </div>
-    <div style="flex:1 1 170px;min-width:150px;border:1px solid #a7d8b7;border-top:4px solid #2e8b57;border-radius:8px;background:#ffffff;padding:12px;">
-      <div style="font-size:12px;font-weight:700;color:#24713b;margin-bottom:6px;">02 · 独立资源</div>
-      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">langFile: pressFit</div>
-      <div style="font-size:13px;line-height:1.65;color:#475569;">pressFit_zh-CN.json<br/>pressFit_en.json</div>
-    </div>
-    <div style="flex:1 1 170px;min-width:150px;border:1px solid #e7c995;border-top:4px solid #d97706;border-radius:8px;background:#ffffff;padding:12px;">
-      <div style="font-size:12px;font-weight:700;color:#a65f00;margin-bottom:6px;">03 · 共享契约</div>
-      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">namespace: tighten</div>
-      <div style="font-size:13px;line-height:1.65;color:#475569;">保持原页面 key 结构<br/>继续使用 tighten.xxx</div>
-    </div>
-    <div style="flex:1 1 170px;min-width:150px;border:1px solid #d4c4f4;border-top:4px solid #7c3aed;border-radius:8px;background:#ffffff;padding:12px;">
-      <div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:6px;">04 · 运行时应用</div>
-      <div style="font-weight:700;color:#172b4d;margin-bottom:7px;">加载 pressFit 资源</div>
-      <div style="font-size:13px;line-height:1.65;color:#475569;">合并到 tighten namespace<br/>重新应用当前 App messages</div>
-    </div>
-  </div>
-  <div style="margin-top:10px;padding:10px 12px;border:1px solid #c4b5fd;border-radius:8px;background:#faf8ff;color:#4c1d95;text-align:center;font-size:13px;line-height:1.6;">
-    <strong>最终效果：</strong>页面结构和翻译 key 保持不变，进入 pressFit 后展示 pressFit 对应的业务术语。
-  </div>
-</div>
-
-<p>这里需要区分资源前缀和 namespace：<code>langFile</code> 决定加载哪个 App 的资源，namespace 决定这些资源供哪些页面 key 使用。因此，<code>pressFit</code> 可以加载自己的资源文件，同时继续服务于使用 <code>tighten.xxx</code> 的既有页面。</p>
-<p>由于 <code>tighten</code> 和 <code>pressFit</code> 会写入同一个 namespace，缓存不能只判断资源是否曾经加载过。每次进入 App 时，都需要重新应用当前 App 已缓存的 messages，避免页面遗留上一个 App 的术语。</p>
-<h3 id="10-3-两种接入方式的区别"><a href="#10-3-两种接入方式的区别" class="headerlink" title="10.3 两种接入方式的区别"></a>10.3 两种接入方式的区别</h3><table>
-<thead>
-<tr>
-<th>对比项</th>
-<th>全新 App：<code>quality</code></th>
-<th>复用 App：<code>pressFit</code></th>
-</tr>
-</thead>
-<tbody><tr>
-<td>页面</td>
-<td>新增独立页面</td>
-<td>复用 <code>tighten</code> 页面</td>
-</tr>
-<tr>
-<td>路由</td>
-<td>指向新页面</td>
-<td>指向已有页面</td>
-</tr>
-<tr>
-<td><code>langFile</code></td>
-<td><code>quality</code></td>
-<td><code>pressFit</code></td>
-</tr>
-<tr>
-<td>语言文件</td>
-<td><code>quality_*.json</code></td>
-<td><code>pressFit_*.json</code></td>
-</tr>
-<tr>
-<td>顶层 namespace</td>
-<td><code>quality</code></td>
-<td><code>tighten</code></td>
-</tr>
-<tr>
-<td>页面翻译 key</td>
-<td><code>quality.xxx</code></td>
-<td><code>tighten.xxx</code></td>
-</tr>
-<tr>
-<td>适用场景</td>
-<td>页面结构和术语均独立</td>
-<td>页面结构相同，但业务术语不同</td>
-</tr>
-</tbody></table>
-<p>无论采用哪种方式，都应先发布包含页面和语言资源的前端版本，再启用新的 App 配置，避免配置已经生效但旧版本前端尚未包含对应资源。</p>
-<h2 id="11-总结"><a href="#11-总结" class="headerlink" title="11. 总结"></a>11. 总结</h2><p>前端多语言资源按需加载的核心，是将资源加载范围与页面访问范围对齐：公共资源负责支撑应用启动和通用页面，业务资源则在模块进入时按当前语言加载。</p>
-<p>在此基础上，通过统一语言标识、构建期资源映射、模块与语言维度的缓存、明确的 messages 合并规则，以及“资源准备完成后再渲染”的页面生命周期控制，可以在降低首屏资源体积的同时，保证多语言切换的一致性和可维护性。</p>
-]]></content>
-      <categories>
-        <category>工作笔记</category>
-      </categories>
-      <tags>
-        <tag>架构和开发</tag>
       </tags>
   </entry>
   <entry>
