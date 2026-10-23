@@ -1,0 +1,730 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>基于可行方向的能耗寻优算法 | Next Station</title><meta name="author" content="Luis Chen"><meta name="copyright" content="Luis Chen"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="在工业场景中，节能减排一直是一个很重要的话题。而在我们服务的汽车制造行业，涂装车间的能耗在四大工艺过程中占比达到了70%，所以如何降低涂装车间的能耗成了降低汽车制造过程能耗的关键。 本文选择涂装车间的喷房风机作为研究对象，以空调的温湿度作为主要调整指标，尝试通过技术的手段来找到能耗最优解。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于可行方向的能耗寻优算法">
+<meta property="og:url" content="https://luischen.github.io/2023/09/18/%E5%9F%BA%E4%BA%8E%E5%8F%AF%E8%A1%8C%E6%96%B9%E5%90%91%E7%9A%84%E8%83%BD%E8%80%97%E5%AF%BB%E4%BC%98%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="在工业场景中，节能减排一直是一个很重要的话题。而在我们服务的汽车制造行业，涂装车间的能耗在四大工艺过程中占比达到了70%，所以如何降低涂装车间的能耗成了降低汽车制造过程能耗的关键。 本文选择涂装车间的喷房风机作为研究对象，以空调的温湿度作为主要调整指标，尝试通过技术的手段来找到能耗最优解。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://luischen.github.io/img/fluid.png">
+<meta property="article:published_time" content="2023-09-18T10:02:11.000Z">
+<meta property="article:modified_time" content="2026-10-23T06:29:48.413Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="数据技术">
+<meta property="article:tag" content="最优化技术">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://luischen.github.io/img/fluid.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "基于可行方向的能耗寻优算法",
+  "url": "https://luischen.github.io/2023/09/18/%E5%9F%BA%E4%BA%8E%E5%8F%AF%E8%A1%8C%E6%96%B9%E5%90%91%E7%9A%84%E8%83%BD%E8%80%97%E5%AF%BB%E4%BC%98%E7%AE%97%E6%B3%95/",
+  "image": "https://luischen.github.io/img/fluid.png",
+  "datePublished": "2023-09-18T10:02:11.000Z",
+  "dateModified": "2026-10-23T06:29:48.413Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Luis Chen",
+      "url": "https://luischen.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://luischen.github.io/2023/09/18/%E5%9F%BA%E4%BA%8E%E5%8F%AF%E8%A1%8C%E6%96%B9%E5%90%91%E7%9A%84%E8%83%BD%E8%80%97%E5%AF%BB%E4%BC%98%E7%AE%97%E6%B3%95/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '基于可行方向的能耗寻优算法',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/fluid.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">63</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">33</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Next Station</span></a><a class="nav-page-title" href="/"><span class="site-name">基于可行方向的能耗寻优算法</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">基于可行方向的能耗寻优算法</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-09-18T10:02:11.000Z" title="发表于 2023-09-18 18:02:11">2023-09-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-10-23T06:29:48.413Z" title="更新于 2026-10-23 14:29:48">2026-10-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B7%A5%E4%B8%9A%E7%AE%97%E6%B3%95/">工业算法</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>在工业场景中，节能减排一直是一个很重要的话题。而在我们服务的汽车制造行业，涂装车间的能耗在四大工艺过程中占比达到了70%，所以如何降低涂装车间的能耗成了降低汽车制造过程能耗的关键。</p>
+<p>本文选择涂装车间的喷房风机作为研究对象，以空调的温湿度作为主要调整指标，尝试通过技术的手段来找到能耗最优解。</p>
+<span id="more"></span>
+
+<h2 id="问题定义"><a href="#问题定义" class="headerlink" title="问题定义"></a>问题定义</h2><p>已知能耗方程的条件下，设定一组温湿度的限定条件，通过优化算法找出使得能耗最小的温湿度值。</p>
+<blockquote>
+<p>使用穷举？<br>目前选择的优化指标有四个，每个指标的取值跨度为10，按照步长0.01计算，我们需要计算的次数为1000^4</p>
+</blockquote>
+<h2 id="算法概述"><a href="#算法概述" class="headerlink" title="算法概述"></a>算法概述</h2><p>经过研究，我们采用可行方向法作为算法的指导思想，由于存在温湿度的限定条件，所以算法进行了分支处理。</p>
+<blockquote>
+<p>可行方向是指沿该方向作微小移动后，所得到的新点是可行点，且目标函数值有所下降</p>
+</blockquote>
+<p>程序流程如下图所示：</p>
+<img src="程序流.png" alt="image-20230919095324346" style="zoom:80%;" />
+
+<h2 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h2><p>算法实现部分我们通过对程序流图进行详细说明来描述算法的实现过程。</p>
+<h3 id="参数初始化"><a href="#参数初始化" class="headerlink" title="参数初始化"></a>参数初始化</h3><p>参数初始化可以根据经验选择限定条件的边界值，如夏季模式下选择温度最大值会降低空调的能耗。</p>
+<p>但是这种单一出发点的选择会导致算法陷入局部最优的困境，最终我们通过随机取样的方法从可行区间内选了10个点，通过多次计算减少了局部最优的可能性。随机选择出发点的同时通过指定伪随机种子，确保了算法的稳定性，即每一次优化都可以得到同样的解；通过种子的合理选择，保证选择的数据分布足够合理。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">List</span>&lt;BigDecimal[]&gt; <span class="title function_">batchInitParam</span><span class="params">(List&lt;BigDecimal[]&gt; rangeList)</span>&#123;</span><br><span class="line">        <span class="type">List</span>&lt;BigDecimal[]&gt; <span class="variable">resultList</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        BigDecimal[] result;</span><br><span class="line">        <span class="comment">//取10个随机点</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span><span class="operator">=</span><span class="number">0</span>;i&lt;<span class="number">10</span>;i++)&#123;</span><br><span class="line">            result = <span class="keyword">new</span> <span class="title class_">BigDecimal</span>[rangeList.size()];</span><br><span class="line">            <span class="type">int</span> <span class="variable">seed</span> <span class="operator">=</span> i*<span class="number">10000</span>;</span><br><span class="line">            result[<span class="number">0</span>] = randomFromRange(rangeList.get(<span class="number">0</span>)[<span class="number">0</span>],rangeList.get(<span class="number">0</span>)[<span class="number">1</span>],seed);</span><br><span class="line">            result[<span class="number">1</span>] = randomFromRange(rangeList.get(<span class="number">1</span>)[<span class="number">0</span>],rangeList.get(<span class="number">1</span>)[<span class="number">1</span>],seed);</span><br><span class="line">            result[<span class="number">2</span>] = randomFromRange(rangeList.get(<span class="number">2</span>)[<span class="number">0</span>],rangeList.get(<span class="number">2</span>)[<span class="number">1</span>],seed);</span><br><span class="line">            result[<span class="number">3</span>] = randomFromRange(rangeList.get(<span class="number">3</span>)[<span class="number">0</span>],rangeList.get(<span class="number">3</span>)[<span class="number">1</span>],seed);</span><br><span class="line">            resultList.add(result);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> resultList;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="type">BigDecimal</span> <span class="title function_">randomFromRange</span><span class="params">(BigDecimal low, BigDecimal up, <span class="type">int</span> seed)</span>&#123;</span><br><span class="line">        <span class="type">BigDecimal</span> <span class="variable">gap</span> <span class="operator">=</span> up.subtract(low).abs();</span><br><span class="line">        <span class="type">Random</span> <span class="variable">rd</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Random</span>(seed);</span><br><span class="line">        <span class="type">BigDecimal</span> <span class="variable">factor</span> <span class="operator">=</span> BigDecimal.valueOf(rd.nextDouble());</span><br><span class="line">        <span class="keyword">return</span> low.add(gap.multiply(factor));</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="收敛条件"><a href="#收敛条件" class="headerlink" title="收敛条件"></a>收敛条件</h3><p>算法的收敛条件包含：</p>
+<ol>
+<li><p>循环次数</p>
+<p>根据测试的结果，算法的收敛一般在10-15次循环，所以最终定义最大循环次数为25，超过最大循环次数后直接算法结束，返回最后一次计算的结果。</p>
+</li>
+<li><p>变化值</p>
+<p>通过监控目标函数的值变化，确定算法收敛，根据经验定义为前后两次值变化小于0.1则判定算法收敛，返回最后一次计算的结果。</p>
+</li>
+</ol>
+<h3 id="检查约束"><a href="#检查约束" class="headerlink" title="检查约束"></a>检查约束</h3><p>约束包含针对优化指标的范围约束和结果函数的合理性约束。</p>
+<ul>
+<li><p>范围约束</p>
+<p>范围约束是用户通过页面输入的温湿度范围，约束的形式为：<code>温度 &gt; 21 &amp;&amp; 温度 &lt; 26</code></p>
+<p>在实现中我们通过Java的Function接口来构建约束：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">List</span>&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; <span class="title function_">buildConstraints</span><span class="params">(<span class="keyword">final</span> List&lt;BigDecimal[]&gt; rangeList)</span>&#123;</span><br><span class="line">    	<span class="comment">//otobd是自定义的方法，将Object转换为BigDecimal对象</span></span><br><span class="line">        <span class="type">List</span>&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; <span class="variable">constraintList</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        constraintList.add(val -&gt; </span><br><span class="line">                           OptimizeUtils.otobd(val.get(<span class="string">&quot;param_1&quot;</span>)).negate().add(rangeList.get(<span class="number">0</span>)[<span class="number">0</span>]));</span><br><span class="line">        constraintList.add(val -&gt; </span><br><span class="line">                           OptimizeUtils.otobd(val.get(<span class="string">&quot;param_1&quot;</span>)).subtract(rangeList.get(<span class="number">0</span>)[<span class="number">1</span>]));</span><br><span class="line">        <span class="comment">//更多约束条件省略...</span></span><br><span class="line">        <span class="keyword">return</span> constraintList;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>检查约束的时候，直接使用Function的apply方法即可完成约束检查：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">List</span>&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; <span class="title function_">checkConstraints</span><span class="params">(BigDecimal[] initParam)</span>&#123;</span><br><span class="line">        <span class="type">List</span>&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; <span class="variable">retConstraints</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span> (Function&lt;Map&lt;String, Object&gt;, BigDecimal&gt; f0 : constraintsList) &#123;</span><br><span class="line">            <span class="comment">//buildPointParam 方法通过将数组映射到Map，方便方法调用</span></span><br><span class="line">            <span class="type">BigDecimal</span> <span class="variable">result</span> <span class="operator">=</span> f0.apply(OptimizeUtils.buildPointParam(initParam));</span><br><span class="line">            <span class="keyword">if</span> (result.compareTo(BigDecimal.ZERO) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                retConstraints.add(f0);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> retConstraints;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>合理性约束</p>
+<p>在我们确定了使用Function来实现约束检查的时候，合理性约束只需要提供封装的方法即可。例如需求是小时能耗不能为负数，封装的方法就是返回最小的小时能耗，对应到Function的定义就是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(val -&gt; minHourCostFunction(val).negate())</span><br></pre></td></tr></table></figure>
+
+<p>这里对于Function的输出进行了negate操作，是为了在判断约束的时候可以统一使用大于0的判断。</p>
+</li>
+</ul>
+<h3 id="KT条件"><a href="#KT条件" class="headerlink" title="KT条件"></a>KT条件</h3><blockquote>
+<p>KT条件是指Karush-Kuhn-Tucker条件，它是数学优化问题中的一组条件，用于判断在约束条件下，某点是否为最优解。</p>
+</blockquote>
+<p>结合KT条件的一般呈现，</p>
+<img src="kt条件.png">
+
+<p>我们得出如下结论：<strong>∇f(X)和∇g_i (X)已知，求解K-T条件，是在求解一组线性方程组。</strong></p>
+<p>主要求解过程使用Apache Math3包可以实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">double</span>[][] <span class="variable">coefficients</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">double</span>[initParam.length][constraintsBound.size()];</span><br><span class="line"><span class="comment">//省略构建系数矩阵的过程</span></span><br><span class="line"><span class="type">RealMatrix</span> <span class="variable">matrix1</span> <span class="operator">=</span> MatrixUtils.createRealMatrix(coefficients);</span><br><span class="line"><span class="comment">//常数项需要将梯度乘以-1，g为当前点的梯度</span></span><br><span class="line"><span class="type">BigDecimal</span>[] <span class="variable">constants</span> <span class="operator">=</span> gradientDiv(g,BigDecimal.valueOf(-<span class="number">1</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">//使用QR分解 求线性方程组唯一解</span></span><br><span class="line"><span class="type">DecompositionSolver</span> <span class="variable">solver</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">QRDecomposition</span>(matrix1).getSolver();</span><br><span class="line"><span class="type">double</span>[] <span class="variable">constArr</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">double</span>[constants.length];</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span><span class="operator">=</span><span class="number">0</span>;i&lt;constants.length;i++)&#123;</span><br><span class="line">	constArr[i]=constants[i].doubleValue();</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">RealMatrix</span> <span class="variable">vector</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Array2DRowRealMatrix</span>(constArr);</span><br><span class="line"><span class="type">RealMatrix</span> <span class="variable">solution</span> <span class="operator">=</span> solver.solve(vector);</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; solution.getRowDimension(); i++) &#123;</span><br><span class="line">	<span class="keyword">if</span>(solution.getEntry(i, <span class="number">0</span>) &lt; <span class="number">0</span>) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//全部非负则满足KKT</span></span><br><span class="line"><span class="keyword">return</span> <span class="literal">true</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="梯度模收敛"><a href="#梯度模收敛" class="headerlink" title="梯度模收敛"></a>梯度模收敛</h3><p>系统设定一个梯度模阈值（一般来自经验和反复试错），当梯度模小于阈值的时候，我们认为当前点已经到达了一个局部最优，直接返回当前点为本次优化结果。</p>
+<h3 id="计算方向向量"><a href="#计算方向向量" class="headerlink" title="计算方向向量"></a>计算方向向量</h3><p>计算方向是可行方向法的关键，一个好的方向可以让算法更快的完成收敛。从程序流图我们可以发现，计算方向来自两个分支，而针对有约束和无约束我们采用了不同计算方向的策略。</p>
+<ul>
+<li><p>无约束</p>
+<p>无约束情况适用梯度下降算法，当前点的负梯度方向即可行方向。</p>
+</li>
+<li><p>有约束</p>
+<p>有约束情况下适用单纯形法，求解约束附近使得目标函数值最小的方向向量即可行方向。</p>
+<p>定义算法表现形式如下：</p>
+<img src="单纯形法.png">
+
+<p>实现过程适用Apache Math3包即可：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">double</span>[] <span class="title function_">simplexSolver</span><span class="params">(<span class="type">double</span>[] g,</span></span><br><span class="line"><span class="params">                                         BigDecimal[] initParam, Map&lt;String, Object&gt; fixParamMap,</span></span><br><span class="line"><span class="params">                                         List&lt;Function&lt;Map&lt;String,Object&gt;, BigDecimal&gt;&gt; constraints)</span>&#123;</span><br><span class="line">        <span class="comment">//传入目标函数的系数</span></span><br><span class="line">        <span class="type">LinearObjectiveFunction</span> <span class="variable">f</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LinearObjectiveFunction</span>(g, <span class="number">0</span>);</span><br><span class="line">        <span class="type">LinearConstraint</span>[] <span class="variable">constraintsArr</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LinearConstraint</span>[constraints.size()+<span class="number">8</span>];</span><br><span class="line">        <span class="comment">//初始化范围约束</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span><span class="operator">=</span><span class="number">0</span>;i&lt;constraints.size();i++)&#123;</span><br><span class="line">            <span class="type">double</span>[] <span class="variable">g0</span> <span class="operator">=</span> calcGradient(initParam,fixParamMap,constraints.get(i),C_DELTA);</span><br><span class="line">            constraintsArr[i] = <span class="keyword">new</span> <span class="title class_">LinearConstraint</span>(g0, Relationship.LEQ, <span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    	<span class="comment">//构建值约束，需要在-1到1</span></span><br><span class="line">        <span class="type">LinearConstraint</span>[] <span class="variable">commonConstraints</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LinearConstraint</span>[]&#123;</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">LinearConstraint</span>(<span class="keyword">new</span> <span class="title class_">double</span>[] &#123; <span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span> &#125;, Relationship.LEQ, <span class="number">1</span>),</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">LinearConstraint</span>(<span class="keyword">new</span> <span class="title class_">double</span>[] &#123; <span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span> &#125;, Relationship.GEQ, -<span class="number">1</span>),</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">LinearConstraint</span>(<span class="keyword">new</span> <span class="title class_">double</span>[] &#123; <span class="number">0</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span> &#125;, Relationship.LEQ, <span class="number">1</span>),</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">LinearConstraint</span>(<span class="keyword">new</span> <span class="title class_">double</span>[] &#123; <span class="number">0</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>&#125;, Relationship.GEQ, -<span class="number">1</span>),</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">LinearConstraint</span>(<span class="keyword">new</span> <span class="title class_">double</span>[] &#123; <span class="number">0</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">0</span> &#125;, Relationship.LEQ, <span class="number">1</span>),</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">LinearConstraint</span>(<span class="keyword">new</span> <span class="title class_">double</span>[] &#123; <span class="number">0</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">0</span> &#125;, Relationship.GEQ, -<span class="number">1</span>),</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">LinearConstraint</span>(<span class="keyword">new</span> <span class="title class_">double</span>[] &#123; <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">1</span> &#125;, Relationship.LEQ, <span class="number">1</span>),</span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">LinearConstraint</span>(<span class="keyword">new</span> <span class="title class_">double</span>[] &#123; <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">1</span> &#125;, Relationship.GEQ, -<span class="number">1</span>)</span><br><span class="line">        &#125;;</span><br><span class="line">        System.arraycopy(commonConstraints,<span class="number">0</span>,constraintsArr,constraints.size(),<span class="number">8</span>);</span><br><span class="line">        <span class="type">LinearConstraintSet</span> <span class="variable">constraintsSet</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LinearConstraintSet</span>(constraintsArr);</span><br><span class="line">        <span class="type">SimplexSolver</span> <span class="variable">solver</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SimplexSolver</span>();</span><br><span class="line">        <span class="type">PointValuePair</span> <span class="variable">solution</span> <span class="operator">=</span> solver.optimize(f,constraintsSet,GoalType.MINIMIZE);</span><br><span class="line">        <span class="keyword">return</span> solution.getPoint();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="约束一维搜索"><a href="#约束一维搜索" class="headerlink" title="约束一维搜索"></a>约束一维搜索</h3><blockquote>
+<p>所谓约束一维搜索，就是求解一元函数约束极小点的算法。在确定初始区间时，对产生的每一个探测点都必须进行可行性判断，如果违反了某个或者某些约束条件，就必须减少步长因子，以使新的探测点落在最近的一个约束边界上或约束边界的一个容许区间内。</p>
+</blockquote>
+<img src="约束一维搜索.png">
+
+<p>针对a、b两种单调的情况，x3和x1为相应情况的极小值，在c中我们得到一个[x1,x3]的区间，然后通过黄金分割法查找出区间最小值。</p>
+<p>算法步骤如下：</p>
+<img src="一维搜索程序流.png">
+
+<p>在找到一个区间后，我们使用黄金分割法查找区间内的极小值。代码实现上使用递归逐步缩小范围，直到范围达到预定义的阈值，选取范围中心点作为极小点：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">BigDecimal</span>[] <span class="title function_">findMinPoint</span><span class="params">(BigDecimal[] start, BigDecimal[] end,</span></span><br><span class="line"><span class="params">                                      BigDecimal[] p1, BigDecimal[] p2,</span></span><br><span class="line"><span class="params">                                      Map&lt;String, Object&gt; fixParamMap,Function&lt;Map&lt;String, Object&gt;, BigDecimal&gt; f)</span>&#123;</span><br><span class="line">        <span class="comment">//判断满足收敛精度</span></span><br><span class="line">        <span class="type">BigDecimal</span> <span class="variable">threshold</span> <span class="operator">=</span> OptimizeUtils.calculateModulus(OptimizeUtils.gradientDiff(start,end));</span><br><span class="line">        <span class="keyword">if</span>(threshold.compareTo(OptimizeUtils.GRATIO_THREASHOLD) &lt;<span class="number">0</span>)&#123;</span><br><span class="line">            <span class="keyword">return</span> OptimizeUtils.gradientDiv(OptimizeUtils.gradientAdd(start,end), BigDecimal.valueOf(<span class="number">2</span>));</span><br><span class="line">        &#125;</span><br><span class="line">        BigDecimal f1,f2;</span><br><span class="line">        <span class="comment">//初始化区间</span></span><br><span class="line">        <span class="keyword">if</span>(p1 == <span class="literal">null</span>)</span><br><span class="line">            p1 = calculateGoldRatio(start,end, OptimizeUtils.GRATIO_DOWN);</span><br><span class="line">        f1 = f.apply(buildPointParam(p1,fixParamMap));</span><br><span class="line">        <span class="keyword">if</span>(p2 == <span class="literal">null</span>)</span><br><span class="line">            p2 = calculateGoldRatio(start,end, OptimizeUtils.GRATIO_UP);</span><br><span class="line">        f2 = f.apply(buildPointParam(p2,fixParamMap));</span><br><span class="line">        <span class="keyword">if</span>(f1.compareTo(f2) &lt;<span class="number">0</span>)&#123;</span><br><span class="line">            <span class="keyword">return</span> findMinPoint(start,p2,<span class="literal">null</span>,p1,fixParamMap,f);</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">return</span> findMinPoint(p1,end,p2,<span class="literal">null</span>,fixParamMap,f);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="回顾总结"><a href="#回顾总结" class="headerlink" title="回顾总结"></a>回顾总结</h2><p>在这个案例中我们通过引入可行方向法对汽车制造工艺的涂装车间能耗进行优化。</p>
+<p>在可行方向的方向选择中我们结合了梯度下降法和单纯形法来应对是否存在约束的差异，明确了方向后我们采用了约束一维搜索获取下一次迭代的出发点，最终通过收敛条件得到一个相对最优解。</p>
+<p>为了解决局部最优的困境，我们引入随机多个初始出发点，进行多次求解，减少局部最优出现的可能性。</p>
+<p>最终经过验证的优化效果达到了15%的能耗节约。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E6%8A%80%E6%9C%AF/">数据技术</a><a class="post-meta__tags" href="/tags/%E6%9C%80%E4%BC%98%E5%8C%96%E6%8A%80%E6%9C%AF/">最优化技术</a></div><div class="post-share"><div class="social-share" data-image="/img/fluid.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2023/10/09/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8B%E5%AD%A4%E7%AB%8B%E6%A3%AE%E6%9E%97/" title="异常检测算法之孤立森林"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">异常检测算法之孤立森林</div></div><div class="info-2"><div class="info-item-1">在工业时序数据的异常检测中，我们通常使用基于SPC（统计过程控制）的异常检测算法，通过训练的上下限判定异常点。但是随着工况复杂度上升，一维的数据无法满足数据分析和异常检测的需求，我们需要引入支持多纬度数据的算法，这时候孤立森林走入了我们的视野。  隔离森林又名孤立森林，是一种从异常点出发，通过指定规则进行划分，根据划分次数进行判断的异常检测方法。 [1] 由周志华教授等人于2008年在第八届IEEE数据挖掘国际会议上提出。  算法思想孤立森林中的孤立，是通过多次划分将异...</div></div></div></a><a class="pagination-related" href="/2023/06/13/%E4%BB%8E%E6%95%B0%E9%87%87%E5%88%B0%E5%B9%B3%E5%8F%B0%EF%BC%8C%E4%BD%A0%E5%8F%AF%E8%83%BD%E5%B7%AE%E4%B8%80%E4%B8%AAAirbyte/" title="从数采到平台，你可能差一个Airbyte"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">从数采到平台，你可能差一个Airbyte</div></div><div class="info-2"><div class="info-item-1">随着工业互联网规模日渐增长，工业互联网应用对于数据的要求也越来越高。 面对来自现场设备的运行数据、来自控制器的环境数据以及来自上位机的各种应用数据，如何进行快速的整合归集高效的应用成为工业互联网平台的当务之急。考虑到多种数据的采集需求和采集方式都存在差异，如果有一个平台可以实现高层次抽象、可扩展实现，那无疑可以解决我们的问题，Airbyte带着ELT的理念应运而生。 Airbyte是一个开源的数据集成平台，提供了数据迁移的基本骨架，通过用户定制可以完美支持几乎所有的数据...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2021/08/19/InfluxDB%E5%A4%87%E4%BB%BD%E7%AD%96%E7%95%A5/" title="InfluxDB备份策略"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-08-19</div><div class="info-item-2">InfluxDB备份策略</div></div><div class="info-2"><div class="info-item-1">设备数据采集的时序数据使用InfluxDB进行存储，InfluxDB提供了两大类备份策略来保障数据安全：  数据库实时主备 实时主备是指通过内置的subscription机制，将主库收到的请求通过go-routine的方式到从库进行重放来实现数据的主备存储。这种方式可以认为是热备。  数据定期备份 定期备份是指通过客户端工具提供的backup命令将数据备份到其他地方进行保存，需要恢复的时候通过restore命令加载数据备份。这种方式根据数据备份的频率存在丢失数据的风险。...</div></div></div></a><a class="pagination-related" href="/2023/10/09/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8B%E5%AD%A4%E7%AB%8B%E6%A3%AE%E6%9E%97/" title="异常检测算法之孤立森林"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-09</div><div class="info-item-2">异常检测算法之孤立森林</div></div><div class="info-2"><div class="info-item-1">在工业时序数据的异常检测中，我们通常使用基于SPC（统计过程控制）的异常检测算法，通过训练的上下限判定异常点。但是随着工况复杂度上升，一维的数据无法满足数据分析和异常检测的需求，我们需要引入支持多纬度数据的算法，这时候孤立森林走入了我们的视野。  隔离森林又名孤立森林，是一种从异常点出发，通过指定规则进行划分，根据划分次数进行判断的异常检测方法。 [1] 由周志华教授等人于2008年在第八届IEEE数据挖掘国际会议上提出。  算法思想孤立森林中的孤立，是通过多次划分将异...</div></div></div></a><a class="pagination-related" href="/2021/12/22/InfluxDB%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5MQTT/" title="InfluxDB数据接入MQTT"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-12-22</div><div class="info-item-2">InfluxDB数据接入MQTT</div></div><div class="info-2"><div class="info-item-1">在边缘计算场景中数据存储在边缘的时序数据库如 InfluxDB 中，如果不能将数据进行归集以统筹管理则可能形成数据孤岛，无法充分有效的发挥大数据的威力。 边缘端的数据流是数采网关直连InfluxDB，通过restful的方式将采集到的数据发送到时序数据库。这种方式的优点是架构简单，没有中间环节数据传输效率高、实时性有保障。缺点则是可扩展性低，无法满足数据处理、数据转发等需求。 在某大型客户的案例中我们面临的挑战是边缘时序数据需要接入对方的工业互联网平台，鉴于平台支持MQ...</div></div></div></a><a class="pagination-related" href="/2023/12/25/%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95%E4%B9%8BSTL/" title="异常检测算法之STL"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-12-25</div><div class="info-item-2">异常检测算法之STL</div></div><div class="info-2"><div class="info-item-1">在工业时序数据的异常判定中，我们提供了基于SPC的单特征判定和孤立森林的多维特征判定。但是这两种异常判定对于趋势数据的判定表现得并不是很尽如人意。对于符合趋势的时序数据我们认定正常工况主要有两种：  某个特定值或者在其周围进行波动 沿着特定的趋势进行变化或者在趋势周围进行波动  对于第一种情况的趋势，SPC或者孤立森林都可以很好的应付，到了第二种情况则要求随着趋势的变化动态的调整阈值，这大大增加了算法实现的复杂度。通过调研发现，基于时序数据分解的STL算法可以满足我们的...</div></div></div></a><a class="pagination-related" href="/2021/09/18/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9A%84%E9%99%8D%E9%87%87%E6%A0%B7%E7%AE%97%E6%B3%95/" title="时序数据可视化的降采样算法"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2021-09-18</div><div class="info-item-2">时序数据可视化的降采样算法</div></div><div class="info-2"><div class="info-item-1">工业场景中，时序数据的可视化是一个无法回避的话题。时序数据的超大数据量给图形的展示性能带来了挑战，而通过降采样的方式减少图形的展示点数来迎合性能的同时，又会带来算法复杂度、算法可伸缩以及正确性等多方面的权衡。 下面通过几种常用的可视化降采样算法的研究和实践对比，为时序数据的可视化降采样算法选择提供参考。我们使用实际生产中的一个案例作为算法描述的基础：需求将10w点降采样到4000，以适配页面的展示效果。   直觉分桶算法在一般情况下，面对一个复杂问题最先起作用的往往是我...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/fluid.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Luis Chen</div><div class="author-info-description">工业智能平台与技术知识沉淀</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">63</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">33</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%AE%9A%E4%B9%89"><span class="toc-number">1.</span> <span class="toc-text">问题定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%97%E6%B3%95%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">算法概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.</span> <span class="toc-text">算法实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">3.1.</span> <span class="toc-text">参数初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%B6%E6%95%9B%E6%9D%A1%E4%BB%B6"><span class="toc-number">3.2.</span> <span class="toc-text">收敛条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A3%80%E6%9F%A5%E7%BA%A6%E6%9D%9F"><span class="toc-number">3.3.</span> <span class="toc-text">检查约束</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#KT%E6%9D%A1%E4%BB%B6"><span class="toc-number">3.4.</span> <span class="toc-text">KT条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A2%AF%E5%BA%A6%E6%A8%A1%E6%94%B6%E6%95%9B"><span class="toc-number">3.5.</span> <span class="toc-text">梯度模收敛</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%96%B9%E5%90%91%E5%90%91%E9%87%8F"><span class="toc-number">3.6.</span> <span class="toc-text">计算方向向量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BA%A6%E6%9D%9F%E4%B8%80%E7%BB%B4%E6%90%9C%E7%B4%A2"><span class="toc-number">3.7.</span> <span class="toc-text">约束一维搜索</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9E%E9%A1%BE%E6%80%BB%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">回顾总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/02%20%E8%AE%BE%E5%A4%87%E5%81%A5%E5%BA%B7%E5%88%86%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" title="设备健康指数：从诊断结果到退化趋势">设备健康指数：从诊断结果到退化趋势</a><time datetime="2026-10-23T04:33:16.000Z" title="发表于 2026-10-23 12:33:16">2026-10-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%97%B6%E5%88%87%E6%8D%A2%E5%AE%9E%E8%B7%B5/" title="前端多语言资源按需加载与运行时切换实践">前端多语言资源按需加载与运行时切换实践</a><time datetime="2026-09-10T01:51:22.000Z" title="发表于 2026-09-10 09:51:22">2026-09-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/" title="曲线质量分析系统配置解析补充">曲线质量分析系统配置解析补充</a><time datetime="2026-08-13T05:55:00.000Z" title="发表于 2026-08-13 13:55:00">2026-08-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/03%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E8%8F%9C%E5%8D%95%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" title="曲线质量分析系统菜单工作流程">曲线质量分析系统菜单工作流程</a><time datetime="2026-07-13T09:25:40.000Z" title="发表于 2026-07-13 17:25:40">2026-07-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/05%20%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8Https%E6%9C%8D%E5%8A%A1/" title="Java 调用外部 HTTPS 服务与证书信任处理">Java 调用外部 HTTPS 服务与证书信任处理</a><time datetime="2026-07-10T06:31:52.000Z" title="发表于 2026-07-10 14:31:52">2026-07-10</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By Luis Chen</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

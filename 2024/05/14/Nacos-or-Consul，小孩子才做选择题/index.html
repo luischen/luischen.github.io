@@ -1,0 +1,687 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Nacos or Consul，小孩子才做选择题 | Next Station</title><meta name="author" content="Luis Chen"><meta name="copyright" content="Luis Chen"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Nacos和Consul是微服务服务注册和服务发现领域比较流行的两个开源技术。 Nacos由阿里开源，定位是：一个更易于构建云原生应用的动态服务发现、配置管理和服务管理平台。Consul由Harshicorp开源，同样也是致力于服务发现和配置。在基本功能上两者保持了较高的相似度，如服务注册发现、配置管理和健康检测等微服务常用功能。一个比较明显的差异在于对CAP的实现，Nacos注重可用性选择了AP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nacos or Consul，小孩子才做选择题">
+<meta property="og:url" content="https://luischen.github.io/2024/05/14/Nacos-or-Consul%EF%BC%8C%E5%B0%8F%E5%AD%A9%E5%AD%90%E6%89%8D%E5%81%9A%E9%80%89%E6%8B%A9%E9%A2%98/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="Nacos和Consul是微服务服务注册和服务发现领域比较流行的两个开源技术。 Nacos由阿里开源，定位是：一个更易于构建云原生应用的动态服务发现、配置管理和服务管理平台。Consul由Harshicorp开源，同样也是致力于服务发现和配置。在基本功能上两者保持了较高的相似度，如服务注册发现、配置管理和健康检测等微服务常用功能。一个比较明显的差异在于对CAP的实现，Nacos注重可用性选择了AP">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://luischen.github.io/img/fluid.png">
+<meta property="article:published_time" content="2024-05-14T07:20:01.000Z">
+<meta property="article:modified_time" content="2026-10-23T06:29:48.262Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="应用技术">
+<meta property="article:tag" content="微服务">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://luischen.github.io/img/fluid.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Nacos or Consul，小孩子才做选择题",
+  "url": "https://luischen.github.io/2024/05/14/Nacos-or-Consul%EF%BC%8C%E5%B0%8F%E5%AD%A9%E5%AD%90%E6%89%8D%E5%81%9A%E9%80%89%E6%8B%A9%E9%A2%98/",
+  "image": "https://luischen.github.io/img/fluid.png",
+  "datePublished": "2024-05-14T07:20:01.000Z",
+  "dateModified": "2026-10-23T06:29:48.262Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Luis Chen",
+      "url": "https://luischen.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://luischen.github.io/2024/05/14/Nacos-or-Consul%EF%BC%8C%E5%B0%8F%E5%AD%A9%E5%AD%90%E6%89%8D%E5%81%9A%E9%80%89%E6%8B%A9%E9%A2%98/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Nacos or Consul，小孩子才做选择题',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/fluid.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">63</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">33</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Next Station</span></a><a class="nav-page-title" href="/"><span class="site-name">Nacos or Consul，小孩子才做选择题</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Nacos or Consul，小孩子才做选择题</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-05-14T07:20:01.000Z" title="发表于 2024-05-14 15:20:01">2024-05-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-10-23T06:29:48.262Z" title="更新于 2026-10-23 14:29:48">2026-10-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93/">技术总结</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>Nacos和Consul是微服务服务注册和服务发现领域比较流行的两个开源技术。</p>
+<p>Nacos由阿里开源，定位是：一个更易于构建云原生应用的动态服务发现、配置管理和服务管理平台。Consul由Harshicorp开源，同样也是致力于服务发现和配置。在基本功能上两者保持了较高的相似度，如服务注册发现、配置管理和健康检测等微服务常用功能。一个比较明显的差异在于对CAP的实现，Nacos注重可用性选择了AP，而Consul关注一致性采用了CP，这也是我们在技术选型的时候一个重要的权衡点。</p>
+<h2 id="演进路线"><a href="#演进路线" class="headerlink" title="演进路线"></a>演进路线</h2><p>在产品初期考虑到Eureka作为Spring Cloud默认的注册中心，使用门槛相对较低，所以选型Eureka作为产品的服务注册中心。</p>
+<p>随着产品的发展，业务的复杂性要求引入配置中心，这时候Nacos进入我们的视线。在同样使用AP保证可用性的前提下，增加了配置中心满足了配置管理的需求，并且提供了管理页面提升了产品的可维护性。综合考虑之下，我们决定将产品的服务管理和配置管理迁移到Nacos。</p>
+<p>升级到Consul则是外企项目的需求，更加倾向于使用国外更加流行的方案。</p>
+<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><p>如果仅仅是将Nacos替换为Consul是很简单的，但是考虑到已有项目的维护，或者哪天来个国内项目要求使用Nacos。所以面对客户Consul的需求时我们较好的应对是：</p>
+<p><code>增加系统对于Consul的适配能力，使得对于不同中间件的需求可以灵活切换</code>。</p>
+<h2 id="实现过程"><a href="#实现过程" class="headerlink" title="实现过程"></a>实现过程</h2><h3 id="Consul安装"><a href="#Consul安装" class="headerlink" title="Consul安装"></a>Consul安装</h3><p>按照产品的技术架构，照例采用Docker的方式运行Consul。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker pull consul:1.15.4</span><br><span class="line"></span><br><span class="line">docker run -d  -p 8500:8500   -p 8600:8600/udp    --name=consul   consul:1.15.4 agent -server -ui -node=server-1 -bootstrap-expect=1 -client=0.0.0.0</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="POM适配"><a href="#POM适配" class="headerlink" title="POM适配"></a>POM适配</h3><p>在POM文件中可以同时配置Nacos和Consul，但是为了避免冲突我们需要按需引入依赖。对于Nacos来说不能引入Nacos Client的依赖，因为NacosClient只要引入就会初始化无法通过配置开关控制。对于Consul来说我们引入基本的discover和config即可，引入All会有一些奇奇怪怪的错误。最终得到的POM配置文件如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- consul 配置中心 包含actuator --&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-consul-config<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.1.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">      <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-consul-discovery<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.1.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">      <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>joda-time<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>joda-time<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.10.14<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">      <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-actuator<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">      <span class="comment">&lt;!-- nacos 配置中心 --&gt;</span></span><br><span class="line"></span><br><span class="line">      <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-alibaba-nacos-config<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-alibaba-nacos-discovery<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="bootstrap-propertis-适配"><a href="#bootstrap-propertis-适配" class="headerlink" title="bootstrap.propertis 适配"></a>bootstrap.propertis 适配</h3><p>启动配置文件由三块组成：</p>
+<ol>
+<li>开关</li>
+<li>Consul配置</li>
+<li>Nacos配置</li>
+</ol>
+<p>通过开关控制系统使用Consul还是Nacos，注意在开关部分如果不使用该配置中心，需要显式关闭。</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="attr">spring.application.name</span>=<span class="string">xxx-service</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">## 不需要的配置需要显式关闭</span></span><br><span class="line"><span class="attr">spring.cloud.consul.enabled</span>=<span class="string">true</span></span><br><span class="line"></span><br><span class="line"><span class="attr">spring.cloud.nacos.config.enabled</span>=<span class="string">false</span></span><br><span class="line"><span class="attr">spring.cloud.nacos.discovery.enabled</span>=<span class="string">false</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">#########consul###############</span></span><br><span class="line"><span class="attr">spring.cloud.consul.host</span>=<span class="string">localhost</span></span><br><span class="line"><span class="attr">spring.cloud.consul.port</span>=<span class="string">8500</span></span><br><span class="line"></span><br><span class="line"><span class="attr">spring.cloud.consul.config.prefix</span>=<span class="string">configuration</span></span><br><span class="line"><span class="attr">spring.cloud.consul.config.profileSeparator</span>=<span class="string">.</span></span><br><span class="line"><span class="attr">spring.cloud.consul.config.format</span>=<span class="string">PROPERTIES</span></span><br><span class="line"><span class="attr">spring.cloud.consul.config.data-key</span>=<span class="string">data</span></span><br><span class="line"><span class="attr">spring.cloud.consul.retry.enabled</span>=<span class="string">false</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">#########Nacos #########、</span></span><br><span class="line"><span class="attr">spring.cloud.nacos.config.server-addr</span>=<span class="string">192.168.8.101:8848</span></span><br><span class="line"><span class="attr">spring.cloud.nacos.config.namespace</span>=<span class="string">local</span></span><br><span class="line"><span class="attr">spring.cloud.nacos.config.group</span>=<span class="string">service-my</span></span><br><span class="line"></span><br><span class="line"><span class="attr">spring.cloud.nacos.config.shared-configs[0].data-id</span>=<span class="string">rabbit.properties</span></span><br><span class="line"><span class="attr">spring.cloud.nacos.config.shared-configs[0].group</span>=<span class="string">service-my</span></span><br><span class="line"></span><br><span class="line"><span class="attr">spring.cloud.nacos.discovery.server-addr</span>=<span class="string">192.168.8.101:8848</span></span><br><span class="line"><span class="attr">spring.cloud.nacos.discovery.namespace</span>=<span class="string">local</span></span><br><span class="line"><span class="attr">spring.cloud.nacos.discovery.group</span>=<span class="string">service-my</span></span><br><span class="line"><span class="attr">spring.cloud.loadbalancer.retry.enabled</span>=<span class="string">false</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="代码适配"><a href="#代码适配" class="headerlink" title="代码适配"></a>代码适配</h3><p>对于存在差异的部分我们提供两套实现，例如我们有一个多语言服务需要到配置中心获取资源文件进行后台翻译，对于LocaleService，我们提供了LocaleServiceNacosImpl和LocaleServiceConsulImpl分别对应两个配置中心，在类初始化上通过@ConditionalOnProperty注解进行判断，如下代码所示。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ConditionalOnProperty(value=&quot;spring.cloud.nacos.config.enabled&quot;,havingValue=&quot;true&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">LocaleServiceNacosImpl</span> <span class="keyword">implements</span> <span class="title class_">LocaleService</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@ConditionalOnProperty(value=&quot;spring.cloud.consul.enabled&quot;,havingValue=&quot;true&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">LocaleServiceConsulImpl</span> <span class="keyword">implements</span> <span class="title class_">LocaleService</span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="配置结构"><a href="#配置结构" class="headerlink" title="配置结构"></a>配置结构</h2><p>Consul通过定义prefix， app-name以及profile，生成四个配置路径，最终的配置文件名称通过data-key指定。</p>
+<p>以prefix &#x3D; configuration, app-name&#x3D;master, profile&#x3D;dev为例，我们得到的配置路径为：</p>
+<ol>
+<li>configuration&#x2F;application</li>
+<li>configuration&#x2F;application.dev</li>
+<li>configuration&#x2F;master</li>
+<li>configuration&#x2F;master.dev</li>
+</ol>
+<p>而对应的配置则在 configuration&#x2F;application&#x2F;data。</p>
+<p>基于以上配置结构，我们可以将rabbitmq.properties等公用文件放在 configuration&#x2F;application和configuration&#x2F;application.dev下，而服务相关的配置放在configuration&#x2F;master和configuration&#x2F;master.dev下。对于一些特殊的配置文件如多语言文件可以直接放在configuration根目录下，通过ConsulClient进行读取。</p>
+<h2 id="总结回顾"><a href="#总结回顾" class="headerlink" title="总结回顾"></a>总结回顾</h2><p>通过以上过程我们实现了在一个Spring Boot项目中同时支持Nacos和Consul两个服务注册中心，并可以通过启动配置进行灵活切换。在实施的过程中基本做到了平滑适配，可以看到这两个中间件在兼容性上还是做的不错的，这也是我辈在实现相似软件的时候需要学习的。</p>
+<p>最后在项目部署的时候遇到了客户方安全团队的挑战，理由是Consul没有设置认证。通过研究在github issue中找到了如下答复：</p>
+<img src="wontfix.png" alt="wontfix" style="zoom:60%;" />
+
+<p>最终我们通过Nginx配置Auth Basic在Consul控制台服务之上实现了简单的认证。</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">location</span> /&#123;</span><br><span class="line">		<span class="attribute">auth_basic</span>           <span class="string">&quot;Consul Area&quot;</span>;</span><br><span class="line">		<span class="attribute">auth_basic_user_file</span> password.db;</span><br><span class="line">		<span class="attribute">proxy_set_header</span> Host <span class="variable">$http_host</span>;</span><br><span class="line">		<span class="attribute">proxy_set_header</span> X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">		<span class="attribute">proxy_set_header</span> REMOTE-HOST <span class="variable">$remote_addr</span>;</span><br><span class="line">		<span class="attribute">proxy_set_header</span> X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">		<span class="attribute">proxy_pass</span> http://localhost:8500/;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实现效果：</p>
+<img src="auth.png" alt="auth" style="zoom:60%;" /></article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%BA%94%E7%94%A8%E6%8A%80%E6%9C%AF/">应用技术</a><a class="post-meta__tags" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a></div><div class="post-share"><div class="social-share" data-image="/img/fluid.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/06/16/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/00%20%E6%8E%A5%E5%85%A5%E6%A8%A1%E5%BC%8F/" title="工业数据接入模式与架构设计"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">工业数据接入模式与架构设计</div></div><div class="info-2"><div class="info-item-1">工业数据接入模式阅读导引这篇笔记把 BS350、NodeRed 压机采集、MES&#x2F;SAMS 接口、IOT 中间件和曲线数据上报资料放在一起理解，目标是形成可复用的数据接入设计模式。 核心结论工业数据接入不是简单的数据搬运，而是一个“现场设备语义 → 平台业务语义”的转换过程。好的接入设计要同时解决协议、频率、时间戳、数据完整性、业务主键、异常处理和验收标准。         设备 / 控制器 / MES现场数据源     →     协议适配与接口服务协议转换...</div></div></div></a><a class="pagination-related" href="/2024/02/26/%E5%88%9D%E8%AF%86Node-Red/" title="初识Node-Red"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">初识Node-Red</div></div><div class="info-2"><div class="info-item-1">Node-Red 是一个基于流程的编程工具，通过可视化编辑的方式帮助用户生成事件驱动的应用。其核心思想是连接，通过将IOT设备、API和在线服务连接，形成数据流程从而产生价值。 Node-Red名字中的Node包含两层含义，第一层指代流程中的节点，所有的IOT设备、API和在线服务都以Node的形式存在；第二层指代实现方式，Node-Red基于Nodejs构建，这也为它带来了事件驱动和非阻塞的特性。 快速开始我们可以从github 获取最新版本的源代码，从源代码开始构建...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2020/03/13/%E5%9F%BA%E4%BA%8ESpring-Cloud-Gateway%E7%9A%84%E8%B7%AF%E7%94%B1%E5%AE%9E%E8%B7%B5/" title="基于Spring Cloud Gateway的路由实践"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-03-13</div><div class="info-item-2">基于Spring Cloud Gateway的路由实践</div></div><div class="info-2"><div class="info-item-1">在IT和OT融合的道路上，数据能力是很重要的一环。在设备端我们通过软PLC的解决方案覆盖了常见的数采方式和工业协议，那么采来的海量数据如何存储就成了我们当前的重中之重。 在调研了流行的数据存储方案后，我们决定基于开源时序数据库打造一款工业适用、业务定制的数据存储引擎。而接下来要介绍的路由网关可以认为是整个数据存储引擎的代理人，通过路由网关的引入，极大的透明了数据存储引擎的使用。不管是工业应用还是数采网关抑或是数据分析人员都可以方便的对数据进行读写操作，没有一点负担，没有...</div></div></div></a><a class="pagination-related" href="/2023/04/23/%E9%80%82%E9%85%8D%E5%90%8E%E7%AB%AF%E7%9A%84%E5%A4%9A%E8%AF%AD%E8%A8%80%E6%96%B9%E6%A1%88/" title="适配后端的多语言方案"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-04-23</div><div class="info-item-2">适配后端的多语言方案</div></div><div class="info-2"><div class="info-item-1">在上一篇文章中我们实现了基于vue-i18n的前端多语言方案，在这个方案中我们考虑了部分前后端交互中存在的问题如数据库菜单、代码直接返回错误信息等。在实现过程中我们发现如果只是将资源文件在前端工程管理，一些对多语言依赖较强的后端系统就无法正常工作，如日志中心。基于前后端通用的考虑，我们将资源文件作为配置项移动到Nacos进行维护，这篇文章会在这个前提下对基于vue-i18n的前端多语言方案进行系统改造。   方案实现   本方案以日志中心作为后端切入口，进行前后端适配多...</div></div></div></a><a class="pagination-related" href="/2020/08/19/%E6%A0%B9%E4%BA%91%E5%B9%B3%E5%8F%B0%E5%88%9D%E4%BD%93%E9%AA%8C/" title="根云平台初体验"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-19</div><div class="info-item-2">根云平台初体验</div></div><div class="info-2"><div class="info-item-1">公司目前的产品偏重于边缘数采和边缘计算，对于规模较大的客户大多需求接入现有的工业互联网平台实现数据统筹管理。 本文从根云互联网平台（以下简称平台）切入，研究边缘一体机接入平台的可行性。 在正式开始之前需要先了解平台关于建模的高层设计。通过控制台进入后可以看到在左侧的物菜单下有物模型、物实例和模型模板库三个子菜单。     结合介绍文档和页面功能，我们可以总结出平台关于物建模的高层设计。    物模型是物理设备的高层次抽象，定义物理设备通用的属性和行为 物实例是物模型的具...</div></div></div></a><a class="pagination-related" href="/2022/05/20/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3%E8%AE%A4%E8%AF%81/" title="微服务接口认证"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-20</div><div class="info-item-2">微服务接口认证</div></div><div class="info-2"><div class="info-item-1">在前后端分离的实践中接口定义问题是无法回避的。关于接口的认证和访问权限设置，这里记录一些个人想法。 首先我们将接口分为几个不同的访问等级：  level-1 开放接口，对所有人开放无需认证 level-2 认证接口，仅对认证用户开放，每次访问需要通过用户token进行认证 level-3 内部接口，仅对内部开放，通过内部约定的token进行认证  根据接口等级的定义，我们可以得到接口的几种访问形式：  服务内部模块调用  跨服务调用  前端调用  第三方调用  公开调用...</div></div></div></a><a class="pagination-related" href="/2017/09/01/%E5%BE%AE%E4%BF%A1%E7%99%BB%E5%BD%95%E9%9B%86%E6%88%90/" title="微信登录集成"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2017-09-01</div><div class="info-item-2">微信登录集成</div></div><div class="info-2"><div class="info-item-1">平台上线快一年了，注册人数却始终不见起色，看着下面这注册走势可把大伙儿急的。一着急一上火就刷朋友圈，朋友圈，朋友圈？灵感来了有没有？  如果我们可以支持微信登录，那么微信日活5.7亿岂不都是我们的潜在客户了？不用多久升职加薪，当上总经理，出任CEO，迎娶白富美，走上人生巅峰。想想还有点小激动呢。   准备工作说干就干，程序员一般套路：代码未动，文档先行。先找到微信开放平台（https://open.weixin.qq.com）-&gt; 资源中心-&gt; 网站应用，把...</div></div></div></a><a class="pagination-related" href="/2020/03/13/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E8%BE%B9%E7%BC%98%E6%95%B0%E9%87%87/" title="基于Netty的边缘数采"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-03-13</div><div class="info-item-2">基于Netty的边缘数采</div></div><div class="info-2"><div class="info-item-1">在设备数据采集方面，我们已经探索出一套成熟的做法即在设备侧部署一个边缘程序，通过定时拉取的机制到工控机如PLC的指定位置获取数据。但是对于机器人来说，不同型号的机器人控制设备都有自己不同程度的封装，我们需要严格按照机器人设备的数据开放方式进行定制化实现才有可能正确的获取到数据。 就我们这次研究的FANUC机器人来说，它的数据是通过内置的Socket服务端发送出来的。因此我们的数采方案是在边缘端部署一个相应的Socket客户端与之进行通信，获取数据并进行后续处理。   技...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/fluid.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Luis Chen</div><div class="author-info-description">工业智能平台与技术知识沉淀</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">63</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">33</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%94%E8%BF%9B%E8%B7%AF%E7%BA%BF"><span class="toc-number">1.</span> <span class="toc-text">演进路线</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">问题分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E8%BF%87%E7%A8%8B"><span class="toc-number">3.</span> <span class="toc-text">实现过程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Consul%E5%AE%89%E8%A3%85"><span class="toc-number">3.1.</span> <span class="toc-text">Consul安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#POM%E9%80%82%E9%85%8D"><span class="toc-number">3.2.</span> <span class="toc-text">POM适配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bootstrap-propertis-%E9%80%82%E9%85%8D"><span class="toc-number">3.3.</span> <span class="toc-text">bootstrap.propertis 适配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E9%80%82%E9%85%8D"><span class="toc-number">3.4.</span> <span class="toc-text">代码适配</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E7%BB%93%E6%9E%84"><span class="toc-number">4.</span> <span class="toc-text">配置结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%E5%9B%9E%E9%A1%BE"><span class="toc-number">5.</span> <span class="toc-text">总结回顾</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/02%20%E8%AE%BE%E5%A4%87%E5%81%A5%E5%BA%B7%E5%88%86%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" title="设备健康指数：从诊断结果到退化趋势">设备健康指数：从诊断结果到退化趋势</a><time datetime="2026-10-23T04:33:16.000Z" title="发表于 2026-10-23 12:33:16">2026-10-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%97%B6%E5%88%87%E6%8D%A2%E5%AE%9E%E8%B7%B5/" title="前端多语言资源按需加载与运行时切换实践">前端多语言资源按需加载与运行时切换实践</a><time datetime="2026-09-10T01:51:22.000Z" title="发表于 2026-09-10 09:51:22">2026-09-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/" title="曲线质量分析系统配置解析补充">曲线质量分析系统配置解析补充</a><time datetime="2026-08-13T05:55:00.000Z" title="发表于 2026-08-13 13:55:00">2026-08-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/03%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E8%8F%9C%E5%8D%95%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" title="曲线质量分析系统菜单工作流程">曲线质量分析系统菜单工作流程</a><time datetime="2026-07-13T09:25:40.000Z" title="发表于 2026-07-13 17:25:40">2026-07-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/05%20%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8Https%E6%9C%8D%E5%8A%A1/" title="Java 调用外部 HTTPS 服务与证书信任处理">Java 调用外部 HTTPS 服务与证书信任处理</a><time datetime="2026-07-10T06:31:52.000Z" title="发表于 2026-07-10 14:31:52">2026-07-10</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By Luis Chen</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>
