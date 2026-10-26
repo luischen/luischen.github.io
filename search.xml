@@ -2558,7 +2558,7 @@
   </entry>
   <entry>
     <title>工业智能平台总体架构与能力分层</title>
-    <url>/2026/06/17/manulism-work/10_Architecture/11%20%E5%B9%B3%E5%8F%B0%E6%80%BB%E8%A7%88/%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E5%B9%B3%E5%8F%B0%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84/</url>
+    <url>/2024/06/23/manulism-work/10_Architecture/11%20%E5%B9%B3%E5%8F%B0%E6%80%BB%E8%A7%88/%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E5%B9%B3%E5%8F%B0%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84/</url>
     <content><![CDATA[<h2 id="1-文档概述"><a href="#1-文档概述" class="headerlink" title="1. 文档概述"></a>1. 文档概述</h2><p>工业平台以“边缘采集与推理 + 平台服务 + 模型训练 + 数据智能 + 业务应用”为核心思路，面向制造现场的数据接入、时间性能分析、工艺质量分析、设备预测性维护、数据管理和智能助手应用需求，构建可扩展、可部署、可运维、可集成的工业智能平台。</p>
 <p>平台总体目标包括：</p>
 <ul>
@@ -3401,7 +3401,7 @@
   </entry>
   <entry>
     <title>工业智能平台架构演进脉络</title>
-    <url>/2026/06/16/manulism-work/10_Architecture/12%20%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B/%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B%E8%84%89%E7%BB%9C/</url>
+    <url>/2024/05/23/manulism-work/10_Architecture/12%20%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B/%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B%E8%84%89%E7%BB%9C/</url>
     <content><![CDATA[<h2 id="阅读导引"><a href="#阅读导引" class="headerlink" title="阅读导引"></a>阅读导引</h2><p>这篇笔记单独整理“架构演进”，避免它只被吸收到架构总览里。它关注的是：平台为什么从单体走向主从、云原生、平台化和智能化。</p>
 <h2 id="演进主线"><a href="#演进主线" class="headerlink" title="演进主线"></a>演进主线</h2><div style="margin: 18px 0; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc;">
   <div style="font-weight: 700; font-size: 16px; margin-bottom: 14px; color: #0f172a;">工业平台架构演进</div>
@@ -3455,11 +3455,13 @@
   </entry>
   <entry>
     <title>工业平台数据容量与处理能力估算</title>
-    <url>/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E6%95%B0%E6%8D%AE%E8%83%BD%E5%8A%9B%E4%BC%B0%E7%AE%97/</url>
+    <url>/2024/10/23/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E6%95%B0%E6%8D%AE%E8%83%BD%E5%8A%9B%E4%BC%B0%E7%AE%97/</url>
     <content><![CDATA[<h2 id="工艺质量-拧紧枪接入数量"><a href="#工艺质量-拧紧枪接入数量" class="headerlink" title="工艺质量 - 拧紧枪接入数量"></a>工艺质量 - 拧紧枪接入数量</h2><p>估算原则：基于经验数据估算</p>
 <p>以阿特拉斯拧紧作为基准，主要瓶颈在于influxdb的写入，以5w点每秒考虑。<br>每个螺栓一次两条曲线数据（扭矩和角度），合计约3000点</p>
 <p>设置变量：<br><font color="#ff0000">boltPerSecond</font>, 每秒螺栓数量，如10s一颗则值为0.1<br><font color="#ff0000">spindleNum</font>, 拧紧轴数量，单轴为1<br><font color="#ff0000">numOfGuns</font>, 可以接入的拧紧枪数量</p>
-<p>最终估算公式：<br>$numOfGuns&#x3D; 50000&#x2F;(3000 * boltPerSecond) &#x2F; spindleNum$</p>
+<p>最终估算公式：</p>
+<script type="math/tex">numOfGuns= 50000/(3000 * boltPerSecond) / spindleNum</script>
+
 <p>例如：<br>每秒一颗螺栓计算 boltPerSecond &#x3D; 1<br>两轴拧紧枪 spindleNum &#x3D; 2<br>可以接入的枪的数量 &#x3D; 50000&#x2F;(3000 * boltPerSecond) &#x2F; spindleNum &#x3D; 8 把</p>
 <h2 id="预测性维护-设备接入数量"><a href="#预测性维护-设备接入数量" class="headerlink" title="预测性维护 - 设备接入数量"></a>预测性维护 - 设备接入数量</h2><p>估算原则：基于服务器数据能力估算</p>
 <p>基于服务器数据写入的线程切换考虑，建议数量为4-16线程，按照16写入线程即16张数采卡<br>同样按照数采卡的线程限制，目前限制的是32</p>
@@ -3487,7 +3489,7 @@
   </entry>
   <entry>
     <title>工业平台开源许可治理参考</title>
-    <url>/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E5%BC%80%E6%BA%90%E8%AE%B8%E5%8F%AF/</url>
+    <url>/2024/09/23/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E5%BC%80%E6%BA%90%E8%AE%B8%E5%8F%AF/</url>
     <content><![CDATA[<p>![[Pasted image 20260617162906.png|697]]</p>
 <table>
 <thead>
@@ -3523,7 +3525,7 @@
   </entry>
   <entry>
     <title>工业平台软件版本与组件清单</title>
-    <url>/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E8%BD%AF%E4%BB%B6%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF/</url>
+    <url>/2024/07/23/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E8%BD%AF%E4%BB%B6%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF/</url>
     <content><![CDATA[<table>
 <thead>
 <tr>
@@ -3598,7 +3600,7 @@
   </entry>
   <entry>
     <title>工业智能平台服务器配置需求</title>
-    <url>/2026/06/17/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%9C%80%E6%B1%82/</url>
+    <url>/2024/08/23/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%9C%80%E6%B1%82/</url>
     <content><![CDATA[<h2 id="主站服务器需求"><a href="#主站服务器需求" class="headerlink" title="主站服务器需求"></a>主站服务器需求</h2><table>
 <thead>
 <tr>
@@ -3657,7 +3659,7 @@
   </entry>
   <entry>
     <title>前端多语言资源按需加载</title>
-    <url>/2026/09/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD/</url>
+    <url>/2026/08/23/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD/</url>
     <content><![CDATA[<h2 id="1-阅读导引"><a href="#1-阅读导引" class="headerlink" title="1. 阅读导引"></a>1. 阅读导引</h2><p>当一个前端应用包含多个业务模块或子应用时，如果在启动阶段一次性加载全部语言资源，会增加首屏资源体积和初始化耗时。更合适的做法是将资源按使用范围拆分：公共资源随应用初始化加载，业务模块资源在真正进入模块时，按照当前语言按需加载。</p>
 <p>本文结合 <code>tighten</code>、<code>pdm</code>、<code>pressFit</code> 等 App 的资源组织方式，介绍资源分层、命名约定、加载时机、缓存、合并和运行时切换等问题。除了为全新 App 建立独立页面和语言资源，方案还需要支持 <code>pressFit</code> 这类复用已有 App 页面、但使用自身业务术语的场景。</p>
 <p>本次优化主要实现以下目标：</p>
@@ -3899,7 +3901,7 @@
   </entry>
   <entry>
     <title>HTTPS 与 TLS 安全通信基础</title>
-    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80/</url>
+    <url>/2026/01/23/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/01-HTTPS%E4%B8%8ETLS%E5%9F%BA%E7%A1%80/</url>
     <content><![CDATA[<h1 id="HTTPS-与-TLS-基础"><a href="#HTTPS-与-TLS-基础" class="headerlink" title="HTTPS 与 TLS 基础"></a>HTTPS 与 TLS 基础</h1><p>HTTPS 可以理解为 <code>HTTP + TLS</code>。它解决的不是“更快传输”，而是“更可信、更保密地传输”。</p>
 <h2 id="1-HTTPS-解决什么问题"><a href="#1-HTTPS-解决什么问题" class="headerlink" title="1. HTTPS 解决什么问题"></a>1. HTTPS 解决什么问题</h2><ul>
 <li>机密性：传输中的内容不容易被旁路窃听直接读到。</li>
@@ -3941,7 +3943,7 @@
   </entry>
   <entry>
     <title>x509 证书与信任链机制</title>
-    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE/</url>
+    <url>/2026/02/23/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/02-x509%E8%AF%81%E4%B9%A6%E4%B8%8E%E4%BF%A1%E4%BB%BB%E9%93%BE/</url>
     <content><![CDATA[<h1 id="x509-证书与信任链"><a href="#x509-证书与信任链" class="headerlink" title="x509 证书与信任链"></a>x509 证书与信任链</h1><p>HTTPS 的身份基础通常是 <code>x509</code> 证书。它把“身份信息”和“公钥”绑定在一起，再通过 CA 的签名形成可验证的信任关系。</p>
 <h2 id="1-x509-证书里通常有什么"><a href="#1-x509-证书里通常有什么" class="headerlink" title="1. x509 证书里通常有什么"></a>1. x509 证书里通常有什么</h2><ul>
 <li>版本号</li>
@@ -4000,7 +4002,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>工业设备认证中的 x509 证书应用</title>
-    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/03-%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x509%E8%AF%81%E4%B9%A6/</url>
+    <url>/2026/04/23/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/03-%E8%AE%BE%E5%A4%87%E8%AE%A4%E8%AF%81%E4%B8%AD%E7%9A%84x509%E8%AF%81%E4%B9%A6/</url>
     <content><![CDATA[<h1 id="设备认证中的-x509-证书"><a href="#设备认证中的-x509-证书" class="headerlink" title="设备认证中的 x509 证书"></a>设备认证中的 x509 证书</h1><p>在设备接入场景里，证书不只是给网页用，也常用于设备身份识别。核心目标是让平台确认“设备是谁”，并确认“设备确实持有对应私钥”。</p>
 <h2 id="1-为什么设备也要用证书"><a href="#1-为什么设备也要用证书" class="headerlink" title="1. 为什么设备也要用证书"></a>1. 为什么设备也要用证书</h2><ul>
 <li>设备需要向平台证明身份。</li>
@@ -4077,7 +4079,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>Java 调用外部 HTTPS 服务与证书信任处理</title>
-    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/05%20%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8Https%E6%9C%8D%E5%8A%A1/</url>
+    <url>/2026/05/23/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/05%20%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8Https%E6%9C%8D%E5%8A%A1/</url>
     <content><![CDATA[<h1 id="调用外部-HTTPS-服务"><a href="#调用外部-HTTPS-服务" class="headerlink" title="调用外部 HTTPS 服务"></a>调用外部 HTTPS 服务</h1><p>当 Java 程序调用外部 HTTPS 服务时，如果 JVM 不信任对方证书，就会出现证书链校验失败。</p>
 <p>常见报错如下：</p>
 <figure class="highlight text"><table><tr><td class="code"><pre><span class="line">sun.security.validator.ValidatorException: PKIX path building failed:</span><br><span class="line">sun.security.provider.certpath.SunCertPathBuilderException:</span><br><span class="line">unable to find valid certification path to requested target</span><br></pre></td></tr></table></figure>
@@ -4180,7 +4182,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>Let&#39;s Encrypt 与 Nginx HTTPS 快速部署</title>
-    <url>/2026/07/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/04-LetsEncrypt%E4%B8%8ENginx%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2/</url>
+    <url>/2026/03/23/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/Https/04-LetsEncrypt%E4%B8%8ENginx%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2/</url>
     <content><![CDATA[<h1 id="Let’s-Encrypt-与-Nginx-快速部署"><a href="#Let’s-Encrypt-与-Nginx-快速部署" class="headerlink" title="Let’s Encrypt 与 Nginx 快速部署"></a>Let’s Encrypt 与 Nginx 快速部署</h1><p>如果只是想快速把站点切到 HTTPS，最常见的方式是让 Nginx 终止 TLS，然后通过 Let’s Encrypt 自动申请和续期证书。</p>
 <h2 id="1-为什么选这个方案"><a href="#1-为什么选这个方案" class="headerlink" title="1. 为什么选这个方案"></a>1. 为什么选这个方案</h2><ul>
 <li>Nginx 很适合作为统一入口，终止 TLS。</li>
@@ -4265,7 +4267,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>工业数据接入模式与架构设计</title>
-    <url>/2026/06/16/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/00%20%E6%8E%A5%E5%85%A5%E6%A8%A1%E5%BC%8F/</url>
+    <url>/2024/04/23/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/00%20%E6%8E%A5%E5%85%A5%E6%A8%A1%E5%BC%8F/</url>
     <content><![CDATA[<h1 id="工业数据接入模式"><a href="#工业数据接入模式" class="headerlink" title="工业数据接入模式"></a>工业数据接入模式</h1><h2 id="阅读导引"><a href="#阅读导引" class="headerlink" title="阅读导引"></a>阅读导引</h2><p>这篇笔记把 BS350、NodeRed 压机采集、MES&#x2F;SAMS 接口、IOT 中间件和曲线数据上报资料放在一起理解，目标是形成可复用的数据接入设计模式。</p>
 <h2 id="核心结论"><a href="#核心结论" class="headerlink" title="核心结论"></a>核心结论</h2><p>工业数据接入不是简单的数据搬运，而是一个“现场设备语义 → 平台业务语义”的转换过程。好的接入设计要同时解决协议、频率、时间戳、数据完整性、业务主键、异常处理和验收标准。</p>
 <div style="margin: 18px 0; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc;">
@@ -4313,7 +4315,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>工业数据采集清单设计</title>
-    <url>/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/01%20%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95/</url>
+    <url>/2024/12/23/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/01%20%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95/</url>
     <content><![CDATA[<blockquote>
 <p>脱敏说明：本文基于当前工作区中的《拧紧枪数采清单 V1.2》整理，仅保留通用结构与方法论，不展示公司名称、现场专属 IP、专有标识与可直接定位产线的敏感信息。</p>
 </blockquote>
@@ -4607,7 +4609,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>边缘数采卡设计与运行机制</title>
-    <url>/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/02%20%E6%95%B0%E9%87%87%E5%8D%A1/</url>
+    <url>/2025/01/23/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/02%20%E6%95%B0%E9%87%87%E5%8D%A1/</url>
     <content><![CDATA[<h1 id="02-数采卡"><a href="#02-数采卡" class="headerlink" title="02 数采卡"></a>02 数采卡</h1><h2 id="1-目的"><a href="#1-目的" class="headerlink" title="1. 目的"></a>1. 目的</h2><p>数采卡是整个数采系统的现场执行端，负责把 PLC、机器人等设备里的原始数据按配置采集出来，映射成统一的业务字段，再上传到数据目的地。<br>数采卡是基于 C++ 开发的常驻服务，核心能力包括：</p>
 <ol>
 <li>解析配置文件并初始化采集任务。</li>
@@ -5044,7 +5046,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>工业数采插件设计与扩展</title>
-    <url>/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/03%20%E6%95%B0%E9%87%87%E6%8F%92%E4%BB%B6/</url>
+    <url>/2024/11/23/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/03%20%E6%95%B0%E9%87%87%E6%8F%92%E4%BB%B6/</url>
     <content><![CDATA[<blockquote>
 <p>说明：本文以当前工作区内的源码实现为准。部分 README 与源码存在不一致的地方，例如 <code>mssql-agent</code> 的 README 会提到 MySQL，但代码实际使用的是 SQL Server；<code>toolsnet</code> 的 README 也更偏旧版描述，但源码已经明确了它的 HTTP 入站、Influx 写入与字段映射逻辑。</p>
 </blockquote>
@@ -5510,7 +5512,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>工业数据对接方案与平台集成</title>
-    <url>/2026/06/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/04%20%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%8E%A5/</url>
+    <url>/2025/02/23/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/04%20%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%8E%A5/</url>
     <content><![CDATA[<h1 id="04-数据对接"><a href="#04-数据对接" class="headerlink" title="04 数据对接"></a>04 数据对接</h1><h2 id="1-说明"><a href="#1-说明" class="headerlink" title="1. 说明"></a>1. 说明</h2><p>这份文档总结了两种常见的数据对接思路，以及它们更适合的场景：</p>
 <ul>
 <li>Node-RED 更偏向流程编排、可视化连接和快速验证。</li>
@@ -5747,7 +5749,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>曲线质量分析系统业务领域知识</title>
-    <url>/2026/06/22/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/00%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/</url>
+    <url>/2025/03/23/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/00%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/</url>
     <content><![CDATA[<p>这是一份面向拧紧工艺的曲线分析系统领域笔记。系统核心对象是时序数据曲线，重点围绕螺栓拧紧过程中的扭矩、角度、判定、参考曲线、基础模型、策略和规则展开。</p>
 <h2 id="一句话定义"><a href="#一句话定义" class="headerlink" title="一句话定义"></a>一句话定义</h2><p>曲线分析系统的本质，是把设备在一次拧紧过程中的时序曲线，转换成可解释的质量结论。</p>
 <p>它做的不是单纯“看曲线”，而是把一条曲线放进业务上下文里判断：</p>
@@ -6159,7 +6161,7 @@ HTTPS 通信成立
 </ul>
 <p>因此，它不是单纯的曲线展示系统，也不是单纯的模型计算系统，而是面向工艺质量的判定与汇总结论系统。</p>
 <h2 id="扩展知识"><a href="#扩展知识" class="headerlink" title="扩展知识"></a>扩展知识</h2><ul>
-<li>[01 曲线分析系统领域知识扩展](&#x2F;01 曲线分析系统领域知识扩展&#x2F;)</li>
+<li><a href="/2025/04/23/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/01%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E6%89%A9%E5%B1%95/">01 曲线分析系统领域知识扩展</a></li>
 </ul>
 <h2 id="可以继续延伸的-Obsidian-链接"><a href="#可以继续延伸的-Obsidian-链接" class="headerlink" title="可以继续延伸的 Obsidian 链接"></a>可以继续延伸的 Obsidian 链接</h2><ul>
 <li><a href="/%E6%9B%B2%E7%BA%BF%E5%88%A4%E5%AE%9A%E6%B5%81%E7%A8%8B/">曲线判定流程</a></li>
@@ -6178,9 +6180,9 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>曲线质量分析业务扩展与交付经验</title>
-    <url>/2026/06/22/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/01%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E6%89%A9%E5%B1%95/</url>
+    <url>/2025/04/23/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/01%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E6%89%A9%E5%B1%95/</url>
     <content><![CDATA[<h2 id="与主笔记的关系"><a href="#与主笔记的关系" class="headerlink" title="与主笔记的关系"></a>与主笔记的关系</h2><ul>
-<li>主笔记：[00 曲线分析系统领域知识](&#x2F;00 曲线分析系统领域知识&#x2F;)</li>
+<li>主笔记：<a href="/2025/03/23/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/00%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/">00 曲线分析系统领域知识</a></li>
 <li>本笔记：补充业务上下文、模型训练经验、查询优化经验和现场交付经验</li>
 <li>原始来源：两篇已归档来源笔记</li>
 </ul>
@@ -6262,7 +6264,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>曲线质量分析系统技术架构与数据流转</title>
-    <url>/2026/06/24/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/02%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/</url>
+    <url>/2025/09/23/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/02%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/</url>
     <content><![CDATA[<blockquote>
 <p>本文只补充技术实现视角，不重复业务定义。重点说明曲线分析系统的架构位置、数据流转、边缘端计算、云端规则判定和结果回写机制。</p>
 </blockquote>
@@ -6689,12 +6691,12 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>曲线质量分析系统菜单工作流程</title>
-    <url>/2026/07/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/03%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E8%8F%9C%E5%8D%95%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/</url>
+    <url>/2026/06/23/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/03%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E8%8F%9C%E5%8D%95%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/</url>
     <content><![CDATA[<p>本文档用于说明曲线分析系统从边缘端数据接入、曲线查看、主站同步、数据挖掘、事件判定、渠道推送到标准曲线沉淀的完整菜单工作流程。</p>
 <h2 id="与其他笔记的分工"><a href="#与其他笔记的分工" class="headerlink" title="与其他笔记的分工"></a>与其他笔记的分工</h2><ul>
-<li>[00 曲线分析系统领域知识](&#x2F;00 曲线分析系统领域知识&#x2F;)：定义曲线、参考曲线、模型、策略、规则等核心业务对象。</li>
-<li>[01 曲线分析系统领域知识扩展](&#x2F;01 曲线分析系统领域知识扩展&#x2F;)：补充业务上下文、模型训练、查询优化和现场交付经验。</li>
-<li>[02 曲线分析系统技术领域知识](&#x2F;02 曲线分析系统技术领域知识&#x2F;)：说明接入、计算、异步、回写和关键算法等技术实现。</li>
+<li><a href="/2025/03/23/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/00%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/">00 曲线分析系统领域知识</a>：定义曲线、参考曲线、模型、策略、规则等核心业务对象。</li>
+<li><a href="/2025/04/23/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/01%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E6%89%A9%E5%B1%95/">01 曲线分析系统领域知识扩展</a>：补充业务上下文、模型训练、查询优化和现场交付经验。</li>
+<li><a href="/2025/09/23/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/02%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/">02 曲线分析系统技术领域知识</a>：说明接入、计算、异步、回写和关键算法等技术实现。</li>
 <li>本笔记只保留“用户从哪个菜单进入、做什么动作、产生什么业务产出”的工作流视角，不再重复解释特征、规则、模型和标准曲线的领域定义。</li>
 </ul>
 <h2 id="菜单流程图"><a href="#菜单流程图" class="headerlink" title="菜单流程图"></a>菜单流程图</h2><p>图例：蓝色表示系统菜单，灰色表示系统处理，黄色表示规则判定，绿色表示结果沉淀。</p>
@@ -6844,7 +6846,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>曲线质量分析系统配置解析补充</title>
-    <url>/2026/08/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/</url>
+    <url>/2026/07/23/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/</url>
     <content><![CDATA[<h2 id="特征配置中col-item-的解释逻辑"><a href="#特征配置中col-item-的解释逻辑" class="headerlink" title="特征配置中col_item 的解释逻辑"></a>特征配置中col_item 的解释逻辑</h2><p>示例数据：<br><code>AA002,AA003,AA005,,&amp;AA004,AA011,AA016,AA017,AB001,AB002,AA018,AA015</code></p>
 <p>这段 <code>col_item</code> 会先用 <code>&amp;</code> 分成“公共采集项”和“螺栓采集项”两部分：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">AA002,AA003,AA005,,</span><br><span class="line">&amp;</span><br><span class="line">AA004,AA011,AA016,AA017,AB001,AB002,AA018,AA015</span><br></pre></td></tr></table></figure>
@@ -6975,7 +6977,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>时间性能分析系统业务领域知识</title>
-    <url>/2026/06/23/manulism-work/20_Domain_Knowledge/23%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/00%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/</url>
+    <url>/2025/05/23/manulism-work/20_Domain_Knowledge/23%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/00%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E7%B3%BB%E7%BB%9F%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/</url>
     <content><![CDATA[<h2 id="2-核心业务对象"><a href="#2-核心业务对象" class="headerlink" title="2. 核心业务对象"></a>2. 核心业务对象</h2><h3 id="2-1-研究对象"><a href="#2-1-研究对象" class="headerlink" title="2.1 研究对象"></a>2.1 研究对象</h3><p>研究对象是分析的基本组织单元，常见可以是：</p>
 <ul>
 <li>产线</li>
@@ -7377,7 +7379,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>时间性能分析系统技术实现知识</title>
-    <url>/2026/06/24/manulism-work/20_Domain_Knowledge/23%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/01%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/</url>
+    <url>/2025/08/23/manulism-work/20_Domain_Knowledge/23%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/01%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/</url>
     <content><![CDATA[<blockquote>
 <p>作为业务领域知识的补充，本文聚焦系统架构、关键算法、数据口径与后续实现方向。内容保持在“可指导实现”的层面，不展开到方法级细节。<br>术语沿用业务文档中的定义，但本文只说明实现映射，不重复展开业务语义。</p>
 </blockquote>
@@ -7619,7 +7621,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>预测性维护 PDM 业务领域知识</title>
-    <url>/2026/06/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/00%20PDM%E4%B8%9A%E5%8A%A1%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/</url>
+    <url>/2025/06/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/00%20PDM%E4%B8%9A%E5%8A%A1%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>说明：本文结合当前后端实现整理。若文档描述与系统实现存在差异，以系统实现为准。本文刻意区分“领域知识”和“系统知识”：前者回答预测性维护是什么，后者回答本系统如何承载预测性维护。</p>
 <h2 id="1-领域知识：预测性维护在解决什么问题"><a href="#1-领域知识：预测性维护在解决什么问题" class="headerlink" title="1. 领域知识：预测性维护在解决什么问题"></a>1. 领域知识：预测性维护在解决什么问题</h2><p>预测性维护的核心不是把设备故障记录下来，而是在设备状态劣化早期识别风险，让维护从“故障后处理”转向“风险前干预”。</p>
 <p>传统维护通常有三种模式：</p>
@@ -7673,6 +7675,7 @@ HTTPS 通信成立
 </table>
 
 <p>这条价值链里有几个关键概念：</p>
+<p>在诊断与维护决策之间，<strong>健康指数</strong>用于设备筛查和复核排序；<strong>事件</strong>由独立的业务规则决定是否触达和跟进。健康分下降不能直接等同于故障确认，也不应默认生成告警或工单。评分与趋势的具体口径见<a href="/2026/10/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/02%20%E8%AE%BE%E5%A4%87%E5%81%A5%E5%BA%B7%E5%88%86%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/">设备健康指数设计笔记</a>。</p>
 <table>
   <thead>
     <tr>
@@ -7701,6 +7704,11 @@ HTTPS 通信成立
       <td>模型</td>
       <td>把特征映射为诊断结论的判断逻辑</td>
       <td>模型是否适配设备、部件、工况和维护目标</td>
+    </tr>
+    <tr>
+      <td>健康指数</td>
+      <td>把多个诊断因子放到统一刻度，辅助比较设备状态与变化趋势</td>
+      <td>能否回溯原始诊断，结果是否有足够覆盖且仍然有效</td>
     </tr>
     <tr>
       <td>事件</td>
@@ -8005,7 +8013,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>预测性维护 PDM 技术实现知识</title>
-    <url>/2026/06/24/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/01%20PDM%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/</url>
+    <url>/2025/07/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/01%20PDM%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>本文重点说明系统如何支撑业务落地。本文只展开架构和关键技术实现，其他算法、聚合策略和局部实现不再细写，便于后续继续补充。</p>
 <h2 id="1-系统定位"><a href="#1-系统定位" class="headerlink" title="1. 系统定位"></a>1. 系统定位</h2><p>PDM 不是单一诊断服务，而是一套围绕“特征配置、模型训练、诊断展示、事件闭环、边缘计算协同”构建的微服务体系。</p>
 <ul>
@@ -8084,6 +8092,8 @@ HTTPS 通信成立
 <li>事件处理也有历史轨迹。</li>
 </ul>
 <p>这并不是附加能力，而是预测性维护系统的基础要求。没有历史，就无法复盘模型效果，也无法解释为什么某次诊断结果发生变化。</p>
+<h3 id="3-7-健康指数的接入边界"><a href="#3-7-健康指数的接入边界" class="headerlink" title="3.7 健康指数的接入边界"></a>3.7 健康指数的接入边界</h3><p>若在现有诊断能力上增加设备健康指数，计算输入应是带时间戳和规则版本的<strong>诊断结果</strong>，而不是把每个模型输入特征直接当作健康因子。健康指数计算层负责因子评分、设备汇总和趋势快照；事件规则仍独立判断是否产生告警或工单。这样既能从总分下钻到诊断证据，也能避免同一信号被重复计入。</p>
+<p>对外结果除总分外，还应提供因子明细、有效因子数或覆盖率、最近更新时间与计算口径版本。补算或规则调整后，历史曲线应能按原口径复核；如按新口径重算，需标明版本变化。具体评分映射、缺失处理及趋势推算统一见<a href="/2026/10/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/02%20%E8%AE%BE%E5%A4%87%E5%81%A5%E5%BA%B7%E5%88%86%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/">设备健康指数设计笔记</a>，本文不重复定义。</p>
 <h2 id="4-本文不展开的部分"><a href="#4-本文不展开的部分" class="headerlink" title="4. 本文不展开的部分"></a>4. 本文不展开的部分</h2><p>为了保持这份笔记聚焦，以下内容只保留概念层，不再展开具体实现：</p>
 <ul>
 <li>特征提取和特征聚合的具体实现。</li>
@@ -8092,7 +8102,7 @@ HTTPS 通信成立
 <li>事件标签、规则命中和诊断结果展示的细节页面逻辑。</li>
 </ul>
 <p>这些内容可以在后续需要时，单独补成“算法说明”或“功能实现说明”。</p>
-<h2 id="5-小结"><a href="#5-小结" class="headerlink" title="5. 小结"></a>5. 小结</h2><p>这份技术笔记作为[00 PDM业务领域知识笔记](&#x2F;00 PDM业务领域知识笔记&#x2F;)的补充，重点说明的是系统的承载方式，而不是每一段代码怎么写。当前最重要的技术抓手是三件事：</p>
+<h2 id="5-小结"><a href="#5-小结" class="headerlink" title="5. 小结"></a>5. 小结</h2><p>这份技术笔记作为<a href="/2025/06/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/00%20PDM%E4%B8%9A%E5%8A%A1%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/">00 PDM业务领域知识笔记</a>的补充，重点说明的是系统的承载方式，而不是每一段代码怎么写。当前最重要的技术抓手是三件事：</p>
 <ol>
 <li>云边协同的架构拆分。</li>
 <li>配置、任务、授权、历史的治理机制。</li>
@@ -8109,7 +8119,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>工业智能体能力总览</title>
-    <url>/2026/06/30/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93/00%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93%E6%80%BB%E8%A7%88/</url>
+    <url>/2025/11/23/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93/00%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93%E6%80%BB%E8%A7%88/</url>
     <content><![CDATA[<h2 id="1-一句话理解"><a href="#1-一句话理解" class="headerlink" title="1. 一句话理解"></a>1. 一句话理解</h2><p>AI Native 是一种设计原则，意思是系统从一开始就围绕 AI 来组织入口、工具、数据和反馈闭环。智能体是这种原则下最常见的落地形态之一。</p>
 <p>它和传统 App 的核心差别，不是“有没有大模型”，而是“系统的中心到底是功能，还是目标完成”。</p>
 <h2 id="2-三类系统的差别"><a href="#2-三类系统的差别" class="headerlink" title="2. 三类系统的差别"></a>2. 三类系统的差别</h2><table>
@@ -8318,7 +8328,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>工业多智能体架构模式</title>
-    <url>/2026/07/01/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%A4%9A%E6%99%BA%E8%83%BD%E4%BD%93%E6%9E%B6%E6%9E%84/</url>
+    <url>/2025/12/23/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E4%BD%93/01%20%E5%A4%9A%E6%99%BA%E8%83%BD%E4%BD%93%E6%9E%B6%E6%9E%84/</url>
     <content><![CDATA[<h2 id="1-一句话理解"><a href="#1-一句话理解" class="headerlink" title="1. 一句话理解"></a>1. 一句话理解</h2><p>多智能体架构不是“把很多模型放在一起”，而是把一个复杂任务拆成多个职责明确的智能体，让它们通过路由、分工、通信和汇总来协作完成目标。</p>
 <p>它的价值不在于智能体数量多，而在于：</p>
 <ul>
@@ -8550,7 +8560,7 @@ HTTPS 通信成立
   </entry>
   <entry>
     <title>工业能耗寻优算法设计</title>
-    <url>/2026/06/30/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/02%20%E5%B7%A5%E4%B8%9A%E7%AE%97%E6%B3%95/00%20%E8%83%BD%E8%80%97%E5%AF%BB%E4%BC%98%E7%AE%97%E6%B3%95/</url>
+    <url>/2025/10/23/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/02%20%E5%B7%A5%E4%B8%9A%E7%AE%97%E6%B3%95/00%20%E8%83%BD%E8%80%97%E5%AF%BB%E4%BC%98%E7%AE%97%E6%B3%95/</url>
     <content><![CDATA[<h2 id="1-一句话说清楚"><a href="#1-一句话说清楚" class="headerlink" title="1. 一句话说清楚"></a>1. 一句话说清楚</h2><p>这套算法本质上是在做一个<strong>带约束的非线性最优化</strong>：</p>
 <ul>
 <li>目标：让涂装车间空调系统的总能耗尽可能低</li>
@@ -9059,6 +9069,113 @@ HTTPS 通信成立
       <tags>
         <tag>AI与智能体</tag>
         <tag>故障树</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>设备健康指数：从诊断结果到退化趋势</title>
+    <url>/2026/10/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/02%20%E8%AE%BE%E5%A4%87%E5%81%A5%E5%BA%B7%E5%88%86%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/</url>
+    <content><![CDATA[<h1 id="设备健康指数：从诊断结果到退化趋势"><a href="#设备健康指数：从诊断结果到退化趋势" class="headerlink" title="设备健康指数：从诊断结果到退化趋势"></a>设备健康指数：从诊断结果到退化趋势</h1><div class="note info flat"><p><strong>核心思路</strong><br>设备健康指数（Health Index，HI）将多个诊断信号转换到统一刻度，合成为设备状态，并沿时间轴观察变化。它帮助人判断<strong>现在哪里值得关注、哪些信号支撑这一判断、退化是否持续</strong>。</p>
+</div>
+
+<h2 id="为什么需要健康指数"><a href="#为什么需要健康指数" class="headerlink" title="为什么需要健康指数"></a>为什么需要健康指数</h2><p>预测性维护往往同时使用规则、统计方法和机器学习模型。一个模型输出正常或异常，另一个输出偏离程度，第三个输出连续数值。这些结果的量纲和含义不同，无法直接放在同一张设备列表中比较。</p>
+<p>单次报警也只回答“这一刻是否触发条件”。健康指数补上连续视角：先统一表达各诊断结果，再汇总成设备状态，最后通过趋势判断变化方向。设计时应始终保留原始诊断结果，避免一个总分掩盖局部异常。</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    flowchart LR
+    A[传感器与业务数据] --&gt; B[规则或模型诊断]
+    B --&gt; C[各诊断因子评分]
+    C --&gt; D[设备健康指数]
+    D --&gt; E[因子贡献与详情]
+    D --&gt; F[时间趋势]
+    F --&gt; G[阈值到达时间估计]
+  </pre></div>
+
+<h2 id="设计的三个层次"><a href="#设计的三个层次" class="headerlink" title="设计的三个层次"></a>设计的三个层次</h2><h3 id="诊断因子：明确“分数代表什么”"><a href="#诊断因子：明确“分数代表什么”" class="headerlink" title="诊断因子：明确“分数代表什么”"></a>诊断因子：明确“分数代表什么”</h3><p>一个诊断因子应对应一个可解释的设备状态信号，例如轴承振动异常、温升偏离或某个模型的诊断结果。它需要有稳定的标识、时间戳、原始值、诊断结论和评分所依据的阈值或规则版本。</p>
+<p>这里的因子是<strong>诊断层的结果</strong>，不必等同于模型输入的每个特征。若把输入特征直接作为健康因子，容易重复计算高度相关的信息，也难以解释它与实际故障模式的关系。</p>
+<h3 id="因子评分：统一刻度，但尊重模型语义"><a href="#因子评分：统一刻度，但尊重模型语义" class="headerlink" title="因子评分：统一刻度，但尊重模型语义"></a>因子评分：统一刻度，但尊重模型语义</h3><p>可将因子状态映射到 0～100 分，100 表示健康基准，分数越低表示偏离越明显。不同诊断类型需要不同映射方式：</p>
+<table>
+<thead>
+<tr>
+<th>诊断输出</th>
+<th>评分思路</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>正常 &#x2F; 异常等离散结果</td>
+<td>根据诊断结论映射分数；不要用单点数值替代包含连续点、趋势等条件的规则判断。</td>
+</tr>
+<tr>
+<td>有效上下阈值的连续结果</td>
+<td>以正常区间中心为基准，根据与中心的距离及区间半宽计算偏离程度。</td>
+</tr>
+<tr>
+<td>只有上阈值且“越大越异常”的结果</td>
+<td>以健康基准值为起点，按诊断值相对上阈值的比例计算偏离。</td>
+</tr>
+</tbody></table>
+<p><strong>离散诊断示例。</strong>某振动规则综合最近 5 个观测点给出“正常”或“异常”结论。即使最后一个观测值尚未越过单点阈值，连续上升也可能使规则判为异常。若采用“正常 &#x3D; 100 分、异常 &#x3D; 60 分”的示例映射，这次结果应记为 <strong>60 分</strong>；规则判为正常时记为 <strong>100 分</strong>。评分依据是规则结论，不能只拿最后一个观测值重新判断。</p>
+<p>一种便于解释的<strong>示例映射</strong>是令异常边界对应 60 分：</p>
+<script type="math/tex; mode=display">
+s_i=\operatorname{round}_{0.1}\!\left(\operatorname{clamp}(100-40d_i,\ 0,\ 100)\right)
+</script>
+
+<p>其中 <script type="math/tex">d_i</script> 是归一化偏离程度，边界处 <script type="math/tex">d_i=1</script>。这个 60 分只是示例刻度，不是通用行业标准；实际映射应依据故障机理、历史样本和现场容忍度校准。缺失或非法阈值、无法解析的时间、非有限数值应明确排除，并暴露数据质量问题。</p>
+<p><strong>连续诊断示例。</strong>某无量纲诊断指标的正常区间为 10～30，中心为 20，半宽为 10，因此 <script type="math/tex">d=|x-20|/10</script>。按上式计算：当 <script type="math/tex">x=25</script> 时，<script type="math/tex">d=0.5</script>，得到 <strong>80 分</strong>；当 <script type="math/tex">x=30</script> 时，达到边界，得到 <strong>60 分</strong>；当 <script type="math/tex">x=45</script> 时，<script type="math/tex">d=2.5</script>，分数截断为 <strong>0 分</strong>。连续值保留了偏离程度，而不只是正常或异常两档。</p>
+<h3 id="设备聚合：总分与解释一起输出"><a href="#设备聚合：总分与解释一起输出" class="headerlink" title="设备聚合：总分与解释一起输出"></a>设备聚合：总分与解释一起输出</h3><p>设参与计算的因子分数为 <script type="math/tex">s_i(t)</script>，其有效权重为 <script type="math/tex">w_i</script>，设备健康指数可写为：</p>
+<script type="math/tex; mode=display">
+HI(t)=\operatorname{round}_{0.1}\!\left(\frac{\sum_i s_i(t)w_i}{\sum_i w_i}\right)
+</script>
+
+<p>权重表达业务重要性和诊断可靠性，可按故障模式、设备类型或模型类别设置。若一类模型关联多个诊断项，可先将该类权重分配给各项，再对当期有有效结果的项归一化。<strong>缺失结果不能直接算作 0 分</strong>，同时应展示有效因子数或覆盖率，避免数据稀少时出现看似可靠的高分。</p>
+<p>例如三个因子分数分别为 100、60、80，相对权重为 10、45、45，则总分为 <script type="math/tex">100\times10\%+60\times45\%+80\times45\%=73</script>。展示总分时，也应展示每个因子的分数及贡献。贡献分四舍五入后可分配余量，保证展示值之和与总分一致。</p>
+<div class="note warning flat"><p><strong>贡献不等于归因</strong><br>因子贡献度说明它占当前总分的数值比例，并不表示它导致故障的概率或责任比例。根因判断仍需结合原始数据、诊断详情和现场检查。</p>
+</div>
+
+<h2 id="从健康分到退化趋势"><a href="#从健康分到退化趋势" class="headerlink" title="从健康分到退化趋势"></a>从健康分到退化趋势</h2><p>设备状态由多个异步更新的因子组成。构建趋势时，可以按业务时区生成日末快照：每个因子取当天最后一次有效诊断；当天未更新的因子沿用最近有效值；没有任何因子更新的日期不补点。这样既避免把缺测误判为退化，也避免人为制造观测数据。</p>
+<p>趋势窗口、因子状态的最长沿用时间和最少有效点数都应配置。若某个因子长时间不更新，应标出其数据新鲜度，必要时让总分进入“数据不足”状态，而不是持续显示旧分数。</p>
+<p>在有效日点足够时，可用线性拟合估算健康分变化斜率。若斜率持续为负，拟合线与业务参考阈值的交点可作为<strong>安排复核的时间线索</strong>。阈值需要按设备和场景校准；预测结果应与样本点数、时间窗口及拟合方式一同展示。</p>
+<div class="note danger flat"><p><strong>线性外推的边界</strong><br>阈值到达时间不是剩余寿命的确定结论。工况变化、维修、模型漂移或短期噪声都会改变走势。点数不足、斜率非负或数据陈旧时，应显示“无法推算”，而不是给出貌似精确的日期。</p>
+</div>
+
+<h2 id="它对预测性维护有什么帮助"><a href="#它对预测性维护有什么帮助" class="headerlink" title="它对预测性维护有什么帮助"></a>它对预测性维护有什么帮助</h2><table>
+<thead>
+<tr>
+<th>运维问题</th>
+<th>健康指数提供的线索</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>先看哪台设备？</td>
+<td>用同一刻度筛查设备，同时核对数据新鲜度与因子覆盖率。</td>
+</tr>
+<tr>
+<td>为什么这台设备的分数下降？</td>
+<td>从总分回到因子贡献、原始诊断和阈值，定位需要复核的信号。</td>
+</tr>
+<tr>
+<td>是一次波动还是持续退化？</td>
+<td>比较日末点、拟合斜率与工况变化，识别持续下降。</td>
+</tr>
+<tr>
+<td>何时安排检查？</td>
+<td>参考阈值时间帮助排序检查计划，最终决定仍由风险、生产安排和现场证据共同支持。</td>
+</tr>
+</tbody></table>
+<p>健康指数的价值是<strong>让诊断结果可比较、让变化可追踪、让干预有依据</strong>。它适合作为人工研判和维保优先级的输入；自动报警或工单动作应另行定义触发条件、复核机制与误报处理。</p>
+<h2 id="实施时要守住的边界"><a href="#实施时要守住的边界" class="headerlink" title="实施时要守住的边界"></a>实施时要守住的边界</h2><ul>
+<li><strong>时间与版本</strong>：保存评分所用的诊断结果、阈值和规则版本，保证历史数据可复核。</li>
+<li><strong>缺失与陈旧</strong>：分别说明无结果、无效结果和长时间未更新，不能默认为健康。</li>
+<li><strong>权重治理</strong>：记录权重变更；若新权重重算历史曲线，应明确提示口径改变。</li>
+<li><strong>验证方式</strong>：用已知正常、退化和故障样本检查分数排序，也检查不同设备和工况下的误报、漏报。</li>
+<li><strong>展示方式</strong>：总分、因子详情、最近更新时间和趋势一起呈现，避免只给一个数字。</li>
+</ul>
+<div class="note success flat"><p><strong>设计原则</strong><br>健康指数先要<strong>可解释且可复核</strong>，再追求预测能力。若评分无法回到诊断证据，精致的趋势图也难以支撑真实的维保决策。</p>
+</div>
+]]></content>
+      <categories>
+        <category>工作笔记</category>
+      </categories>
+      <tags>
+        <tag>预测性维护</tag>
       </tags>
   </entry>
 </search>

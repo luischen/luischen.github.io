@@ -1,0 +1,1098 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>工业数采插件设计与扩展 | Next Station</title><meta name="author" content="Luis Chen"><meta name="copyright" content="Luis Chen"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="说明：本文以当前工作区内的源码实现为准。部分 README 与源码存在不一致的地方，例如 mssql-agent 的 README 会提到 MySQL，但代码实际使用的是 SQL Server；toolsnet 的 README 也更偏旧版描述，但源码已经明确了它的 HTTP 入站、Influx 写入与字段映射逻辑。  总体认知这个仓库里的每个文件夹都可以看作一个独立的工业数采插件。它们的共同目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="工业数采插件设计与扩展">
+<meta property="og:url" content="https://luischen.github.io/2024/11/23/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/03%20%E6%95%B0%E9%87%87%E6%8F%92%E4%BB%B6/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="说明：本文以当前工作区内的源码实现为准。部分 README 与源码存在不一致的地方，例如 mssql-agent 的 README 会提到 MySQL，但代码实际使用的是 SQL Server；toolsnet 的 README 也更偏旧版描述，但源码已经明确了它的 HTTP 入站、Influx 写入与字段映射逻辑。  总体认知这个仓库里的每个文件夹都可以看作一个独立的工业数采插件。它们的共同目">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg">
+<meta property="article:published_time" content="2024-11-23T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-23T04:06:28.000Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="工业数据接入">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "工业数采插件设计与扩展",
+  "url": "https://luischen.github.io/2024/11/23/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/03%20%E6%95%B0%E9%87%87%E6%8F%92%E4%BB%B6/",
+  "image": "https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg",
+  "datePublished": "2024-11-23T02:00:00.000Z",
+  "dateModified": "2026-09-23T04:06:28.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Luis Chen",
+      "url": "https://luischen.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://luischen.github.io/2024/11/23/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/03%20%E6%95%B0%E9%87%87%E6%8F%92%E4%BB%B6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '工业数采插件设计与扩展',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/site-hero-desktop-v2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Next Station</span></a><a class="nav-page-title" href="/"><span class="site-name">工业数采插件设计与扩展</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">工业数采插件设计与扩展</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-11-23T02:00:00.000Z" title="发表于 2024-11-23 10:00:00">2024-11-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-09-23T04:06:28.000Z" title="更新于 2026-09-23 12:06:28">2026-09-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B7%A5%E4%BD%9C%E7%AC%94%E8%AE%B0/">工作笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>说明：本文以当前工作区内的源码实现为准。部分 README 与源码存在不一致的地方，例如 <code>mssql-agent</code> 的 README 会提到 MySQL，但代码实际使用的是 SQL Server；<code>toolsnet</code> 的 README 也更偏旧版描述，但源码已经明确了它的 HTTP 入站、Influx 写入与字段映射逻辑。</p>
+</blockquote>
+<h2 id="总体认知"><a href="#总体认知" class="headerlink" title="总体认知"></a>总体认知</h2><p>这个仓库里的每个文件夹都可以看作一个独立的工业数采插件。它们的共同目标不是“采集”本身，而是把现场不同形态的数据源，统一变成可追踪、可落库、可回放的标准点位数据。</p>
+<p>这些插件的差异主要体现在四个维度：</p>
+<ol>
+<li>输入源不同：数据库、MQTT、CSV、HTTP、Access MDB、MSSQL CDC。</li>
+<li>触发方式不同：定时轮询、文件监听、消息订阅、HTTP 请求、WebSocket 查询。</li>
+<li>输出形态不同：InfluxDB、文件、HTTP 转发、RabbitMQ、TimescaleDB、浏览页面。</li>
+<li>状态管理不同：有的依赖 offset 文件，有的依赖 SQLite，有的依赖 last timestamp，有的几乎无状态。</li>
+</ol>
+<h2 id="总体架构"><a href="#总体架构" class="headerlink" title="总体架构"></a>总体架构</h2><div style="max-width: 760px; margin: 12px auto 20px auto; padding: 6px 0;">
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+    <div style="width: 100%; max-width: 520px; padding: 16px 18px; border: 1px solid #5b6b8c; border-radius: 14px; background: linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%); box-shadow: 0 6px 18px rgba(91, 107, 140, 0.08); box-sizing: border-box;">
+      <div style="font-weight: 700; font-size: 15px; color: #1f2d3d; margin-bottom: 8px; text-align: center;">现场输入源</div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; font-size: 12px; color: #334155; line-height: 1.55;">
+        <span style="padding: 4px 10px; border-radius: 999px; background: #eaf2ff;">数据库</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #eaf2ff;">MQTT</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #eaf2ff;">CSV</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #eaf2ff;">MDB</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #eaf2ff;">HTTP</span>
+      </div>
+    </div>
+    <div style="font-size: 28px; line-height: 1; color: #5b6b8c;">↓</div>
+    <div style="width: 100%; max-width: 520px; padding: 16px 18px; border: 1px solid #5b6b8c; border-radius: 14px; background: linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%); box-shadow: 0 6px 18px rgba(91, 107, 140, 0.08); box-sizing: border-box;">
+      <div style="font-weight: 700; font-size: 15px; color: #1f2d3d; margin-bottom: 8px; text-align: center;">触发与调度层</div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; font-size: 12px; color: #334155; line-height: 1.55;">
+        <span style="padding: 4px 10px; border-radius: 999px; background: #edf9ff;">定时轮询</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #edf9ff;">文件监听</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #edf9ff;">消息订阅</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #edf9ff;">HTTP 接入</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #edf9ff;">WebSocket 查询</span>
+      </div>
+    </div>
+    <div style="font-size: 28px; line-height: 1; color: #5b6b8c;">↓</div>
+    <div style="width: 100%; max-width: 520px; padding: 16px 18px; border: 1px solid #5b6b8c; border-radius: 14px; background: linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%); box-shadow: 0 6px 18px rgba(91, 107, 140, 0.08); box-sizing: border-box;">
+      <div style="font-weight: 700; font-size: 15px; color: #1f2d3d; margin-bottom: 8px; text-align: center;">解析与映射层</div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; font-size: 12px; color: #334155; line-height: 1.55;">
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f0f7ff;">字段映射</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f0f7ff;">标签补充</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f0f7ff;">时间修正</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f0f7ff;">类型转换</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f0f7ff;">offset / checkpoint</span>
+      </div>
+    </div>
+    <div style="font-size: 28px; line-height: 1; color: #5b6b8c;">↓</div>
+    <div style="width: 100%; max-width: 520px; padding: 16px 18px; border: 1px solid #5b6b8c; border-radius: 14px; background: linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%); box-shadow: 0 6px 18px rgba(91, 107, 140, 0.08); box-sizing: border-box;">
+      <div style="font-weight: 700; font-size: 15px; color: #1f2d3d; margin-bottom: 8px; text-align: center;">标准点位</div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; font-size: 12px; color: #334155; line-height: 1.55;">
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f2f8ef;">measurement</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f2f8ef;">tag</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f2f8ef;">field</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #f2f8ef;">timestamp</span>
+      </div>
+    </div>
+    <div style="font-size: 28px; line-height: 1; color: #5b6b8c;">↓</div>
+    <div style="width: 100%; max-width: 520px; padding: 16px 18px; border: 1px solid #5b6b8c; border-radius: 14px; background: linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%); box-shadow: 0 6px 18px rgba(91, 107, 140, 0.08); box-sizing: border-box;">
+      <div style="font-weight: 700; font-size: 15px; color: #1f2d3d; margin-bottom: 8px; text-align: center;">输出层</div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; font-size: 12px; color: #334155; line-height: 1.55;">
+        <span style="padding: 4px 10px; border-radius: 999px; background: #fff2ea;">InfluxDB</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #fff2ea;">文件留档</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #fff2ea;">HTTP 转发</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #fff2ea;">RabbitMQ</span>
+        <span style="padding: 4px 10px; border-radius: 999px; background: #fff2ea;">页面查询</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 id="实现形态分布"><a href="#实现形态分布" class="headerlink" title="实现形态分布"></a>实现形态分布</h2><div style="max-width: 980px; margin: 12px auto 18px auto; padding: 14px; border: 1px solid #d9e2ec; border-radius: 12px; background: #fff; box-sizing: border-box;">
+  <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">按触发方式归类</div>
+  <div style="display: flex; align-items: center; gap: 12px; margin: 10px 0;">
+    <div style="width: 140px; font-size: 13px;">定时轮询型</div>
+    <div style="flex: 1; height: 14px; background: #e9edf5; border-radius: 999px; overflow: hidden;">
+      <div style="width: 62.5%; height: 100%; background: linear-gradient(90deg, #4f7cff, #72b7ff);"></div>
+    </div>
+    <div style="width: 24px; text-align: right; font-size: 13px;">5</div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 12px; margin: 10px 0;">
+    <div style="width: 140px; font-size: 13px;">事件监听型</div>
+    <div style="flex: 1; height: 14px; background: #e9edf5; border-radius: 999px; overflow: hidden;">
+      <div style="width: 25%; height: 100%; background: linear-gradient(90deg, #38bdf8, #8ddcff);"></div>
+    </div>
+    <div style="width: 24px; text-align: right; font-size: 13px;">2</div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 12px; margin: 10px 0;">
+    <div style="width: 140px; font-size: 13px;">HTTP 服务型</div>
+    <div style="flex: 1; height: 14px; background: #e9edf5; border-radius: 999px; overflow: hidden;">
+      <div style="width: 12.5%; height: 100%; background: linear-gradient(90deg, #22c55e, #86efac);"></div>
+    </div>
+    <div style="width: 24px; text-align: right; font-size: 13px;">1</div>
+  </div>
+</div>
+
+<h2 id="插件矩阵"><a href="#插件矩阵" class="headerlink" title="插件矩阵"></a>插件矩阵</h2><table>
+  <thead>
+    <tr>
+      <th>插件</th>
+      <th>输入源</th>
+      <th>输出</th>
+      <th>适用场景</th>
+      <th>核心机制</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>bsnjdb</code></td>
+      <td>PostgreSQL 紧固数据表</td>
+      <td>InfluxDB / 文件 / RabbitMQ</td>
+      <td>Bosch 类拧紧结果、步骤、曲线的增量采集与归档</td>
+      <td>定时轮询、offset 文件、summary/step/graph 拆分、断路器、管理接口</td>
+    </tr>
+    <tr>
+      <td><code>csv-tesla</code></td>
+      <td>目录中的 CSV 文件</td>
+      <td>InfluxDB</td>
+      <td>现场设备导出的定制 CSV 曲线文件入库</td>
+      <td>文件监听、固定列号解析、曲线点展开、点位编码拼装</td>
+    </tr>
+    <tr>
+      <td><code>mqtt-influxdb</code></td>
+      <td>MQTT topic 消息</td>
+      <td>InfluxDB / 文件</td>
+      <td>设备通过 MQTT 上送 JSON 数组数据的场景</td>
+      <td>Topic 订阅、消息校验、数组展开、额外标签映射、批量写入</td>
+    </tr>
+    <tr>
+      <td><code>mssql-agent</code></td>
+      <td>SQL Server</td>
+      <td>InfluxDB</td>
+      <td>需要集中配置、定时抽取、带注册与心跳的边缘采集代理</td>
+      <td>Egg 调度、SQLite 配置缓存、动态映射、时间修正、增量 offset</td>
+    </tr>
+    <tr>
+      <td><code>mssql-cdc</code></td>
+      <td>MSSQL CDC 表</td>
+      <td>InfluxDB / WebSocket 页面</td>
+      <td>CDC 增量同步、历史点位查询、可视化监控</td>
+      <td>last_timestamp 持久化、tagid 映射、可选页面服务、Chart.js 展示</td>
+    </tr>
+    <tr>
+      <td><code>promess</code></td>
+      <td>Access MDB 文件 / MDB 目录</td>
+      <td>工作目录内的结构化输出文件</td>
+      <td>Promess 紧固机曲线文件解析、批量备份、离线转换</td>
+      <td>ADODB 读取、Cycle/Curve 分组、XML 曲线解析、按 mapping 生成输出</td>
+    </tr>
+    <tr>
+      <td><code>toolsnet</code></td>
+      <td>HTTP POST 数据报文</td>
+      <td>InfluxDB</td>
+      <td>作为数采接入网关，接收上游系统推送的拧紧报文</td>
+      <td>接口认证、请求校验、字段映射、曲线点时间展开、标签补充</td>
+    </tr>
+    <tr>
+      <td><code>toolsnetdb</code></td>
+      <td>MySQL</td>
+      <td>HTTP API / 文件</td>
+      <td>从数据库抽取结果后转发到中心服务，兼顾落盘留档</td>
+      <td>定时轮询、双 offset、单轴/多轴分流、断路器、Bearer token 转发</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="共性实现原理"><a href="#共性实现原理" class="headerlink" title="共性实现原理"></a>共性实现原理</h2><h3 id="1-配置驱动"><a href="#1-配置驱动" class="headerlink" title="1. 配置驱动"></a>1. 配置驱动</h3><p>几乎所有插件都把业务差异放进配置里：</p>
+<ul>
+<li>数据源连接信息</li>
+<li>字段映射关系</li>
+<li>目标数据库或目标接口</li>
+<li>拉取频率</li>
+<li>文件输出开关</li>
+<li>认证信息</li>
+</ul>
+<p>这样做的好处是，插件本体只保留“采集、转换、投递”的通用逻辑，现场适配主要靠配置完成。</p>
+<h3 id="2-增量处理"><a href="#2-增量处理" class="headerlink" title="2. 增量处理"></a>2. 增量处理</h3><p>为了避免重复采集，大部分插件都做了 checkpoint：</p>
+<ul>
+<li><code>bsnjdb</code> 使用 <code>offset.txt</code></li>
+<li><code>toolsnetdb</code> 使用 <code>offset1.txt</code> 和 <code>offset2.txt</code></li>
+<li><code>mssql-cdc</code> 使用 <code>last_timestamp.json</code></li>
+<li><code>mssql-agent</code> 把偏移写进 SQLite 的 <code>t_cfg_offset</code></li>
+</ul>
+<p>这类设计非常适合工业现场的“持续采集、允许断点恢复”需求。</p>
+<h3 id="3-统一点位模型"><a href="#3-统一点位模型" class="headerlink" title="3. 统一点位模型"></a>3. 统一点位模型</h3><p>无论输入是 SQL 行、MQTT JSON、CSV 行还是 MDB 结果，最终都要落到类似下面的模型：</p>
+<ul>
+<li>measurement</li>
+<li>tags</li>
+<li>fields</li>
+<li>timestamp</li>
+</ul>
+<p>在 InfluxDB 体系里，点位编码通常由设备前缀、工位、螺栓号、字段编号组合而成。这样可以把现场复杂的业务对象压缩成稳定可查询的时序键。</p>
+<h3 id="4-时间处理"><a href="#4-时间处理" class="headerlink" title="4. 时间处理"></a>4. 时间处理</h3><p>工业数采里，时间不是“附属字段”，而是组织数据的主轴。</p>
+<ul>
+<li><code>bsnjdb</code> 直接用微秒级时间范围计算 summary、step、graph 的结束时间</li>
+<li><code>csv-tesla</code> 把 CSV 中的时间字段转换成微秒时间戳</li>
+<li><code>mssql-agent</code> 做了时区&#x2F;时间偏移修正</li>
+<li><code>promess</code> 用 <code>CycleDate + StartTime + RunTime</code> 还原曲线区间</li>
+<li><code>mssql-cdc</code> 根据 <code>t_stamp</code> 和 <code>last_timestamp</code> 做增量同步</li>
+</ul>
+<h3 id="5-稳定性保护"><a href="#5-稳定性保护" class="headerlink" title="5. 稳定性保护"></a>5. 稳定性保护</h3><p>几乎每个链路都考虑了现场常见的不稳定因素：</p>
+<ul>
+<li>断路器：<code>bsnjdb</code>、<code>toolsnetdb</code></li>
+<li>全局异常捕获：<code>mqtt-influxdb</code>、<code>mssql-cdc</code></li>
+<li>日志轮转：多个项目都有</li>
+<li>优雅关闭：<code>bsnjdb</code>、<code>mssql-cdc</code></li>
+<li>配置热重载或注册同步：<code>bsnjdb</code>、<code>mssql-agent</code></li>
+</ul>
+<h2 id="插件说明"><a href="#插件说明" class="headerlink" title="插件说明"></a>插件说明</h2><h3 id="1-bsnjdb"><a href="#1-bsnjdb" class="headerlink" title="1. bsnjdb"></a>1. <code>bsnjdb</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>Bosch 类拧紧工位的数据归档</li>
+<li>需要把“概要数据 + 步骤数据 + 曲线数据”统一转成 InfluxDB 点位的场景</li>
+<li>采集后还要把原始数据保存成文件，或在时间范围上触发后续任务的场景</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li>以 <code>configure/configure.yaml</code> 中的 <code>fetch-interval</code> 定时触发。</li>
+<li>从 PostgreSQL 查询 <code>overview / step / wave</code> 三张关联表，按 <code>offset.txt</code> 做增量。</li>
+<li><code>common/processor.js</code> 会：<ul>
+<li>按 <code>resultid</code> 分组，确保 summary 只生成一次。</li>
+<li>对 summary、step、graph 三种数据分别映射。</li>
+<li>用 <code>mapping.yaml</code> 把业务字段编码成 <code>item_code</code>。</li>
+<li>把数值和字符串分流到 <code>value</code> &#x2F; <code>value_str</code>。</li>
+<li>把曲线数组按时间拆成多个点。</li>
+</ul>
+</li>
+<li><code>common/sender.js</code> 支持两种输出：<ul>
+<li>保存到 <code>wd/multi/*.txt</code></li>
+<li>通过 HTTP 写入 InfluxDB</li>
+</ul>
+</li>
+<li><code>common/notify.js</code> 在成功处理后可向 RabbitMQ 投递时间范围消息，格式是 <code>triggerCode,start,end</code>。</li>
+<li>内置 <code>opossum</code> 断路器和 HTTP 管理接口，提供 <code>/reload</code>、<code>/status</code>、<code>/health</code>。</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>这个插件本质上是一个“高完整度紧固结果转换器”。它不是简单搬运数据库行，而是把一条拧紧记录拆成三个层次的数据模型，再统一映射成时序点位。</p>
+<hr>
+<h3 id="2-csv-tesla"><a href="#2-csv-tesla" class="headerlink" title="2. csv-tesla"></a>2. <code>csv-tesla</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>设备或上位机导出的固定格式 CSV 文件</li>
+<li>需要按文件名和固定列号读取数据的离线&#x2F;准实时场景</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li><code>app.js</code> 用 <code>node-watch</code> 监听目录 <code>D:/temp</code>。</li>
+<li>新文件到达后：<ul>
+<li>从文件名中解析设备编号。</li>
+<li>调用 <code>process.js</code> 解析 CSV。</li>
+<li>调用 <code>util.js</code> 转换为 Influx 点位对象。</li>
+<li>调用 <code>writeData.js</code> 批量写入 InfluxDB。</li>
+</ul>
+</li>
+<li><code>process.js</code> 通过固定列号切分数据块：<ul>
+<li><code>buildResult</code> 处理结果区</li>
+<li><code>buildProcess</code> 处理过程区</li>
+<li><code>buildSummary</code> 处理摘要区</li>
+<li><code>buildCurve</code> 处理曲线区</li>
+<li><code>buildSequence</code> 处理事件序列区</li>
+</ul>
+</li>
+<li><code>util.js</code> 负责把 <code>&#123;time, item_code, value&#125;</code> 这种通用结构转成 Influx <code>point</code>。</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>这个插件的特点是“格式极固定”。它不做通用 CSV 解析，而是直接按业务约定的行列位置抽取，因此非常适合格式稳定的现场导出文件。</p>
+<hr>
+<h3 id="3-mqtt-influxdb"><a href="#3-mqtt-influxdb" class="headerlink" title="3. mqtt-influxdb"></a>3. <code>mqtt-influxdb</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>设备通过 MQTT 推送 JSON 报文</li>
+<li>报文中带有数组型时序数据，需要拆点后入库</li>
+<li>需要按业务字段过滤消息、并可选择保存原始报文</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li><code>index.js</code> 使用 <code>mqtt.connect</code> 建立持久会话。</li>
+<li>连接成功后订阅配置中的 topics。</li>
+<li><code>common/utils.js</code> 的 <code>parseToInfluxPoints</code> 完成核心转换：<ul>
+<li>先按 <code>msg.validates</code> 过滤消息。</li>
+<li>再读取 <code>dataArray.keyNameOfArray</code> 所指向的数组。</li>
+<li>对每个数组项提取时间、值、编码。</li>
+<li>根据值是否为数字，把字段放到 <code>value</code> 或 <code>value_str</code>。</li>
+<li>把额外业务字段映射成 Influx tag。</li>
+</ul>
+</li>
+<li><code>common/influxdb.js</code> 构造 InfluxDB 客户端并批量写点。</li>
+<li>如果配置了 <code>influxdb.file = on</code>，还会把原始消息另存成文件，便于追溯。</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>这是典型的“消息总线 -&gt; 时序库”网关。它的重点不在采集，而在于把异构 MQTT 报文统一成稳定的点位模型。</p>
+<hr>
+<h3 id="4-mssql-agent"><a href="#4-mssql-agent" class="headerlink" title="4. mssql-agent"></a>4. <code>mssql-agent</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>工厂边缘侧需要统一配置、统一注册、统一轮询的数据代理</li>
+<li>SQL Server 作为源库，InfluxDB 作为时序库</li>
+<li>需要动态映射离散业务值、维护工位映射、做时间修正的场景</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li>这是一个 Egg.js 应用。</li>
+<li><code>app.js</code> 在 <code>didReady</code> 阶段监听 <code>bind</code>、<code>refreshMap</code>、<code>refresh</code> 消息，用 messenger 在进程内同步配置和动态映射。</li>
+<li><code>app/schedule/heartbeat.js</code> 负责注册逻辑；当前源码里远端注册请求被简化为本地固定 <code>nodeId/token</code> 绑定，属于可继续接入中心服务的预留位置。</li>
+<li><code>app/schedule/collectData.js</code> 定时执行：<ul>
+<li>读取 SQLite 中的节点配置。</li>
+<li>逐表查询 SQL Server。</li>
+<li>调用 <code>mappingData.doMapping</code> 做字段映射。</li>
+<li>写入 InfluxDB。</li>
+<li>如有新的动态映射值，则同步回 SQLite 并广播更新。</li>
+</ul>
+</li>
+<li><code>configureNode.js</code> 把配置、设备映射、字段映射、偏移量统一存入 SQLite。</li>
+<li><code>dynamicMapping.js</code> 负责把离散业务值转成连续序列号，并缓存到内存中。</li>
+<li><code>timeRule.js</code> 对时间做 8 小时偏移修正。</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>它更像“可集中管理的边缘代理”，不是纯粹的采集脚本。重点在于：</p>
+<ul>
+<li>配置可以下发和缓存</li>
+<li>采集状态可以增量恢复</li>
+<li>业务值可以动态编码</li>
+<li>设备与字段映射可以独立维护</li>
+</ul>
+<hr>
+<h3 id="5-mssql-cdc"><a href="#5-mssql-cdc" class="headerlink" title="5. mssql-cdc"></a>5. <code>mssql-cdc</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>直接消费 MSSQL CDC 表</li>
+<li>需要按 <code>t_stamp</code> 增量同步到 InfluxDB</li>
+<li>想要一个轻量的浏览页面查看最近历史点位</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li><code>src/index.js</code> 读取 <code>.env</code>，决定是否启用页面服务。</li>
+<li>程序启动后：<ul>
+<li>连接 MSSQL。</li>
+<li>根据 <code>last_timestamp.json</code> 读取上次处理位置。</li>
+<li>定时轮询 CDC 表。</li>
+<li>成功后写入 InfluxDB，并更新 <code>last_timestamp.json</code>。</li>
+</ul>
+</li>
+<li><code>src/db/mssql.js</code> 用 <code>t_stamp &gt; lastTimestamp</code> 做增量查询。</li>
+<li><code>src/db/influxdb.js</code>：<ul>
+<li>从 <code>mapping.json</code> 读取 <code>tagid -&gt; item_code</code>。</li>
+<li>按不同字段类型选择 <code>value</code> 或 <code>strValue</code>。</li>
+<li>用 <code>t_stamp</code> 作为点位时间。</li>
+</ul>
+</li>
+<li><code>src/page-server/</code> 提供可选浏览服务：<ul>
+<li>WebSocket 接口返回采集项列表与最近记录</li>
+<li>前端用 Chart.js 做散点图展示</li>
+</ul>
+</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>这个插件的关键是“CDC + checkpoint + 可视化”。它既是同步器，也是一个小型历史数据观察窗口。</p>
+<hr>
+<h3 id="6-promess"><a href="#6-promess" class="headerlink" title="6. promess"></a>6. <code>promess</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>Promess 紧固机生成的 MDB &#x2F; Access 数据文件</li>
+<li>需要把离线数据库内容解析成标准化曲线输出</li>
+<li>需要批量备份或实时处理落地文件的场景</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li><code>index.js</code> 通过 <code>node-adodb</code> 打开 MDB。</li>
+<li>支持两种模式：<ul>
+<li><code>--dd</code>：监控目录，发现新 <code>.mdb</code> 文件就批处理</li>
+<li><code>--db</code>：处理单个数据库文件</li>
+</ul>
+</li>
+<li><code>common/parser.js</code> 做三件事：<ul>
+<li>按 <code>CycleId</code> 分组</li>
+<li>按 <code>mapping.json</code> 映射基本字段</li>
+<li>解析 <code>XmlCurves</code> 中的曲线点</li>
+</ul>
+</li>
+<li><code>common/influx.js</code> 负责把解析结果写成结构化行，实际上落的是工作目录中的结果文件，而不是直接写 InfluxDB。</li>
+<li><code>mapping.json</code> 里定义了：<ul>
+<li>普通字段如何映射到 <code>AAxxx / ABxxx</code></li>
+<li>曲线字段按单位匹配到 <code>BAxxx</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>它是“离线数据库解析器 + 曲线还原器”。和其他插件不同，它更偏文件加工和结果落地，核心价值在于把 MDB 里的曲线信息结构化地抽出来。</p>
+<hr>
+<h3 id="7-toolsnet"><a href="#7-toolsnet" class="headerlink" title="7. toolsnet"></a>7. <code>toolsnet</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>上位系统通过 HTTP POST 推送拧紧报文</li>
+<li>需要把报文转换成 InfluxDB 点位</li>
+<li>需要对输入做认证和字段校验</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li>这是一个 Egg.js API 服务。</li>
+<li>路由只暴露了一个资源：<code>/OpenApi/data/bolt_curve_report</code></li>
+<li><code>topics.js</code> 中的 <code>create()</code> 完成完整链路：<ul>
+<li>Basic 认证校验</li>
+<li>请求体结构校验</li>
+<li>调用 <code>ctx.service.influx.transformer.transform</code></li>
+<li>再写入 InfluxDB</li>
+</ul>
+</li>
+<li><code>app/service/influx/transformer.js</code>：<ul>
+<li>从 <code>config.fields</code> 中读取字段规则</li>
+<li>用 <code>config.mapping</code> 把 <code>ToolID</code> 转成前缀编码</li>
+<li>对普通字段直接生成点位</li>
+<li>对 <code>TorqueValue</code> &#x2F; <code>AngleValue</code> 这种曲线字段按 <code>TimeCoefficient</code> 拆成多个点</li>
+<li>用 <code>tagField</code> 生成额外 tag，如 <code>curve_id</code>、<code>sn</code></li>
+</ul>
+</li>
+<li><code>app/service/influx/writeData.js</code> 定义了写入格式，支持数值和字符串两个字段族。</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>它本质上是一个“工业报文接入 API”。和 <code>mqtt-influxdb</code> 相比，它不是订阅消息，而是提供 HTTP 接口给上游主动推送。</p>
+<hr>
+<h3 id="8-toolsnetdb"><a href="#8-toolsnetdb" class="headerlink" title="8. toolsnetdb"></a>8. <code>toolsnetdb</code></h3><p><strong>适用场景</strong></p>
+<ul>
+<li>MySQL 中已有拧紧结果，需要定时抽取并转发到中心服务</li>
+<li>需要同时保留原始 JSON 文件作为留档</li>
+<li>需要把单轴和多轴数据分别处理</li>
+</ul>
+<p><strong>实现原理</strong></p>
+<ul>
+<li><code>index.js</code> 使用 <code>node-schedule</code> 定时触发。</li>
+<li>维护两个 offset 文件：<ul>
+<li><code>offset1.txt</code> 对应单轴</li>
+<li><code>offset2.txt</code> 对应多轴</li>
+</ul>
+</li>
+<li><code>processData(type)</code>：<ul>
+<li>按类型选择 SQL</li>
+<li>查询后如果开启 <code>target.file</code>，先落地到 <code>single/</code> 或 <code>multi/</code></li>
+<li>再通过 <code>sendToRemote()</code> 把 JSON 数组 POST 到目标 HTTP API</li>
+<li>最后更新 offset</li>
+</ul>
+</li>
+<li><code>common/processor.js</code> 只负责三件事：<ul>
+<li>单轴结果文件保存</li>
+<li>多轴结果文件保存</li>
+<li>HTTP 转发</li>
+</ul>
+</li>
+<li>这个插件也用了 <code>opossum</code> 做断路器，避免中心服务异常时把本地采集拖垮。</li>
+</ul>
+<p><strong>理解要点</strong></p>
+<p>它更像“数据库中继器”。数据并不在本地深度转换，而是以较轻量的方式抽取出来，交给中心系统继续处理。</p>
+<h2 id="选型建议"><a href="#选型建议" class="headerlink" title="选型建议"></a>选型建议</h2><ul>
+<li>如果源头是 <strong>PostgreSQL 紧固结果</strong>，优先看 <code>bsnjdb</code>。</li>
+<li>如果源头是 <strong>CSV 文件</strong>，优先看 <code>csv-tesla</code>。</li>
+<li>如果源头是 <strong>MQTT JSON</strong>，优先看 <code>mqtt-influxdb</code>。</li>
+<li>如果需要 <strong>边缘代理 + 中央配置 + SQL Server</strong>，优先看 <code>mssql-agent</code>。</li>
+<li>如果需要 <strong>CDC 增量同步</strong>，优先看 <code>mssql-cdc</code>。</li>
+<li>如果数据来自 <strong>Access MDB &#x2F; Promess 曲线文件</strong>，优先看 <code>promess</code>。</li>
+<li>如果要做 <strong>HTTP 入站网关</strong>，优先看 <code>toolsnet</code>。</li>
+<li>如果要做 <strong>数据库到中心服务的中继</strong>，优先看 <code>toolsnetdb</code>。</li>
+</ul>
+<h2 id="一个更实用的结论"><a href="#一个更实用的结论" class="headerlink" title="一个更实用的结论"></a>一个更实用的结论</h2><p>这些插件虽然面向不同协议和数据源，但它们几乎都遵循同一个工程范式：</p>
+<p><strong>采集入口尽量简单，业务复杂度集中在映射层，历史连续性靠 offset 或 checkpoint，最终统一落到时序点位或结构化文件。</strong></p>
+<p>这也是它们能在工业现场长期运行的原因。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/">工业数据接入</a></div><div class="post-share"><div class="social-share" data-image="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/12/23/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/01%20%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95/" title="工业数据采集清单设计"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">工业数据采集清单设计</div></div><div class="info-2"><div class="info-item-1"> 脱敏说明：本文基于当前工作区中的《拧紧枪数采清单 V1.2》整理，仅保留通用结构与方法论，不展示公司名称、现场专属 IP、专有标识与可直接定位产线的敏感信息。  1. 什么是数采清单数采清单是数采项目第一阶段最重要的交付物之一。 它不是简单的“点位列表”，而是把现场设备、工位、采集器、协议、字段含义、数据类型和采集频率串起来的连接桥梁。 从工程角度看，数采清单负责回答这几个最关键的问题：  采什么。 从哪里采。 采到的数据代表什么。 按什么频率采。 采出来以后如何变成...</div></div></div></a><a class="pagination-related" href="/2024/10/23/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E6%95%B0%E6%8D%AE%E8%83%BD%E5%8A%9B%E4%BC%B0%E7%AE%97/" title="工业平台数据容量与处理能力估算"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">工业平台数据容量与处理能力估算</div></div><div class="info-2"><div class="info-item-1">工艺质量 - 拧紧枪接入数量估算原则：基于经验数据估算 以阿特拉斯拧紧作为基准，主要瓶颈在于influxdb的写入，以5w点每秒考虑。每个螺栓一次两条曲线数据（扭矩和角度），合计约3000点 设置变量：boltPerSecond, 每秒螺栓数量，如10s一颗则值为0.1spindleNum, 拧紧轴数量，单轴为1numOfGuns, 可以接入的拧紧枪数量 最终估算公式： numOfGuns= 50000/(3000 * boltPerSecond) / spindleN...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/02/23/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/04%20%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%8E%A5/" title="工业数据对接方案与平台集成"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-23</div><div class="info-item-2">工业数据对接方案与平台集成</div></div><div class="info-2"><div class="info-item-1">04 数据对接1. 说明这份文档总结了两种常见的数据对接思路，以及它们更适合的场景：  Node-RED 更偏向流程编排、可视化连接和快速验证。 Airbyte 更偏向数据集成骨架、数据迁移和平台化同步。  2. Node-REDNode-RED 是一种基于流程的编程工具，通过可视化编辑把 IOT 设备、API 和在线服务连接起来，形成事件驱动的应用。它基于 Node.js 构建，因此带有事件驱动和非阻塞的特性。 2.1 基本工作方式它的使用方式很直接：  启动 Nod...</div></div></div></a><a class="pagination-related" href="/2024/04/23/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/00%20%E6%8E%A5%E5%85%A5%E6%A8%A1%E5%BC%8F/" title="工业数据接入模式与架构设计"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-04-23</div><div class="info-item-2">工业数据接入模式与架构设计</div></div><div class="info-2"><div class="info-item-1">工业数据接入模式阅读导引这篇笔记把 BS350、NodeRed 压机采集、MES&#x2F;SAMS 接口、IOT 中间件和曲线数据上报资料放在一起理解，目标是形成可复用的数据接入设计模式。 核心结论工业数据接入不是简单的数据搬运，而是一个“现场设备语义 → 平台业务语义”的转换过程。好的接入设计要同时解决协议、频率、时间戳、数据完整性、业务主键、异常处理和验收标准。         设备 / 控制器 / MES现场数据源     →     协议适配与接口服务协议转换...</div></div></div></a><a class="pagination-related" href="/2024/12/23/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/01%20%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95/" title="工业数据采集清单设计"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-12-23</div><div class="info-item-2">工业数据采集清单设计</div></div><div class="info-2"><div class="info-item-1"> 脱敏说明：本文基于当前工作区中的《拧紧枪数采清单 V1.2》整理，仅保留通用结构与方法论，不展示公司名称、现场专属 IP、专有标识与可直接定位产线的敏感信息。  1. 什么是数采清单数采清单是数采项目第一阶段最重要的交付物之一。 它不是简单的“点位列表”，而是把现场设备、工位、采集器、协议、字段含义、数据类型和采集频率串起来的连接桥梁。 从工程角度看，数采清单负责回答这几个最关键的问题：  采什么。 从哪里采。 采到的数据代表什么。 按什么频率采。 采出来以后如何变成...</div></div></div></a><a class="pagination-related" href="/2025/01/23/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/02%20%E6%95%B0%E9%87%87%E5%8D%A1/" title="边缘数采卡设计与运行机制"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-23</div><div class="info-item-2">边缘数采卡设计与运行机制</div></div><div class="info-2"><div class="info-item-1">02 数采卡1. 目的数采卡是整个数采系统的现场执行端，负责把 PLC、机器人等设备里的原始数据按配置采集出来，映射成统一的业务字段，再上传到数据目的地。数采卡是基于 C++ 开发的常驻服务，核心能力包括：  解析配置文件并初始化采集任务。 通过协议适配器访问 PLC 或机器人。 把读取到的原始数据按 mem_map 映射成业务字段。 按周期打包并上送到 InfluxDB &#x2F; MQ 等目标。 支持 HTTP 下发配置、备份、回滚与重启采集。  2. 总体架构可...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Luis Chen</div><div class="author-info-description">工业智能平台与技术知识沉淀</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E4%BD%93%E8%AE%A4%E7%9F%A5"><span class="toc-number">1.</span> <span class="toc-text">总体认知</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">总体架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E5%BD%A2%E6%80%81%E5%88%86%E5%B8%83"><span class="toc-number">3.</span> <span class="toc-text">实现形态分布</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%92%E4%BB%B6%E7%9F%A9%E9%98%B5"><span class="toc-number">4.</span> <span class="toc-text">插件矩阵</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B1%E6%80%A7%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="toc-number">5.</span> <span class="toc-text">共性实现原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E9%85%8D%E7%BD%AE%E9%A9%B1%E5%8A%A8"><span class="toc-number">5.1.</span> <span class="toc-text">1. 配置驱动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%A2%9E%E9%87%8F%E5%A4%84%E7%90%86"><span class="toc-number">5.2.</span> <span class="toc-text">2. 增量处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%BB%9F%E4%B8%80%E7%82%B9%E4%BD%8D%E6%A8%A1%E5%9E%8B"><span class="toc-number">5.3.</span> <span class="toc-text">3. 统一点位模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E6%97%B6%E9%97%B4%E5%A4%84%E7%90%86"><span class="toc-number">5.4.</span> <span class="toc-text">4. 时间处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E7%A8%B3%E5%AE%9A%E6%80%A7%E4%BF%9D%E6%8A%A4"><span class="toc-number">5.5.</span> <span class="toc-text">5. 稳定性保护</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%92%E4%BB%B6%E8%AF%B4%E6%98%8E"><span class="toc-number">6.</span> <span class="toc-text">插件说明</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-bsnjdb"><span class="toc-number">6.1.</span> <span class="toc-text">1. bsnjdb</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-csv-tesla"><span class="toc-number">6.2.</span> <span class="toc-text">2. csv-tesla</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-mqtt-influxdb"><span class="toc-number">6.3.</span> <span class="toc-text">3. mqtt-influxdb</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-mssql-agent"><span class="toc-number">6.4.</span> <span class="toc-text">4. mssql-agent</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-mssql-cdc"><span class="toc-number">6.5.</span> <span class="toc-text">5. mssql-cdc</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-promess"><span class="toc-number">6.6.</span> <span class="toc-text">6. promess</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-toolsnet"><span class="toc-number">6.7.</span> <span class="toc-text">7. toolsnet</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-toolsnetdb"><span class="toc-number">6.8.</span> <span class="toc-text">8. toolsnetdb</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%89%E5%9E%8B%E5%BB%BA%E8%AE%AE"><span class="toc-number">7.</span> <span class="toc-text">选型建议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E6%9B%B4%E5%AE%9E%E7%94%A8%E7%9A%84%E7%BB%93%E8%AE%BA"><span class="toc-number">8.</span> <span class="toc-text">一个更实用的结论</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/02%20%E8%AE%BE%E5%A4%87%E5%81%A5%E5%BA%B7%E5%88%86%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" title="设备健康指数：从诊断结果到退化趋势">设备健康指数：从诊断结果到退化趋势</a><time datetime="2026-10-23T02:00:00.000Z" title="发表于 2026-10-23 10:00:00">2026-10-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/23/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/03%20%E6%95%85%E9%9A%9C%E6%A0%91/%E6%95%85%E9%9A%9C%E6%A0%91%E5%88%86%E6%9E%90%E5%9F%BA%E6%9C%AC%E7%9F%A5%E8%AF%86/" title="故障树分析基本知识">故障树分析基本知识</a><time datetime="2026-09-23T02:00:00.000Z" title="发表于 2026-09-23 10:00:00">2026-09-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/23/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD/" title="前端多语言资源按需加载">前端多语言资源按需加载</a><time datetime="2026-08-23T02:00:00.000Z" title="发表于 2026-08-23 10:00:00">2026-08-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/23/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/" title="曲线质量分析系统配置解析补充">曲线质量分析系统配置解析补充</a><time datetime="2026-07-23T02:00:00.000Z" title="发表于 2026-07-23 10:00:00">2026-07-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/23/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/03%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E8%8F%9C%E5%8D%95%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" title="曲线质量分析系统菜单工作流程">曲线质量分析系统菜单工作流程</a><time datetime="2026-06-23T02:00:00.000Z" title="发表于 2026-06-23 10:00:00">2026-06-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By Luis Chen</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="https://cdn.osyb.cn/static/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>
