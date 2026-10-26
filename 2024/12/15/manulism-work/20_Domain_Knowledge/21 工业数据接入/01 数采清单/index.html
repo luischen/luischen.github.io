@@ -1,0 +1,926 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>工业数据采集清单设计 | Next Station</title><meta name="author" content="Luis Chen"><meta name="copyright" content="Luis Chen"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="脱敏说明：本文基于当前工作区中的《拧紧枪数采清单 V1.2》整理，仅保留通用结构与方法论，不展示公司名称、现场专属 IP、专有标识与可直接定位产线的敏感信息。  1. 什么是数采清单数采清单是数采项目第一阶段最重要的交付物之一。 它不是简单的“点位列表”，而是把现场设备、工位、采集器、协议、字段含义、数据类型和采集频率串起来的连接桥梁。 从工程角度看，数采清单负责回答这几个最关键的问题：  采什">
+<meta property="og:type" content="article">
+<meta property="og:title" content="工业数据采集清单设计">
+<meta property="og:url" content="https://luischen.github.io/2024/12/15/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/01%20%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="脱敏说明：本文基于当前工作区中的《拧紧枪数采清单 V1.2》整理，仅保留通用结构与方法论，不展示公司名称、现场专属 IP、专有标识与可直接定位产线的敏感信息。  1. 什么是数采清单数采清单是数采项目第一阶段最重要的交付物之一。 它不是简单的“点位列表”，而是把现场设备、工位、采集器、协议、字段含义、数据类型和采集频率串起来的连接桥梁。 从工程角度看，数采清单负责回答这几个最关键的问题：  采什">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg">
+<meta property="article:published_time" content="2024-12-15T02:39:14.000Z">
+<meta property="article:modified_time" content="2026-09-23T04:06:28.000Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="工业数据接入">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "工业数据采集清单设计",
+  "url": "https://luischen.github.io/2024/12/15/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/01%20%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95/",
+  "image": "https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg",
+  "datePublished": "2024-12-15T02:39:14.000Z",
+  "dateModified": "2026-09-23T04:06:28.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Luis Chen",
+      "url": "https://luischen.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://luischen.github.io/2024/12/15/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/01%20%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '工业数据采集清单设计',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/site-hero-desktop-v2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Next Station</span></a><a class="nav-page-title" href="/"><span class="site-name">工业数据采集清单设计</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">工业数据采集清单设计</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-12-15T02:39:14.000Z" title="发表于 2024-12-15 10:39:14">2024-12-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-09-23T04:06:28.000Z" title="更新于 2026-09-23 12:06:28">2026-09-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B7%A5%E4%BD%9C%E7%AC%94%E8%AE%B0/">工作笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>脱敏说明：本文基于当前工作区中的《拧紧枪数采清单 V1.2》整理，仅保留通用结构与方法论，不展示公司名称、现场专属 IP、专有标识与可直接定位产线的敏感信息。</p>
+</blockquote>
+<h2 id="1-什么是数采清单"><a href="#1-什么是数采清单" class="headerlink" title="1. 什么是数采清单"></a>1. 什么是数采清单</h2><p>数采清单是数采项目第一阶段最重要的交付物之一。</p>
+<p>它不是简单的“点位列表”，而是把现场设备、工位、采集器、协议、字段含义、数据类型和采集频率串起来的连接桥梁。</p>
+<p>从工程角度看，数采清单负责回答这几个最关键的问题：</p>
+<ol>
+<li>采什么。</li>
+<li>从哪里采。</li>
+<li>采到的数据代表什么。</li>
+<li>按什么频率采。</li>
+<li>采出来以后如何变成系统可用数据。</li>
+</ol>
+<h2 id="2-数采清单的使命"><a href="#2-数采清单的使命" class="headerlink" title="2. 数采清单的使命"></a>2. 数采清单的使命</h2><p>数采清单的使命不是记录信息本身，而是把“现场点位”转换成“系统可用数据”的实施依据。</p>
+<p>它要完成的工作包括：</p>
+<ol>
+<li>建立现场对象和数据点的对应关系。</li>
+<li>为实施侧提供统一的字段字典和编码规则。</li>
+<li>为后续程序开发提供采集目标、数据类型和采集周期。</li>
+<li>为测试、联调和验收提供可核对的基准。</li>
+<li>为后续的数据分析、追溯、报表和可视化打好基础。</li>
+</ol>
+<p>换句话说，数采清单是“现场语言”和“系统语言”之间的翻译表。</p>
+<h2 id="3-一份合格的数采清单应该包含什么"><a href="#3-一份合格的数采清单应该包含什么" class="headerlink" title="3. 一份合格的数采清单应该包含什么"></a>3. 一份合格的数采清单应该包含什么</h2><p>结合这份清单的结构，完整的数采清单通常至少要包含以下几类内容。</p>
+<h3 id="3-1-现场层级信息"><a href="#3-1-现场层级信息" class="headerlink" title="3.1 现场层级信息"></a>3.1 现场层级信息</h3><p>这一部分用于描述点位属于哪条线、哪个工位、哪台设备、哪类采集器。</p>
+<p>常见字段包括：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>区域</td>
+<td>描述点位所属的车间或区域</td>
+</tr>
+<tr>
+<td>产线</td>
+<td>描述点位所在产线</td>
+</tr>
+<tr>
+<td>工站</td>
+<td>描述点位所在工位</td>
+</tr>
+<tr>
+<td>设备</td>
+<td>描述点位对应的现场设备</td>
+</tr>
+<tr>
+<td>采集器</td>
+<td>描述点位来自控制器、PLC、站控系统还是其他设备</td>
+</tr>
+</tbody></table>
+<p>这一层的核心作用是把“一个值”放回到“它属于谁、在哪产生”这个上下文里。</p>
+<h3 id="3-2-接入与网络信息"><a href="#3-2-接入与网络信息" class="headerlink" title="3.2 接入与网络信息"></a>3.2 接入与网络信息</h3><p>这一部分用于描述采集链路如何接入现场。</p>
+<p>常见字段包括：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>边缘节点 IP&amp;掩码</td>
+<td>描述边缘侧部署位置和网络接入信息</td>
+</tr>
+<tr>
+<td>数采卡 IP&amp;掩码</td>
+<td>描述采集网关或采集卡的网络信息</td>
+</tr>
+<tr>
+<td>设备 IP&amp;掩码</td>
+<td>描述源设备的网络地址</td>
+</tr>
+<tr>
+<td>数据源名</td>
+<td>描述采集目标的名称或设备类型</td>
+</tr>
+</tbody></table>
+<p>这部分信息的意义很大，因为它决定了实施时能否连上、怎么连、连谁、连几路。</p>
+<h3 id="3-3-点位字典"><a href="#3-3-点位字典" class="headerlink" title="3.3 点位字典"></a>3.3 点位字典</h3><p>这是数采清单的核心。</p>
+<p>每一行都是一个待采集或待映射的数据点，通常应包含：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>采集项名称</td>
+<td>人能直接读懂的名称</td>
+</tr>
+<tr>
+<td>含义备注</td>
+<td>说明这个值到底表示什么</td>
+</tr>
+<tr>
+<td>采集项编码</td>
+<td>系统侧统一编码，用于程序映射、入库和检索</td>
+</tr>
+<tr>
+<td>采集间隔</td>
+<td>说明是单次事件、周期轮询还是曲线连续点</td>
+</tr>
+</tbody></table>
+<p>如果缺少这一部分，清单就只能算“设备登记表”，还不能算真正意义上的数采清单。</p>
+<h3 id="3-4-数据类型说明"><a href="#3-4-数据类型说明" class="headerlink" title="3.4 数据类型说明"></a>3.4 数据类型说明</h3><p>一份可实施的清单，不仅要知道“字段名”，还要知道“字段类型”。</p>
+<p>常见类型包括：</p>
+<table>
+<thead>
+<tr>
+<th>类型代号</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BOOL</td>
+<td>二值型，通常用于状态位</td>
+</tr>
+<tr>
+<td>BYTE &#x2F; WORD &#x2F; DWORD</td>
+<td>无符号整数型</td>
+</tr>
+<tr>
+<td>INT &#x2F; DINT</td>
+<td>有符号整数型</td>
+</tr>
+<tr>
+<td>REAL</td>
+<td>浮点型</td>
+</tr>
+<tr>
+<td>CHAR &#x2F; STRING 类</td>
+<td>字符串型</td>
+</tr>
+<tr>
+<td>TIME &#x2F; DATE</td>
+<td>时间或日期型</td>
+</tr>
+</tbody></table>
+<p>如果没有数据类型，后续在协议解析、点位转换、数据库写入时就容易出现截断、溢出、格式不匹配等问题。</p>
+<h3 id="3-5-版本与结构说明"><a href="#3-5-版本与结构说明" class="headerlink" title="3.5 版本与结构说明"></a>3.5 版本与结构说明</h3><p>一份成熟的清单通常还会配套：</p>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>版本页</td>
+<td>记录清单演进，方便追溯</td>
+</tr>
+<tr>
+<td>结构示意页</td>
+<td>帮助理解现场设备与数据关系</td>
+</tr>
+<tr>
+<td>数据类型页</td>
+<td>统一字长、范围与类型解释</td>
+</tr>
+</tbody></table>
+<p>这三部分的作用是让清单从“表格文件”升级成“工程规范”。</p>
+<h2 id="4-从这份清单可以看出的通用模式"><a href="#4-从这份清单可以看出的通用模式" class="headerlink" title="4. 从这份清单可以看出的通用模式"></a>4. 从这份清单可以看出的通用模式</h2><p>阅读这份清单后，可以看到一个非常典型的工业数采模板：</p>
+<h3 id="4-1-以工位为单位组织"><a href="#4-1-以工位为单位组织" class="headerlink" title="4.1 以工位为单位组织"></a>4.1 以工位为单位组织</h3><p>清单并不是按字段杂乱堆放，而是按工位、控制器、站级设备分块组织。</p>
+<p>这说明数采不是围绕“单个字段”展开，而是围绕“业务场景”展开。</p>
+<h3 id="4-2-一个工位通常会有两类点位"><a href="#4-2-一个工位通常会有两类点位" class="headerlink" title="4.2 一个工位通常会有两类点位"></a>4.2 一个工位通常会有两类点位</h3><ol>
+<li>结果类点位</li>
+<li>工位&#x2F;设备状态类点位</li>
+</ol>
+<p>结果类点位通常包含：</p>
+<ul>
+<li>拧紧编号</li>
+<li>产品序列号</li>
+<li>结果状态</li>
+<li>扭矩&#x2F;角度上下限</li>
+<li>目标值与结果值</li>
+<li>开始与结束时间戳</li>
+<li>曲线点数据</li>
+</ul>
+<p>状态类点位通常包含：</p>
+<ul>
+<li>产品识别号</li>
+<li>机型索引</li>
+<li>工位状态</li>
+<li>设备运行信息</li>
+</ul>
+<p>这说明清单不仅关注“结果是否合格”，也关注“过程是怎么发生的”。</p>
+<h3 id="4-3-单次结果和曲线数据要分开定义"><a href="#4-3-单次结果和曲线数据要分开定义" class="headerlink" title="4.3 单次结果和曲线数据要分开定义"></a>4.3 单次结果和曲线数据要分开定义</h3><p>这份清单里很明显地把数据分成了：</p>
+<ul>
+<li>单次拧紧结果</li>
+<li>单次拧紧曲线组</li>
+<li>工位周期性信息</li>
+</ul>
+<p>这是很重要的设计习惯。</p>
+<p>因为结果数据适合做追溯、统计和报警，曲线数据适合做过程分析和质量诊断，二者的采集频率、存储方式和分析方式都不一样。</p>
+<h3 id="4-4-编码规则要统一"><a href="#4-4-编码规则要统一" class="headerlink" title="4.4 编码规则要统一"></a>4.4 编码规则要统一</h3><p>清单中的采集项编码通常采用分段式结构，常见特征是：</p>
+<ul>
+<li>前缀描述产线或项目域</li>
+<li>中段描述工位或设备</li>
+<li>后段描述数据类别</li>
+<li>尾部用三位序号区分点位</li>
+</ul>
+<p>这种编码方式的好处是：</p>
+<ol>
+<li>人一眼能看出大致归属。</li>
+<li>程序可以稳定映射。</li>
+<li>后续扩展时不容易冲突。</li>
+</ol>
+<h2 id="5-数采清单在项目第一阶段的作用"><a href="#5-数采清单在项目第一阶段的作用" class="headerlink" title="5. 数采清单在项目第一阶段的作用"></a>5. 数采清单在项目第一阶段的作用</h2><p>在数采项目的第一阶段，清单通常承担“需求冻结”的作用。</p>
+<p>它不仅是记录表，还是沟通结果的落地文件。第一阶段完成后，清单应该基本回答下面这些问题：</p>
+<ol>
+<li>现场有哪些设备和工位需要接入。</li>
+<li>每台设备需要采哪些点。</li>
+<li>这些点分别代表什么业务含义。</li>
+<li>采集频率是什么。</li>
+<li>每个点位最终要映射成什么系统编码。</li>
+<li>哪些点用于实时采集，哪些点用于单次事件，哪些点用于曲线分析。</li>
+</ol>
+<p>如果这几个问题没有被清单写清楚，后续开发就容易出现返工：</p>
+<ul>
+<li>编码变更</li>
+<li>点位遗漏</li>
+<li>类型不一致</li>
+<li>频率不合理</li>
+<li>数据分析口径不统一</li>
+</ul>
+<h2 id="6-数采清单如何连接到系统实现"><a href="#6-数采清单如何连接到系统实现" class="headerlink" title="6. 数采清单如何连接到系统实现"></a>6. 数采清单如何连接到系统实现</h2><p>从实施角度看，数采清单是后续程序的直接输入。</p>
+<p>它一般会被转换成以下几类配置：</p>
+<ol>
+<li>设备映射表</li>
+<li>字段映射表</li>
+<li>采集频率配置</li>
+<li>类型转换规则</li>
+<li>曲线拆点规则</li>
+<li>入库编码规则</li>
+</ol>
+<p>也就是说，清单不是最终产物，而是程序开发的“源数据规范”。</p>
+<h2 id="7-一份推荐的标准清单结构"><a href="#7-一份推荐的标准清单结构" class="headerlink" title="7. 一份推荐的标准清单结构"></a>7. 一份推荐的标准清单结构</h2><p>如果以后再做同类项目，建议数采清单至少按下面的结构组织：</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>建议字段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>基础信息</td>
+<td>序号、区域、产线、工站、设备、采集器、数据源名</td>
+</tr>
+<tr>
+<td>接入信息</td>
+<td>边缘节点 IP、数采卡 IP、设备 IP</td>
+</tr>
+<tr>
+<td>点位定义</td>
+<td>采集项名称、含义备注、采集项编码</td>
+</tr>
+<tr>
+<td>数据属性</td>
+<td>数据类型、单位、采集间隔、是否曲线点</td>
+</tr>
+<tr>
+<td>业务归属</td>
+<td>单次结果、过程数据、状态数据、曲线组</td>
+</tr>
+<tr>
+<td>版本管理</td>
+<td>版本号、修订说明、更新时间</td>
+</tr>
+</tbody></table>
+<h2 id="8-最终结论"><a href="#8-最终结论" class="headerlink" title="8. 最终结论"></a>8. 最终结论</h2><p>数采清单的本质，是把现场采集需求标准化、结构化、工程化。</p>
+<p>它完成的使命不是“列出一些点”，而是：</p>
+<ol>
+<li>把现场对象整理成可实施的采集对象。</li>
+<li>把业务语义整理成可编码的数据项。</li>
+<li>把采集方式整理成可执行的程序规则。</li>
+<li>把现场数据整理成后续分析系统能直接使用的数据资产。</li>
+</ol>
+<p>所以，一份好的数采清单，决定的不只是“能不能采到数据”，更决定了“采到的数据能不能真正用起来”。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/">工业数据接入</a></div><div class="post-share"><div class="social-share" data-image="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/01/21/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/02%20%E6%95%B0%E9%87%87%E5%8D%A1/" title="边缘数采卡设计与运行机制"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">边缘数采卡设计与运行机制</div></div><div class="info-2"><div class="info-item-1">02 数采卡1. 目的数采卡是整个数采系统的现场执行端，负责把 PLC、机器人等设备里的原始数据按配置采集出来，映射成统一的业务字段，再上传到数据目的地。数采卡是基于 C++ 开发的常驻服务，核心能力包括：  解析配置文件并初始化采集任务。 通过协议适配器访问 PLC 或机器人。 把读取到的原始数据按 mem_map 映射成业务字段。 按周期打包并上送到 InfluxDB &#x2F; MQ 等目标。 支持 HTTP 下发配置、备份、回滚与重启采集。  2. 总体架构可...</div></div></div></a><a class="pagination-related" href="/2024/11/24/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/03%20%E6%95%B0%E9%87%87%E6%8F%92%E4%BB%B6/" title="工业数采插件设计与扩展"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">工业数采插件设计与扩展</div></div><div class="info-2"><div class="info-item-1"> 说明：本文以当前工作区内的源码实现为准。部分 README 与源码存在不一致的地方，例如 mssql-agent 的 README 会提到 MySQL，但代码实际使用的是 SQL Server；toolsnet 的 README 也更偏旧版描述，但源码已经明确了它的 HTTP 入站、Influx 写入与字段映射逻辑。  总体认知这个仓库里的每个文件夹都可以看作一个独立的工业数采插件。它们的共同目标不是“采集”本身，而是把现场不同形态的数据源，统一变成可追踪、可落库、可...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/02/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/04%20%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%8E%A5/" title="工业数据对接方案与平台集成"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-18</div><div class="info-item-2">工业数据对接方案与平台集成</div></div><div class="info-2"><div class="info-item-1">04 数据对接1. 说明这份文档总结了两种常见的数据对接思路，以及它们更适合的场景：  Node-RED 更偏向流程编排、可视化连接和快速验证。 Airbyte 更偏向数据集成骨架、数据迁移和平台化同步。  2. Node-REDNode-RED 是一种基于流程的编程工具，通过可视化编辑把 IOT 设备、API 和在线服务连接起来，形成事件驱动的应用。它基于 Node.js 构建，因此带有事件驱动和非阻塞的特性。 2.1 基本工作方式它的使用方式很直接：  启动 Nod...</div></div></div></a><a class="pagination-related" href="/2024/11/24/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/03%20%E6%95%B0%E9%87%87%E6%8F%92%E4%BB%B6/" title="工业数采插件设计与扩展"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-11-24</div><div class="info-item-2">工业数采插件设计与扩展</div></div><div class="info-2"><div class="info-item-1"> 说明：本文以当前工作区内的源码实现为准。部分 README 与源码存在不一致的地方，例如 mssql-agent 的 README 会提到 MySQL，但代码实际使用的是 SQL Server；toolsnet 的 README 也更偏旧版描述，但源码已经明确了它的 HTTP 入站、Influx 写入与字段映射逻辑。  总体认知这个仓库里的每个文件夹都可以看作一个独立的工业数采插件。它们的共同目标不是“采集”本身，而是把现场不同形态的数据源，统一变成可追踪、可落库、可...</div></div></div></a><a class="pagination-related" href="/2025/01/21/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/02%20%E6%95%B0%E9%87%87%E5%8D%A1/" title="边缘数采卡设计与运行机制"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-21</div><div class="info-item-2">边缘数采卡设计与运行机制</div></div><div class="info-2"><div class="info-item-1">02 数采卡1. 目的数采卡是整个数采系统的现场执行端，负责把 PLC、机器人等设备里的原始数据按配置采集出来，映射成统一的业务字段，再上传到数据目的地。数采卡是基于 C++ 开发的常驻服务，核心能力包括：  解析配置文件并初始化采集任务。 通过协议适配器访问 PLC 或机器人。 把读取到的原始数据按 mem_map 映射成业务字段。 按周期打包并上送到 InfluxDB &#x2F; MQ 等目标。 支持 HTTP 下发配置、备份、回滚与重启采集。  2. 总体架构可...</div></div></div></a><a class="pagination-related" href="/2024/04/19/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/00%20%E6%8E%A5%E5%85%A5%E6%A8%A1%E5%BC%8F/" title="工业数据接入模式与架构设计"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-04-19</div><div class="info-item-2">工业数据接入模式与架构设计</div></div><div class="info-2"><div class="info-item-1">工业数据接入模式阅读导引这篇笔记把 BS350、NodeRed 压机采集、MES&#x2F;SAMS 接口、IOT 中间件和曲线数据上报资料放在一起理解，目标是形成可复用的数据接入设计模式。 核心结论工业数据接入不是简单的数据搬运，而是一个“现场设备语义 → 平台业务语义”的转换过程。好的接入设计要同时解决协议、频率、时间戳、数据完整性、业务主键、异常处理和验收标准。         设备 / 控制器 / MES现场数据源     →     协议适配与接口服务协议转换...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Luis Chen</div><div class="author-info-description">工业智能平台与技术知识沉淀</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95"><span class="toc-number">1.</span> <span class="toc-text">1. 什么是数采清单</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95%E7%9A%84%E4%BD%BF%E5%91%BD"><span class="toc-number">2.</span> <span class="toc-text">2. 数采清单的使命</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E4%B8%80%E4%BB%BD%E5%90%88%E6%A0%BC%E7%9A%84%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95%E5%BA%94%E8%AF%A5%E5%8C%85%E5%90%AB%E4%BB%80%E4%B9%88"><span class="toc-number">3.</span> <span class="toc-text">3. 一份合格的数采清单应该包含什么</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%8E%B0%E5%9C%BA%E5%B1%82%E7%BA%A7%E4%BF%A1%E6%81%AF"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 现场层级信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%8E%A5%E5%85%A5%E4%B8%8E%E7%BD%91%E7%BB%9C%E4%BF%A1%E6%81%AF"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 接入与网络信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%82%B9%E4%BD%8D%E5%AD%97%E5%85%B8"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 点位字典</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E8%AF%B4%E6%98%8E"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 数据类型说明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E7%89%88%E6%9C%AC%E4%B8%8E%E7%BB%93%E6%9E%84%E8%AF%B4%E6%98%8E"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 版本与结构说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E4%BB%8E%E8%BF%99%E4%BB%BD%E6%B8%85%E5%8D%95%E5%8F%AF%E4%BB%A5%E7%9C%8B%E5%87%BA%E7%9A%84%E9%80%9A%E7%94%A8%E6%A8%A1%E5%BC%8F"><span class="toc-number">4.</span> <span class="toc-text">4. 从这份清单可以看出的通用模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%BB%A5%E5%B7%A5%E4%BD%8D%E4%B8%BA%E5%8D%95%E4%BD%8D%E7%BB%84%E7%BB%87"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 以工位为单位组织</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E4%B8%80%E4%B8%AA%E5%B7%A5%E4%BD%8D%E9%80%9A%E5%B8%B8%E4%BC%9A%E6%9C%89%E4%B8%A4%E7%B1%BB%E7%82%B9%E4%BD%8D"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 一个工位通常会有两类点位</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%8D%95%E6%AC%A1%E7%BB%93%E6%9E%9C%E5%92%8C%E6%9B%B2%E7%BA%BF%E6%95%B0%E6%8D%AE%E8%A6%81%E5%88%86%E5%BC%80%E5%AE%9A%E4%B9%89"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 单次结果和曲线数据要分开定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E7%BC%96%E7%A0%81%E8%A7%84%E5%88%99%E8%A6%81%E7%BB%9F%E4%B8%80"><span class="toc-number">4.4.</span> <span class="toc-text">4.4 编码规则要统一</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95%E5%9C%A8%E9%A1%B9%E7%9B%AE%E7%AC%AC%E4%B8%80%E9%98%B6%E6%AE%B5%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">5.</span> <span class="toc-text">5. 数采清单在项目第一阶段的作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95%E5%A6%82%E4%BD%95%E8%BF%9E%E6%8E%A5%E5%88%B0%E7%B3%BB%E7%BB%9F%E5%AE%9E%E7%8E%B0"><span class="toc-number">6.</span> <span class="toc-text">6. 数采清单如何连接到系统实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E4%B8%80%E4%BB%BD%E6%8E%A8%E8%8D%90%E7%9A%84%E6%A0%87%E5%87%86%E6%B8%85%E5%8D%95%E7%BB%93%E6%9E%84"><span class="toc-number">7.</span> <span class="toc-text">7. 一份推荐的标准清单结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E6%9C%80%E7%BB%88%E7%BB%93%E8%AE%BA"><span class="toc-number">8.</span> <span class="toc-text">8. 最终结论</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/02%20%E8%AE%BE%E5%A4%87%E5%81%A5%E5%BA%B7%E5%88%86%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" title="设备健康指数：从诊断结果到退化趋势">设备健康指数：从诊断结果到退化趋势</a><time datetime="2026-10-23T04:33:16.000Z" title="发表于 2026-10-23 12:33:16">2026-10-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/26/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/03%20%E6%95%85%E9%9A%9C%E6%A0%91/%E6%95%85%E9%9A%9C%E6%A0%91%E5%88%86%E6%9E%90%E5%9F%BA%E6%9C%AC%E7%9F%A5%E8%AF%86/" title="故障树分析基本知识">故障树分析基本知识</a><time datetime="2026-09-26T03:22:48.000Z" title="发表于 2026-09-26 11:22:48">2026-09-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD/" title="前端多语言资源按需加载">前端多语言资源按需加载</a><time datetime="2026-08-10T01:51:22.000Z" title="发表于 2026-08-10 09:51:22">2026-08-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/" title="曲线质量分析系统配置解析补充">曲线质量分析系统配置解析补充</a><time datetime="2026-07-13T05:55:00.000Z" title="发表于 2026-07-13 13:55:00">2026-07-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/16/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/03%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E8%8F%9C%E5%8D%95%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" title="曲线质量分析系统菜单工作流程">曲线质量分析系统菜单工作流程</a><time datetime="2026-06-16T09:25:40.000Z" title="发表于 2026-06-16 17:25:40">2026-06-16</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By Luis Chen</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="https://cdn.osyb.cn/static/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

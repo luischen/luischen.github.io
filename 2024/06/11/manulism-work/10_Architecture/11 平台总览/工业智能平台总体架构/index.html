@@ -1,0 +1,1475 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>工业智能平台总体架构与能力分层 | Next Station</title><meta name="author" content="Luis Chen"><meta name="copyright" content="Luis Chen"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1. 文档概述工业平台以“边缘采集与推理 + 平台服务 + 模型训练 + 数据智能 + 业务应用”为核心思路，面向制造现场的数据接入、时间性能分析、工艺质量分析、设备预测性维护、数据管理和智能助手应用需求，构建可扩展、可部署、可运维、可集成的工业智能平台。 平台总体目标包括：  统一接入：通过数据采集与数据集成能力连接设备、产线、工位、外部业务系统与第三方应用。 统一治理：通过 Nacos、服务网">
+<meta property="og:type" content="article">
+<meta property="og:title" content="工业智能平台总体架构与能力分层">
+<meta property="og:url" content="https://luischen.github.io/2024/06/11/manulism-work/10_Architecture/11%20%E5%B9%B3%E5%8F%B0%E6%80%BB%E8%A7%88/%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E5%B9%B3%E5%8F%B0%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="1. 文档概述工业平台以“边缘采集与推理 + 平台服务 + 模型训练 + 数据智能 + 业务应用”为核心思路，面向制造现场的数据接入、时间性能分析、工艺质量分析、设备预测性维护、数据管理和智能助手应用需求，构建可扩展、可部署、可运维、可集成的工业智能平台。 平台总体目标包括：  统一接入：通过数据采集与数据集成能力连接设备、产线、工位、外部业务系统与第三方应用。 统一治理：通过 Nacos、服务网">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg">
+<meta property="article:published_time" content="2024-06-11T07:46:40.000Z">
+<meta property="article:modified_time" content="2026-09-23T04:06:28.000Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="平台总览">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "工业智能平台总体架构与能力分层",
+  "url": "https://luischen.github.io/2024/06/11/manulism-work/10_Architecture/11%20%E5%B9%B3%E5%8F%B0%E6%80%BB%E8%A7%88/%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E5%B9%B3%E5%8F%B0%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84/",
+  "image": "https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg",
+  "datePublished": "2024-06-11T07:46:40.000Z",
+  "dateModified": "2026-09-23T04:06:28.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Luis Chen",
+      "url": "https://luischen.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://luischen.github.io/2024/06/11/manulism-work/10_Architecture/11%20%E5%B9%B3%E5%8F%B0%E6%80%BB%E8%A7%88/%E5%B7%A5%E4%B8%9A%E6%99%BA%E8%83%BD%E5%B9%B3%E5%8F%B0%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '工业智能平台总体架构与能力分层',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/site-hero-desktop-v2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Next Station</span></a><a class="nav-page-title" href="/"><span class="site-name">工业智能平台总体架构与能力分层</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">工业智能平台总体架构与能力分层</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-06-11T07:46:40.000Z" title="发表于 2024-06-11 15:46:40">2024-06-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-09-23T04:06:28.000Z" title="更新于 2026-09-23 12:06:28">2026-09-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B7%A5%E4%BD%9C%E7%AC%94%E8%AE%B0/">工作笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="1-文档概述"><a href="#1-文档概述" class="headerlink" title="1. 文档概述"></a>1. 文档概述</h2><p>工业平台以“边缘采集与推理 + 平台服务 + 模型训练 + 数据智能 + 业务应用”为核心思路，面向制造现场的数据接入、时间性能分析、工艺质量分析、设备预测性维护、数据管理和智能助手应用需求，构建可扩展、可部署、可运维、可集成的工业智能平台。</p>
+<p>平台总体目标包括：</p>
+<ul>
+<li><strong>统一接入</strong>：通过数据采集与数据集成能力连接设备、产线、工位、外部业务系统与第三方应用。</li>
+<li><strong>统一治理</strong>：通过 Nacos、服务网关、认证中心、RabbitMQ、日志中心、监控中心等能力支撑微服务治理。</li>
+<li><strong>统一建模</strong>：围绕时序数据、特征数据、分析数据、事件数据建立制造数据模型，并通过模型训练能力沉淀可复用的工业智能模型。</li>
+<li><strong>统一应用</strong>：面向预测性维护、时间性能、工艺质量分析、数据管理、智能助手等业务应用提供平台化支撑。</li>
+<li><strong>统一扩展</strong>：通过微服务架构和边缘推理节点支持不同工艺、设备和智能分析场景持续扩展。</li>
+</ul>
+<hr>
+<h2 id="2-总体架构蓝图"><a href="#2-总体架构蓝图" class="headerlink" title="2. 总体架构蓝图"></a>2. 总体架构蓝图</h2><p>平台总体架构分为业务应用层、平台能力层、基础设施层、边缘技术层与数据层。业务应用层聚焦预测性维护、时间性能、工艺质量分析、数据管理和智能助手；平台能力层提供数据采集、数据集成、模型训练、服务治理、监控日志等通用能力；边缘技术层通过各类工业节点和推理节点连接制造现场，实现数据采集、边缘计算与模型推理。</p>
+<div style="font-family:Arial,'Microsoft YaHei',sans-serif;border:1px solid #d7dde8;border-radius:12px;padding:16px;background:#fafcff;">
+  <div style="text-align:center;font-size:22px;font-weight:700;margin-bottom:14px;color:#1f3b57;">工业平台总体架构蓝图</div>
+  <div style="display:grid;grid-template-columns:1fr;gap:10px;">
+    <div style="border:1px solid #87b7e8;border-radius:10px;background:#eaf4ff;padding:12px;">
+      <div style="font-weight:700;color:#135b9e;margin-bottom:8px;">业务应用层 / Business</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <span style="background:white;border:1px solid #b7d7f4;border-radius:18px;padding:6px 12px;">预测性维护</span>
+        <span style="background:white;border:1px solid #b7d7f4;border-radius:18px;padding:6px 12px;">时间性能</span>
+        <span style="background:white;border:1px solid #b7d7f4;border-radius:18px;padding:6px 12px;">工艺质量分析</span>
+        <span style="background:white;border:1px solid #b7d7f4;border-radius:18px;padding:6px 12px;">数据管理</span>
+        <span style="background:white;border:1px solid #b7d7f4;border-radius:18px;padding:6px 12px;">智能助手</span>
+      </div>
+    </div>
+    <div style="border:1px solid #9dc8a4;border-radius:10px;background:#edf9f0;padding:12px;">
+      <div style="font-weight:700;color:#24713b;margin-bottom:8px;">平台能力层 / Platform</div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:8px;">
+        <div style="background:white;border:1px solid #b9dfc0;border-radius:8px;padding:8px;text-align:center;">服务网关</div>
+        <div style="background:white;border:1px solid #b9dfc0;border-radius:8px;padding:8px;text-align:center;">认证中心</div>
+        <div style="background:white;border:1px solid #b9dfc0;border-radius:8px;padding:8px;text-align:center;">服务中心</div>
+        <div style="background:white;border:1px solid #b9dfc0;border-radius:8px;padding:8px;text-align:center;">调度中心</div>
+        <div style="background:white;border:1px solid #b9dfc0;border-radius:8px;padding:8px;text-align:center;">日志中心</div>
+        <div style="background:white;border:1px solid #b9dfc0;border-radius:8px;padding:8px;text-align:center;">监控中心</div>
+        <div style="background:white;border:1px solid #b9dfc0;border-radius:8px;padding:8px;text-align:center;">数据采集</div>
+        <div style="background:white;border:1px solid #b9dfc0;border-radius:8px;padding:8px;text-align:center;">数据集成</div>
+        <div style="background:white;border:1px solid #b9dfc0;border-radius:8px;padding:8px;text-align:center;">模型训练</div>
+      </div>
+    </div>
+    <div style="border:1px solid #d6b56d;border-radius:10px;background:#fff8e8;padding:12px;">
+      <div style="font-weight:700;color:#8a6200;margin-bottom:8px;">基础设施层 / Infrastructure</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <span style="background:white;border:1px solid #ead08e;border-radius:18px;padding:6px 12px;">Nacos Discovery</span>
+        <span style="background:white;border:1px solid #ead08e;border-radius:18px;padding:6px 12px;">Nacos Config</span>
+        <span style="background:white;border:1px solid #ead08e;border-radius:18px;padding:6px 12px;">RabbitMQ</span>
+        <span style="background:white;border:1px solid #ead08e;border-radius:18px;padding:6px 12px;">Redis</span>
+        <span style="background:white;border:1px solid #ead08e;border-radius:18px;padding:6px 12px;">Nginx</span>
+        <span style="background:white;border:1px solid #ead08e;border-radius:18px;padding:6px 12px;">ELK</span>
+      </div>
+    </div>
+    <div style="border:1px solid #d79a9a;border-radius:10px;background:#fff0f0;padding:12px;">
+      <div style="font-weight:700;color:#9c3434;margin-bottom:8px;">边缘技术层 / Edge Technology</div>
+      <div style="display:grid;grid-template-columns:repeat(7,minmax(90px,1fr));gap:8px;">
+        <div style="background:white;border:1px solid #edbbbb;border-radius:8px;padding:8px;text-align:center;">PdM Node</div>
+        <div style="background:white;border:1px solid #edbbbb;border-radius:8px;padding:8px;text-align:center;">Tighten Node</div>
+        <div style="background:white;border:1px solid #edbbbb;border-radius:8px;padding:8px;text-align:center;">Welding Node</div>
+        <div style="background:white;border:1px solid #edbbbb;border-radius:8px;padding:8px;text-align:center;">IRUN Node</div>
+        <div style="background:white;border:1px solid #edbbbb;border-radius:8px;padding:8px;text-align:center;">Energy Node</div>
+        <div style="background:white;border:1px solid #edbbbb;border-radius:8px;padding:8px;text-align:center;">Painting Node</div>
+        <div style="background:white;border:1px solid #edbbbb;border-radius:8px;padding:8px;text-align:center;">推理节点</div>
+      </div>
+    </div>
+  </div>
+</div>
+---
+
+<h2 id="3-业务架构"><a href="#3-业务架构" class="headerlink" title="3. 业务架构"></a>3. 业务架构</h2><h3 id="3-1-业务参与者"><a href="#3-1-业务参与者" class="headerlink" title="3.1 业务参与者"></a>3.1 业务参与者</h3><table>
+<thead>
+<tr>
+<th>角色</th>
+<th>主要职责</th>
+<th>典型操作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>系统管理员</td>
+<td>负责系统、用户、权限与审计管理</td>
+<td>用户管理、权限设置、日志查看、系统配置</td>
+</tr>
+<tr>
+<td>业务管理员</td>
+<td>负责制造业务对象、模型、规则和策略配置</td>
+<td>产线配置、规则设置、模型配置、策略设置、标准曲线训练</td>
+</tr>
+<tr>
+<td>车间经理 &#x2F; 现场经理</td>
+<td>关注产线运行状态、效率、质量和报表分析</td>
+<td>产线概览、查看固定报表、查看动态报表、查看数据洞察</td>
+</tr>
+<tr>
+<td>维修协调 &#x2F; 设备维护人员</td>
+<td>关注设备异常、诊断历史和过程曲线</td>
+<td>查看设备事件、诊断历史、实时曲线、历史曲线</td>
+</tr>
+<tr>
+<td>算法工程师</td>
+<td>指导模型训练、特征工程和算法参数配置</td>
+<td>模型配置指导、诊断模型优化、标准曲线训练支持</td>
+</tr>
+<tr>
+<td>外部系统 &#x2F; 第三方应用</td>
+<td>与平台进行数据或功能集成</td>
+<td>API 调用、数据同步、事件订阅、报表消费</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-业务能力地图"><a href="#3-2-业务能力地图" class="headerlink" title="3.2 业务能力地图"></a>3.2 业务能力地图</h3><div style="font-family:Arial,'Microsoft YaHei',sans-serif;border:1px solid #ddd;border-radius:12px;padding:16px;background:#fff;">
+  <div style="text-align:center;font-size:20px;font-weight:700;margin-bottom:12px;">业务能力地图</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+    <div style="border:1px solid #7fb3d5;border-radius:10px;background:#eef7ff;padding:12px;">
+      <div style="font-weight:700;color:#21618c;">生产运行</div>
+      <ul style="margin:8px 0 0 18px;padding:0;line-height:1.7;">
+        <li>产线概览</li><li>虚拟产线</li><li>工位/设备状态</li><li>现场看板</li>
+      </ul>
+    </div>
+    <div style="border:1px solid #82e0aa;border-radius:10px;background:#f0fff6;padding:12px;">
+      <div style="font-weight:700;color:#1d8348;">质量与工艺</div>
+      <ul style="margin:8px 0 0 18px;padding:0;line-height:1.7;">
+        <li>实时曲线</li><li>历史曲线</li><li>标准曲线训练</li><li>压装/拧紧策略</li>
+      </ul>
+    </div>
+    <div style="border:1px solid #f5b041;border-radius:10px;background:#fff8ec;padding:12px;">
+      <div style="font-weight:700;color:#9a5d00;">设备与维护</div>
+      <ul style="margin:8px 0 0 18px;padding:0;line-height:1.7;">
+        <li>预测性维护</li><li>设备事件</li><li>诊断历史</li><li>异常告警</li>
+      </ul>
+    </div>
+    <div style="border:1px solid #bb8fce;border-radius:10px;background:#fbf3ff;padding:12px;">
+      <div style="font-weight:700;color:#6c3483;">管理与集成</div>
+      <ul style="margin:8px 0 0 18px;padding:0;line-height:1.7;">
+        <li>用户权限</li><li>模型配置</li><li>规则引擎</li><li>开放 API</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<h3 id="3-3-核心业务用例"><a href="#3-3-核心业务用例" class="headerlink" title="3.3 核心业务用例"></a>3.3 核心业务用例</h3><table>
+<thead>
+<tr>
+<th>业务域</th>
+<th>用例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>系统管理</td>
+<td>用户管理</td>
+<td>维护用户基本信息、账号状态与组织关系</td>
+</tr>
+<tr>
+<td>系统管理</td>
+<td>权限设置</td>
+<td>维护用户 App、菜单、接口及数据权限</td>
+</tr>
+<tr>
+<td>系统管理</td>
+<td>日志查看</td>
+<td>查看系统审计日志、应用日志和运行日志</td>
+</tr>
+<tr>
+<td>产线配置</td>
+<td>产线配置</td>
+<td>配置车间、产线、工位、设备、工艺对象等产线结构</td>
+</tr>
+<tr>
+<td>生产监控</td>
+<td>产线概览</td>
+<td>现场经理查看产线运行状态、关键指标和异常信息</td>
+</tr>
+<tr>
+<td>数据分析</td>
+<td>查看报表</td>
+<td>查看固定报表、动态报表和数据洞察结果</td>
+</tr>
+<tr>
+<td>设备维护</td>
+<td>查看设备事件</td>
+<td>维修协调人员查看设备异常、报警和事件详情</td>
+</tr>
+<tr>
+<td>设备维护</td>
+<td>查看设备诊断历史</td>
+<td>回溯设备状态、诊断结果和维修闭环记录</td>
+</tr>
+<tr>
+<td>工艺质量</td>
+<td>查看实时曲线</td>
+<td>基于过程曲线判断实时工艺质量状况</td>
+</tr>
+<tr>
+<td>工艺质量</td>
+<td>查看历史曲线</td>
+<td>对历史工艺过程进行追溯、对比和分析</td>
+</tr>
+<tr>
+<td>智能建模</td>
+<td>模型配置</td>
+<td>在算法工程师指导下配置诊断模型、特征模型和参数</td>
+</tr>
+<tr>
+<td>智能建模</td>
+<td>标准曲线训练</td>
+<td>训练压装&#x2F;拧紧标准曲线，支撑质量判定和异常识别</td>
+</tr>
+<tr>
+<td>规则策略</td>
+<td>规则设置 &#x2F; 策略设置</td>
+<td>配置事件触发规则、告警策略和工艺策略</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="4-数据架构"><a href="#4-数据架构" class="headerlink" title="4. 数据架构"></a>4. 数据架构</h2><h3 id="4-1-数据分类"><a href="#4-1-数据分类" class="headerlink" title="4.1 数据分类"></a>4.1 数据分类</h3><p>工业平台的数据架构围绕制造过程中的高频数据、业务对象数据、分析结果和事件信息进行设计，核心数据类型如下：</p>
+<table>
+<thead>
+<tr>
+<th>数据类型</th>
+<th>示例</th>
+<th>主要来源</th>
+<th>主要用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>时序数据 Time Series Data</td>
+<td><code>1683448306000 angle=165</code>、温度、压力、电流、振动</td>
+<td>设备、PLC、传感器、边缘节点</td>
+<td>实时监控、过程追溯、曲线分析、模型输入</td>
+</tr>
+<tr>
+<td>特征数据 Feature Data</td>
+<td><code>bolt_number=Bolt01</code>、<code>angle_mean=180</code>、<code>angle_max=1250</code></td>
+<td>特征工程、边缘计算、数据服务</td>
+<td>质量判定、模型训练、诊断分析、报表统计</td>
+</tr>
+<tr>
+<td>分析数据 Analytic Data</td>
+<td><code>dgns_factor=2.0</code>、<code>label=08</code></td>
+<td>诊断模型、规则引擎、数据智能服务</td>
+<td>预测性维护、异常识别、决策支持</td>
+</tr>
+<tr>
+<td>事件数据 Event Data</td>
+<td><code>event_number=e001</code>、<code>trigger_time=1683448307000</code>、<code>trigger_rule=r08</code></td>
+<td>规则引擎、设备告警、业务服务</td>
+<td>告警通知、事件闭环、运维分析、审计追溯</td>
+</tr>
+<tr>
+<td>主数据 Master Data</td>
+<td>车间、产线、工位、设备、物料、用户、权限</td>
+<td>管理后台、外部系统</td>
+<td>业务建模、权限控制、数据关联</td>
+</tr>
+<tr>
+<td>日志数据 Log Data</td>
+<td>应用日志、系统日志、前端日志、审计日志</td>
+<td>微服务、前端、操作系统、网关</td>
+<td>故障定位、安全审计、运行监控</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-数据架构图"><a href="#4-2-数据架构图" class="headerlink" title="4.2 数据架构图"></a>4.2 数据架构图</h3><div style="font-family:Arial,'Microsoft YaHei',sans-serif;border:1px solid #d9e2ef;border-radius:12px;padding:16px;background:#fbfdff;">
+  <div style="text-align:center;font-size:20px;font-weight:700;margin-bottom:16px;color:#23364d;">数据架构：采集、处理、存储、服务、应用</div>
+
+  <div style="display:flex;align-items:stretch;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:150px;border:1px solid #9fb6d4;border-radius:10px;background:#ffffff;padding:12px;text-align:center;">
+      <div style="font-weight:700;font-size:16px;color:#23364d;margin-bottom:8px;">数据源</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">设备 / PLC / 传感器<br/>产线 / 工位 / 外部系统</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:26px;color:#506070;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #9fb6d4;border-radius:10px;background:#ffffff;padding:12px;text-align:center;">
+      <div style="font-weight:700;font-size:16px;color:#23364d;margin-bottom:8px;">采集接入</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">Data Acquisition<br/>Data Integration<br/>边缘节点</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:26px;color:#506070;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #9fb6d4;border-radius:10px;background:#ffffff;padding:12px;text-align:center;">
+      <div style="font-weight:700;font-size:16px;color:#23364d;margin-bottom:8px;">处理建模</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">特征模型<br/>推理节点<br/>策略引擎</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:26px;color:#506070;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #9fb6d4;border-radius:10px;background:#ffffff;padding:12px;text-align:center;">
+      <div style="font-weight:700;font-size:16px;color:#23364d;margin-bottom:8px;">存储计算</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">InfluxDB / ClickHouse<br/>MySQL / Redis<br/>日志库 / 缓存</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:26px;color:#506070;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #9fb6d4;border-radius:10px;background:#ffffff;padding:12px;text-align:center;">
+      <div style="font-weight:700;font-size:16px;color:#23364d;margin-bottom:8px;">数据服务</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">API<br/>报表 / 洞察<br/>智能助手</div>
+    </div>
+  </div>
+
+  <div style="margin-top:18px;display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px;">
+    <div style="border:1px solid #f0b35c;border-radius:10px;background:#fff7e6;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#8a6200;margin-bottom:8px;">时序数据</div>
+      <div style="font-size:13px;color:#5d6d7e;line-height:1.7;">角度、扭矩、压力<br/>振动、温度、电流</div>
+    </div>
+    <div style="border:1px solid #69bd79;border-radius:10px;background:#eefaf0;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#24713b;margin-bottom:8px;">特征数据</div>
+      <div style="font-size:13px;color:#5d6d7e;line-height:1.7;">均值、峰值、区间<br/>趋势、统计量</div>
+    </div>
+    <div style="border:1px solid #a783d8;border-radius:10px;background:#f5efff;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#6c3483;margin-bottom:8px;">分析数据</div>
+      <div style="font-size:13px;color:#5d6d7e;line-height:1.7;">诊断因子、标签<br/>评分、预测结果</div>
+    </div>
+    <div style="border:1px solid #dd7f7f;border-radius:10px;background:#fff0f0;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#9c3434;margin-bottom:8px;">事件数据</div>
+      <div style="font-size:13px;color:#5d6d7e;line-height:1.7;">事件编号、触发时间<br/>触发规则、处置状态</div>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;border:1px solid #70a6d8;border-radius:10px;background:#eef6ff;padding:12px;text-align:center;color:#34495e;font-size:14px;">
+    数据应用闭环：监控 → 分析 → 诊断 → 告警 → 决策 → 优化
+  </div>
+
+
+<h3 id="4-3-数据流向"><a href="#4-3-数据流向" class="headerlink" title="4.3 数据流向"></a>4.3 数据流向</h3><p>平台信息流主要包括入站数据流、内部处理流、存储沉淀流、业务输出流与闭环反馈流。</p>
+<div style="font-family:Arial,'Microsoft YaHei',sans-serif;border:1px solid #d9e2ef;border-radius:12px;padding:16px;background:#fbfdff;">
+  <div style="text-align:center;font-size:20px;font-weight:700;margin-bottom:14px;color:#23364d;">数据流向图</div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+    <div style="flex:1;min-width:150px;border:1px solid #8bbbe8;border-radius:10px;background:#eaf4ff;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#135b9e;margin-bottom:6px;">入站数据流</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">设备数据<br/>工艺数据<br/>业务数据<br/>外部系统</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:26px;color:#506070;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #8ad29a;border-radius:10px;background:#eefbf1;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#24713b;margin-bottom:6px;">内部处理流</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">数据采集<br/>数据集成<br/>边缘节点<br/>消息队列</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:26px;color:#506070;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #dfbc67;border-radius:10px;background:#fff8e8;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#9a5d00;margin-bottom:6px;">处理建模</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">特征模型<br/>推理节点<br/>策略引擎<br/>诊断模型<br/>模型训练</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:26px;color:#506070;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #a783d8;border-radius:10px;background:#f5efff;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#6c3483;margin-bottom:6px;">存储沉淀流</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">时序库<br/>分析库<br/>业务库<br/>缓存<br/>日志库</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:26px;color:#506070;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #dd7f7f;border-radius:10px;background:#fff0f0;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#9c3434;margin-bottom:6px;">业务输出流</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">报表中心<br/>数据洞察<br/>产线概览<br/>设备诊断<br/>开放 API<br/>智能助手</div>
+    </div>
+  </div>
+
+  <div style="border-top:1px dashed #c8d5e6;padding-top:14px;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;">
+    <div style="border:1px solid #70a6d8;border-radius:10px;background:#eef6ff;padding:10px 14px;">策略优化</div>
+    <div style="font-size:22px;color:#506070;">↺</div>
+    <div style="border:1px solid #70a6d8;border-radius:10px;background:#eef6ff;padding:10px 14px;">模型迭代</div>
+    <div style="font-size:22px;color:#506070;">↺</div>
+    <div style="border:1px solid #70a6d8;border-radius:10px;background:#eef6ff;padding:10px 14px;">事件闭环</div>
+    <div style="font-size:22px;color:#506070;">↺</div>
+    <div style="border:1px solid #70a6d8;border-radius:10px;background:#eef6ff;padding:10px 14px;">持续改进</div>
+  </div>
+
+  <div style="margin-top:14px;border:1px solid #70a6d8;border-radius:10px;background:#eef6ff;padding:12px;text-align:center;color:#34495e;font-size:14px;">
+    典型流向：外部系统 / 设备 → 采集接入 → 处理建模 → 存储沉淀 → 业务应用 → 闭环反馈
+  </div>
+
+
+<table>
+<thead>
+<tr>
+<th>流向</th>
+<th>内容</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>入站数据流</td>
+<td>设备数据、工艺数据、业务数据、外部系统数据</td>
+<td>由数据采集服务、边缘节点或接口集成进入平台</td>
+</tr>
+<tr>
+<td>内部处理流</td>
+<td>数据采集、数据集成、消息转发、特征计算、规则触发</td>
+<td>在网关、消息队列、数据服务、规则引擎之间流转</td>
+</tr>
+<tr>
+<td>存储沉淀流</td>
+<td>时序库、分析库、业务库、缓存、日志库</td>
+<td>支撑查询、分析、回放、审计与复用</td>
+</tr>
+<tr>
+<td>出站服务流</td>
+<td>API 输出、报表展示、告警事件、数据洞察结果</td>
+<td>面向用户界面、第三方系统、看板和运维工具输出</td>
+</tr>
+<tr>
+<td>闭环反馈流</td>
+<td>规则优化、模型优化、策略调整、设备维护结果</td>
+<td>通过事件闭环和模型迭代持续提升平台智能化能力</td>
+</tr>
+</tbody></table>
+<h2 id="5-逻辑架构"><a href="#5-逻辑架构" class="headerlink" title="5. 逻辑架构"></a>5. 逻辑架构</h2><h3 id="5-1-分层逻辑架构"><a href="#5-1-分层逻辑架构" class="headerlink" title="5.1 分层逻辑架构"></a>5.1 分层逻辑架构</h3><p>平台采用微服务化、分层化架构，将主站业务、模型能力、行业域应用、数据服务和边缘接入进行解耦。</p>
+<div style="font-family:Arial,'Microsoft YaHei',sans-serif;border:1px solid #ddd;border-radius:12px;padding:16px;background:#fff;">
+  <div style="text-align:center;font-size:20px;font-weight:700;margin-bottom:14px;">逻辑架构分层图</div>
+  <div style="display:grid;grid-template-columns:1fr;gap:8px;">
+    <div style="background:#eaf4ff;border:1px solid #8bbbe8;border-radius:10px;padding:12px;">
+      <b>表现与应用层</b>：主站门户、预测性维护、时间性能、曲线质量、模型管理、系统管理
+    </div>
+    <div style="background:#eefbf1;border:1px solid #8ad29a;border-radius:10px;padding:12px;">
+      <b>API 与访问层</b>：Nginx、服务网关、REST API、Bearer Token 认证、统一鉴权、限流与路由
+    </div>
+    <div style="background:#fff8e8;border:1px solid #dfbc67;border-radius:10px;padding:12px;">
+      <b>业务服务层</b>：主站微服务、模型微服务、预测性维护、时间性能、曲线质量等领域服务
+    </div>
+    <div style="background:#f5efff;border:1px solid #ad8add;border-radius:10px;padding:12px;">
+      <b>数据与智能层</b>：数据采集、数据集成、数据服务、模型训练、模型推理、特征模型、策略引擎
+    </div>
+    <div style="background:#fff0f0;border:1px solid #dd8a8a;border-radius:10px;padding:12px;">
+      <b>边缘与设备层</b>：业务节点、推理节点、PLC/设备/传感器
+    </div>
+    <div style="background:#f4f6f7;border:1px solid #aab7b8;border-radius:10px;padding:12px;">
+      <b>横向支撑能力</b>：Nacos 服务发现与配置、RabbitMQ 消息、Redis 缓存、ELK 日志、Monitor Center 监控、Scheduler 调度
+    </div>
+  </div>
+</div>
+
+<h3 id="5-2-微服务与模块关系"><a href="#5-2-微服务与模块关系" class="headerlink" title="5.2 微服务与模块关系"></a>5.2 微服务与模块关系</h3><div style="font-family:Arial,'Microsoft YaHei',sans-serif;border:1px solid #d8d8d8;border-radius:12px;padding:16px;background:#fbfbfb;">
+  <div style="text-align:center;font-size:20px;font-weight:700;margin-bottom:12px;">微服务与模块关系图</div>
+  <div style="text-align:center;margin-bottom:14px;">
+    <div style="display:inline-block;border:1px solid #6fa8dc;border-radius:12px;background:#eaf4ff;padding:10px 18px;font-weight:700;color:#243447;">服务网关 / API Routing</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:12px;align-items:stretch;">
+    <div style="border:1px solid #8bbbe8;background:#eef7ff;border-radius:10px;padding:12px;">
+      <div style="font-weight:700;color:#21618c;margin-bottom:8px;">主站微服务</div>
+      <div style="font-size:13px;line-height:1.75;color:#34495e;">产线配置、数据管理、节点管理、用户管理、权限设置</div>
+    </div>
+    <div style="border:1px solid #82e0aa;background:#f0fff6;border-radius:10px;padding:12px;">
+      <div style="font-weight:700;color:#1d8348;margin-bottom:8px;">模型微服务</div>
+      <div style="font-size:13px;line-height:1.75;color:#34495e;">数据集管理、模型版本管理、模型训练、模型推理</div>
+    </div>
+    <div style="border:1px solid #f5b041;background:#fff8ec;border-radius:10px;padding:12px;">
+      <div style="font-weight:700;color:#9a5d00;margin-bottom:8px;">预测性维护</div>
+      <div style="font-size:13px;line-height:1.75;color:#34495e;">数据挖掘、设备诊断、规则设置、设备事件、模型管理</div>
+    </div>
+    <div style="border:1px solid #bb8fce;background:#fbf3ff;border-radius:10px;padding:12px;">
+      <div style="font-weight:700;color:#6c3483;margin-bottom:8px;">时间性能</div>
+      <div style="font-size:13px;line-height:1.75;color:#34495e;">节拍配置、节拍数据分析、理想节拍设定、报警配置、缓冲区管理、损失分析</div>
+    </div>
+    <div style="border:1px solid #dd8a8a;background:#fff0f0;border-radius:10px;padding:12px;">
+      <div style="font-weight:700;color:#9c3434;margin-bottom:8px;">曲线质量</div>
+      <div style="font-size:13px;line-height:1.75;color:#34495e;">曲线查看、数据挖掘、策略定义、规则设置、模型管理、标准曲线</div>
+    </div>
+    <div style="border:1px solid #aab7b8;background:#f4f6f7;border-radius:10px;padding:12px;">
+      <div style="font-weight:700;color:#5d6d7e;margin-bottom:8px;">横向支撑</div>
+      <div style="font-size:13px;line-height:1.75;color:#34495e;">数据采集、数据集成、数据服务、模型训练、模型推理、策略引擎、Nacos、Redis、RabbitMQ</div>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;border-top:1px dashed #c8d5e6;padding-top:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:150px;border:1px solid #8bbbe8;border-radius:10px;background:#ffffff;padding:10px;text-align:center;">主站微服务</div>
+    <div style="flex:1;min-width:150px;border:1px solid #82e0aa;border-radius:10px;background:#ffffff;padding:10px;text-align:center;">模型微服务</div>
+    <div style="flex:1;min-width:150px;border:1px solid #f5b041;border-radius:10px;background:#ffffff;padding:10px;text-align:center;">预测性维护</div>
+    <div style="flex:1;min-width:150px;border:1px solid #bb8fce;border-radius:10px;background:#ffffff;padding:10px;text-align:center;">时间性能</div>
+    <div style="flex:1;min-width:150px;border:1px solid #dd8a8a;border-radius:10px;background:#ffffff;padding:10px;text-align:center;">曲线质量</div>
+  </div>
+
+  <div style="margin-top:14px;border:1px solid #70a6d8;border-radius:10px;background:#eef6ff;padding:12px;text-align:center;color:#34495e;font-size:14px;">
+    通过服务网关统一编排五类核心微服务，各业务域共享底层数据服务、模型能力与边缘接入能力。
+  </div>
+
+
+<h3 id="5-3-关键逻辑说明"><a href="#5-3-关键逻辑说明" class="headerlink" title="5.3 关键逻辑说明"></a>5.3 关键逻辑说明</h3><ul>
+<li><strong>网关统一入口</strong>：前端与外部系统通过服务网关访问后端微服务，网关负责路由、认证、限流、跨域和统一 API 管理。</li>
+<li><strong>业务服务解耦</strong>：主站微服务、模型微服务、预测性维护、时间性能、曲线质量五类服务独立演进。</li>
+<li><strong>数据服务沉淀</strong>：采集层负责设备侧数据接入，数据服务负责数据清洗、聚合、查询与对外服务。</li>
+<li><strong>模型策略联动</strong>：模型微服务、推理节点与策略引擎共同支撑模型训练、模型推理、规则触发和业务决策。</li>
+<li><strong>领域能力复用</strong>：数据挖掘、规则设置、模型管理、标准曲线等能力可在不同业务场景中复用。</li>
+</ul>
+<hr>
+<h2 id="6-系统架构"><a href="#6-系统架构" class="headerlink" title="6. 系统架构"></a>6. 系统架构</h2><h3 id="6-1-系统部署视图"><a href="#6-1-系统部署视图" class="headerlink" title="6.1 系统部署视图"></a>6.1 系统部署视图</h3><p>系统支持以一个部署单元交付核心资源，通过一条命令进行升级或更新；同时通过监控中心和日志中心进行实时运维观测，并通过数据与功能两方面与客户现有平台无缝集成。</p>
+<div style="font-family:Arial,'Microsoft YaHei',sans-serif;border:1px solid #d7dde8;border-radius:12px;padding:16px;background:#fbfdff;">
+  <div style="text-align:center;font-size:20px;font-weight:700;margin-bottom:14px;color:#23364d;">系统部署视图</div>
+
+  <div style="display:flex;align-items:stretch;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+    <div style="flex:1;min-width:170px;border:1px solid #8bbbe8;border-radius:10px;background:#eaf4ff;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#135b9e;margin-bottom:6px;">访问层</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">Web / Dashboard<br/>Nginx<br/>Service Gateway</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:26px;color:#506070;">→</div>
+    <div style="flex:2;min-width:260px;border:1px solid #8ad29a;border-radius:10px;background:#eefbf1;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#24713b;margin-bottom:6px;">平台业务微服务层</div>
+      <div style="display:grid;grid-template-columns:repeat(5,minmax(110px,1fr));gap:8px;">
+        <div style="background:#fff;border:1px solid #b9dfc0;border-radius:8px;padding:8px;">主站微服务</div>
+        <div style="background:#fff;border:1px solid #b9dfc0;border-radius:8px;padding:8px;">模型微服务</div>
+        <div style="background:#fff;border:1px solid #b9dfc0;border-radius:8px;padding:8px;">预测性维护</div>
+        <div style="background:#fff;border:1px solid #b9dfc0;border-radius:8px;padding:8px;">时间性能</div>
+        <div style="background:#fff;border:1px solid #b9dfc0;border-radius:8px;padding:8px;">曲线质量</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:26px;color:#506070;">→</div>
+    <div style="flex:1;min-width:180px;border:1px solid #dfbc67;border-radius:10px;background:#fff8e8;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#9a5d00;margin-bottom:6px;">中间件与数据层</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">Nacos<br/>RabbitMQ<br/>Redis<br/>MySQL / InfluxDB / ClickHouse</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:26px;color:#506070;">→</div>
+    <div style="flex:1;min-width:170px;border:1px solid #dd8a8a;border-radius:10px;background:#fff0f0;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#9c3434;margin-bottom:6px;">边缘与现场层</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">业务节点<br/>推理节点<br/>PLC / 设备 / 传感器</div>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;border:1px solid #70a6d8;border-radius:10px;background:#eef6ff;padding:12px;text-align:center;color:#34495e;font-size:14px;">
+    访问层统一接入，业务微服务层负责领域能力，中间件与数据层提供治理与存储，边缘与现场层连接制造现场。
+  </div>
+</div>
+
+<h3 id="6-2-系统组成"><a href="#6-2-系统组成" class="headerlink" title="6.2 系统组成"></a>6.2 系统组成</h3><table>
+<thead>
+<tr>
+<th>类别</th>
+<th>组件</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>接入组件</td>
+<td>Nginx、Service Gateway</td>
+<td>统一入口、静态资源代理、服务路由、鉴权转发、接口治理</td>
+</tr>
+<tr>
+<td>业务微服务</td>
+<td>主站微服务、模型微服务、预测性维护、时间性能、曲线质量</td>
+<td>按逻辑架构划分的核心业务域，分别承载主站管理、模型能力和三类行业应用</td>
+</tr>
+<tr>
+<td>主站微服务</td>
+<td>产线配置、数据管理、节点管理、用户管理、权限设置</td>
+<td>面向平台基础管理的主站能力</td>
+</tr>
+<tr>
+<td>模型微服务</td>
+<td>数据集管理、模型版本管理、模型训练、模型推理</td>
+<td>面向模型全生命周期管理的能力</td>
+</tr>
+<tr>
+<td>预测性维护</td>
+<td>数据挖掘、设备诊断、规则设置、设备事件、模型管理</td>
+<td>面向设备健康分析、异常识别和维护闭环</td>
+</tr>
+<tr>
+<td>时间性能</td>
+<td>节拍配置、节拍数据分析、理想节拍设定、报警配置、缓冲区管理、损失分析</td>
+<td>面向节拍分析、效率管理和损失诊断</td>
+</tr>
+<tr>
+<td>曲线质量</td>
+<td>曲线查看、数据挖掘、策略定义、规则设置、模型管理、标准曲线</td>
+<td>面向工艺曲线分析、质量判定和标准曲线管理</td>
+</tr>
+<tr>
+<td>数据服务</td>
+<td>数据采集、数据集成、数据服务</td>
+<td>设备采集、系统集成、数据查询、数据处理与数据服务开放</td>
+</tr>
+<tr>
+<td>服务治理</td>
+<td>Nacos Discovery、Nacos Config</td>
+<td>服务注册发现、配置集中管理、服务动态治理</td>
+</tr>
+<tr>
+<td>消息组件</td>
+<td>RabbitMQ</td>
+<td>事件解耦、异步任务、告警流转、数据处理削峰</td>
+</tr>
+<tr>
+<td>缓存组件</td>
+<td>Redis</td>
+<td>缓存热点数据、会话状态、分布式锁、临时数据</td>
+</tr>
+<tr>
+<td>存储组件</td>
+<td>MySQL、InfluxDB、ClickHouse</td>
+<td>业务主数据、时序数据和分析数据存储</td>
+</tr>
+<tr>
+<td>运维组件</td>
+<td>Log Center、Monitor Center、ELK</td>
+<td>日志采集、指标监控、运行分析、故障定位</td>
+</tr>
+<tr>
+<td>边缘组件</td>
+<td>业务节点、推理节点、PLC&#x2F;设备&#x2F;传感器</td>
+<td>对接不同工业现场和工艺域，完成数据采集与边缘处理</td>
+</tr>
+</tbody></table>
+<h3 id="6-3-部署与运维特性"><a href="#6-3-部署与运维特性" class="headerlink" title="6.3 部署与运维特性"></a>6.3 部署与运维特性</h3><ul>
+<li><strong>易部署</strong>：核心资源可作为统一部署单元交付，支持一条命令完成部署、升级或更新。</li>
+<li><strong>易监控</strong>：通过 Monitor Center 与 Log Center 实时查看系统指标、服务状态、错误日志与业务运行情况。</li>
+<li><strong>易集成</strong>：从数据集成和功能接口两个维度对接客户既有平台，实现平滑接入。</li>
+<li><strong>可扩展</strong>：新增工艺域时，可通过新增业务节点、推理节点、微服务模块、数据模型和规则策略完成扩展。</li>
+<li><strong>可运维</strong>：日志、监控、审计、配置中心和服务发现支撑日常运行维护、故障定位和持续升级。</li>
+</ul>
+<hr>
+<h2 id="7-接口、认证与安全架构"><a href="#7-接口、认证与安全架构" class="headerlink" title="7. 接口、认证与安全架构"></a>7. 接口、认证与安全架构</h2><h3 id="7-1-API-管理"><a href="#7-1-API-管理" class="headerlink" title="7.1 API 管理"></a>7.1 API 管理</h3><p>平台通过 REST API 向消费端开放能力，主要包括 API 网关、PDM 微服务、压装&#x2F;拧紧微服务以及其他业务微服务。API 调用统一经过网关，便于进行认证、路由、审计和限流。</p>
+<table>
+<thead>
+<tr>
+<th>服务</th>
+<th>API 类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>API 网关</td>
+<td>REST API</td>
+<td>统一对外入口、路由转发、认证校验、接口治理</td>
+</tr>
+<tr>
+<td>PDM 微服务</td>
+<td>REST API</td>
+<td>预测性维护、设备诊断、事件查询等接口</td>
+</tr>
+<tr>
+<td>压装&#x2F;拧紧微服务</td>
+<td>REST API</td>
+<td>工艺曲线、策略配置、质量分析、标准曲线训练等接口</td>
+</tr>
+<tr>
+<td>报表服务</td>
+<td>REST API</td>
+<td>固定报表、动态报表、指标查询、数据导出</td>
+</tr>
+<tr>
+<td>数据服务</td>
+<td>REST API</td>
+<td>数据查询、特征数据、分析数据、时序数据访问</td>
+</tr>
+</tbody></table>
+<h3 id="7-2-认证流程"><a href="#7-2-认证流程" class="headerlink" title="7.2 认证流程"></a>7.2 认证流程</h3><p>系统采用 Bearer Token 认证方式。用户登录成功后获取 Token，后续请求在请求头中携带 <code>Authorization: Bearer &lt;token&gt;</code>，由服务端验证 Token 有效性后处理请求。</p>
+<div style="font-family:Arial,'Microsoft YaHei',sans-serif;border:1px solid #ddd;border-radius:12px;padding:16px;background:#fff;">
+  <div style="text-align:center;font-size:20px;font-weight:700;margin-bottom:14px;color:#23364d;">认证流程节点图</div>
+
+  <div style="display:flex;align-items:stretch;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+    <div style="flex:1;min-width:150px;border:1px solid #8bbbe8;background:#eaf4ff;border-radius:10px;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#21618c;margin-bottom:6px;">用户/前端</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">发起登录请求<br/>携带账号密码</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:26px;color:#506070;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #82e0aa;background:#f0fff6;border-radius:10px;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#1d8348;margin-bottom:6px;">服务网关</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">转发认证请求<br/>统一路由与鉴权</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:26px;color:#506070;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #dfbc67;background:#fff8e8;border-radius:10px;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#9a5d00;margin-bottom:6px;">认证服务</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">校验凭证<br/>签发 Token</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:26px;color:#506070;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #dd8a8a;background:#fff0f0;border-radius:10px;padding:12px;text-align:center;">
+      <div style="font-weight:700;color:#9c3434;margin-bottom:6px;">业务服务</div>
+      <div style="font-size:13px;line-height:1.7;color:#34495e;">Token 校验通过后<br/>访问业务接口</div>
+    </div>
+  </div>
+
+  <div style="border-top:1px dashed #c8d5e6;padding-top:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:120px;border:1px solid #8bbbe8;border-radius:10px;background:#ffffff;padding:10px;text-align:center;">1. 登录请求</div>
+      <div style="flex:1;min-width:120px;border:1px solid #8bbbe8;border-radius:10px;background:#ffffff;padding:10px;text-align:center;">2. 转发认证</div>
+      <div style="flex:1;min-width:120px;border:1px solid #8bbbe8;border-radius:10px;background:#ffffff;padding:10px;text-align:center;">3. 返回 Token</div>
+      <div style="flex:1;min-width:120px;border:1px solid #8bbbe8;border-radius:10px;background:#ffffff;padding:10px;text-align:center;">4. 登录成功</div>
+      <div style="flex:1;min-width:160px;border:1px solid #8bbbe8;border-radius:10px;background:#ffffff;padding:10px;text-align:center;">5. 携带 Bearer Token 访问 API</div>
+      <div style="flex:1;min-width:180px;border:1px solid #8bbbe8;border-radius:10px;background:#ffffff;padding:10px;text-align:center;">6. Token 校验通过后路由到业务服务</div>
+    </div>
+  </div>
+</div>
+
+<h3 id="7-3-安全控制要点"><a href="#7-3-安全控制要点" class="headerlink" title="7.3 安全控制要点"></a>7.3 安全控制要点</h3><ul>
+<li>统一身份认证与 Token 校验。</li>
+<li>基于用户、角色、菜单、App、接口的数据权限控制。</li>
+<li>API 网关统一接入，避免后端服务直接暴露。</li>
+<li>关键操作记录审计日志，支持追溯。</li>
+<li>服务间通信通过网关、注册中心、配置中心进行统一治理。</li>
+</ul>
+<hr>
+<h2 id="8-日志、监控与运维架构"><a href="#8-日志、监控与运维架构" class="headerlink" title="8. 日志、监控与运维架构"></a>8. 日志、监控与运维架构</h2><h3 id="8-1-日志类型"><a href="#8-1-日志类型" class="headerlink" title="8.1 日志类型"></a>8.1 日志类型</h3><table>
+<thead>
+<tr>
+<th>日志类型</th>
+<th>来源</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>应用日志</td>
+<td>后端微服务</td>
+<td>业务逻辑、接口调用、异常堆栈、运行状态</td>
+</tr>
+<tr>
+<td>系统日志</td>
+<td>操作系统 &#x2F; 容器 &#x2F; 中间件</td>
+<td>资源、进程、网络、存储、中间件运行情况</td>
+</tr>
+<tr>
+<td>前端日志</td>
+<td>Web &#x2F; 移动端</td>
+<td>页面错误、接口异常、用户端行为</td>
+</tr>
+<tr>
+<td>审计日志</td>
+<td>网关 &#x2F; 认证 &#x2F; 业务服务</td>
+<td>登录、权限、配置变更、关键业务操作</td>
+</tr>
+</tbody></table>
+<h3 id="8-2-日志归集架构"><a href="#8-2-日志归集架构" class="headerlink" title="8.2 日志归集架构"></a>8.2 日志归集架构</h3><div style="font-family:Arial,'Microsoft YaHei',sans-serif;border:1px solid #ddd;border-radius:12px;padding:16px;background:#fff;">
+  <div style="text-align:center;font-size:20px;font-weight:700;margin-bottom:14px;">日志与监控归集流程</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:150px;border:1px solid #8bbbe8;background:#eaf4ff;border-radius:10px;padding:12px;text-align:center;">应用 / 前端 / 系统 / 网关</div>
+    <div style="font-size:28px;color:#789;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #8ad29a;background:#eefbf1;border-radius:10px;padding:12px;text-align:center;">HTTP 直接上报<br/>日志采集客户端</div>
+    <div style="font-size:28px;color:#789;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #dfbc67;background:#fff8e8;border-radius:10px;padding:12px;text-align:center;">Logstash<br/>日志处理管道</div>
+    <div style="font-size:28px;color:#789;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #bb8fce;background:#fbf3ff;border-radius:10px;padding:12px;text-align:center;">Elasticsearch<br/>日志存储检索</div>
+    <div style="font-size:28px;color:#789;">→</div>
+    <div style="flex:1;min-width:150px;border:1px solid #dd8a8a;background:#fff0f0;border-radius:10px;padding:12px;text-align:center;">Kibana / Log Center<br/>查询分析展示</div>
+  </div>
+</div>
+
+<h3 id="8-3-运维监控能力"><a href="#8-3-运维监控能力" class="headerlink" title="8.3 运维监控能力"></a>8.3 运维监控能力</h3><ul>
+<li><strong>服务监控</strong>：监控服务实例状态、接口延迟、错误率、吞吐量。</li>
+<li><strong>资源监控</strong>：监控 CPU、内存、磁盘、网络、容器&#x2F;进程状态。</li>
+<li><strong>日志分析</strong>：通过 ELK 对日志进行集中存储、检索和分析。</li>
+<li><strong>告警通知</strong>：基于阈值、规则和事件触发告警。</li>
+<li><strong>链路追踪</strong>：结合网关与微服务日志定位跨服务调用问题。</li>
+<li><strong>配置管理</strong>：通过 Nacos Config 实现配置集中管理和动态调整。</li>
+</ul>
+<hr>
+<h2 id="9-技术栈"><a href="#9-技术栈" class="headerlink" title="9. 技术栈"></a>9. 技术栈</h2><table>
+<thead>
+<tr>
+<th>层级</th>
+<th>技术 &#x2F; 组件</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>前端</td>
+<td>Vue.js</td>
+<td>Web 前端、管理门户、看板页面</td>
+</tr>
+<tr>
+<td>后端</td>
+<td>Java、Node.js、Python</td>
+<td>微服务、业务逻辑、API 服务、任务服务、模型服务</td>
+</tr>
+<tr>
+<td>数据库</td>
+<td>InfluxDB</td>
+<td>高频时序数据存储</td>
+</tr>
+<tr>
+<td>数据库</td>
+<td>ClickHouse</td>
+<td>分析型数据、报表查询、多维统计</td>
+</tr>
+<tr>
+<td>数据库</td>
+<td>MySQL</td>
+<td>业务主数据、配置数据、权限数据</td>
+</tr>
+<tr>
+<td>中间件</td>
+<td>Redis</td>
+<td>缓存、会话、热点数据、分布式协调</td>
+</tr>
+<tr>
+<td>中间件</td>
+<td>RabbitMQ</td>
+<td>异步消息、事件流转、削峰解耦</td>
+</tr>
+<tr>
+<td>服务治理</td>
+<td>Nacos</td>
+<td>服务发现、服务注册、配置中心</td>
+</tr>
+<tr>
+<td>接入代理</td>
+<td>Nginx</td>
+<td>静态资源代理、反向代理、负载均衡</td>
+</tr>
+<tr>
+<td>日志监控</td>
+<td>ELK、Monitor Center、Log Center</td>
+<td>日志分析、指标监控、运维可视化</td>
+</tr>
+</tbody></table>
+<div style="font-family:Arial,'Microsoft YaHei',sans-serif;border:1px solid #ddd;border-radius:12px;padding:16px;background:#fff;">
+  <div style="text-align:center;font-size:20px;font-weight:700;margin-bottom:12px;">技术栈矩阵</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+    <div style="border:1px solid #8bbbe8;background:#eaf4ff;border-radius:10px;padding:12px;text-align:center;"><b>Front-end</b><br/>Vue.js</div>
+    <div style="border:1px solid #8ad29a;background:#eefbf1;border-radius:10px;padding:12px;text-align:center;"><b>Back-end</b><br/>Java / Node.js / Python</div>
+    <div style="border:1px solid #dfbc67;background:#fff8e8;border-radius:10px;padding:12px;text-align:center;"><b>Databases</b><br/>InfluxDB / ClickHouse / MySQL</div>
+    <div style="border:1px solid #bb8fce;background:#fbf3ff;border-radius:10px;padding:12px;text-align:center;"><b>Tools</b><br/>Nginx / Redis / Nacos / RabbitMQ</div>
+  </div>
+</div>
+---
+
+<h2 id="10-架构特性总结"><a href="#10-架构特性总结" class="headerlink" title="10. 架构特性总结"></a>10. 架构特性总结</h2><table>
+<thead>
+<tr>
+<th>架构特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>可扩展</td>
+<td>通过微服务和边缘节点机制支持新增业务域、工艺域和数据源</td>
+</tr>
+<tr>
+<td>可集成</td>
+<td>支持 REST API、数据采集、数据集成和外部系统对接</td>
+</tr>
+<tr>
+<td>可观测</td>
+<td>通过日志中心、监控中心、ELK 体系支撑运行可视化</td>
+</tr>
+<tr>
+<td>可维护</td>
+<td>服务注册发现、配置中心、消息队列和统一网关降低维护复杂度</td>
+</tr>
+<tr>
+<td>可部署</td>
+<td>支持资源统一部署单元和命令式升级，便于交付和运维</td>
+</tr>
+<tr>
+<td>可智能</td>
+<td>通过特征模型、诊断模型、规则引擎和数据洞察实现智能分析闭环</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="11-总结"><a href="#11-总结" class="headerlink" title="11. 总结"></a>11. 总结</h2><p>工业平台总体架构以制造现场数据为基础，以边缘节点和数据采集为入口，以微服务平台能力为核心，以数据智能和业务应用为价值出口。平台通过数据架构支撑工业数据治理，通过业务架构承载生产、质量、维护和管理场景，通过逻辑架构实现服务解耦与能力复用，通过系统架构保障部署、运行、监控和集成。</p>
+<p>该架构能够支持 PdM、拧紧&#x2F;压装、焊接、IRUN、能源、涂装等业务节点逐步接入，并通过统一的数据、模型、规则、报表和 API 能力，持续赋能智能制造场景。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%B9%B3%E5%8F%B0%E6%80%BB%E8%A7%88/">平台总览</a></div><div class="post-share"><div class="social-share" data-image="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/07/23/manulism-work/10_Architecture/13%20%E6%9E%B6%E6%9E%84%E5%8F%82%E8%80%83/%E8%BD%AF%E4%BB%B6%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF/" title="工业平台软件版本与组件清单"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">工业平台软件版本与组件清单</div></div><div class="info-2"><div class="info-item-1">   操作系统 Ubuntu 22.04 LTS+    数据存储 InfluxDB 1.7.7    MySQL 8.0.30    ClickHouse  23   容器技术 Docker 27.5.1    Docker Compose version v2.36.2   开发语言 Java 1.8    Vue 2    Nodejs V24.15.    Python 3.10.17   中间件 Nginx 1.22.1    Redis 7.0    Nac...</div></div></div></a><a class="pagination-related" href="/2024/05/16/manulism-work/10_Architecture/12%20%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B/%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B%E8%84%89%E7%BB%9C/" title="工业智能平台架构演进脉络"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">工业智能平台架构演进脉络</div></div><div class="info-2"><div class="info-item-1">阅读导引这篇笔记单独整理“架构演进”，避免它只被吸收到架构总览里。它关注的是：平台为什么从单体走向主从、云原生、平台化和智能化。 演进主线   工业平台架构演进               2016       单体架构       快速验证业务和产品概念。                 2019       主从架构       适应规模部署，分离现场执行与中心管理。                 2022       云原生架构       自动化发布，支持按需...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Luis Chen</div><div class="author-info-description">工业智能平台与技术知识沉淀</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%96%87%E6%A1%A3%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">1. 文档概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84%E8%93%9D%E5%9B%BE"><span class="toc-number">2.</span> <span class="toc-text">2. 总体架构蓝图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E4%B8%9A%E5%8A%A1%E6%9E%B6%E6%9E%84"><span class="toc-number">3.</span> <span class="toc-text">3. 业务架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%9A%E5%8A%A1%E5%8F%82%E4%B8%8E%E8%80%85"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 业务参与者</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%B8%9A%E5%8A%A1%E8%83%BD%E5%8A%9B%E5%9C%B0%E5%9B%BE"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 业务能力地图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%A0%B8%E5%BF%83%E4%B8%9A%E5%8A%A1%E7%94%A8%E4%BE%8B"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 核心业务用例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%95%B0%E6%8D%AE%E6%9E%B6%E6%9E%84"><span class="toc-number">4.</span> <span class="toc-text">4. 数据架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%95%B0%E6%8D%AE%E5%88%86%E7%B1%BB"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 数据分类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%95%B0%E6%8D%AE%E6%9E%B6%E6%9E%84%E5%9B%BE"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 数据架构图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%95%B0%E6%8D%AE%E6%B5%81%E5%90%91"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 数据流向</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84"><span class="toc-number">5.</span> <span class="toc-text">5. 逻辑架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%88%86%E5%B1%82%E9%80%BB%E8%BE%91%E6%9E%B6%E6%9E%84"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 分层逻辑架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E4%B8%8E%E6%A8%A1%E5%9D%97%E5%85%B3%E7%B3%BB"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 微服务与模块关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%85%B3%E9%94%AE%E9%80%BB%E8%BE%91%E8%AF%B4%E6%98%8E"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 关键逻辑说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84"><span class="toc-number">6.</span> <span class="toc-text">6. 系统架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E7%B3%BB%E7%BB%9F%E9%83%A8%E7%BD%B2%E8%A7%86%E5%9B%BE"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 系统部署视图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E7%B3%BB%E7%BB%9F%E7%BB%84%E6%88%90"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 系统组成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E9%83%A8%E7%BD%B2%E4%B8%8E%E8%BF%90%E7%BB%B4%E7%89%B9%E6%80%A7"><span class="toc-number">6.3.</span> <span class="toc-text">6.3 部署与运维特性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E6%8E%A5%E5%8F%A3%E3%80%81%E8%AE%A4%E8%AF%81%E4%B8%8E%E5%AE%89%E5%85%A8%E6%9E%B6%E6%9E%84"><span class="toc-number">7.</span> <span class="toc-text">7. 接口、认证与安全架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-API-%E7%AE%A1%E7%90%86"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 API 管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 认证流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%AE%89%E5%85%A8%E6%8E%A7%E5%88%B6%E8%A6%81%E7%82%B9"><span class="toc-number">7.3.</span> <span class="toc-text">7.3 安全控制要点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E6%97%A5%E5%BF%97%E3%80%81%E7%9B%91%E6%8E%A7%E4%B8%8E%E8%BF%90%E7%BB%B4%E6%9E%B6%E6%9E%84"><span class="toc-number">8.</span> <span class="toc-text">8. 日志、监控与运维架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E6%97%A5%E5%BF%97%E7%B1%BB%E5%9E%8B"><span class="toc-number">8.1.</span> <span class="toc-text">8.1 日志类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E6%97%A5%E5%BF%97%E5%BD%92%E9%9B%86%E6%9E%B6%E6%9E%84"><span class="toc-number">8.2.</span> <span class="toc-text">8.2 日志归集架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E8%BF%90%E7%BB%B4%E7%9B%91%E6%8E%A7%E8%83%BD%E5%8A%9B"><span class="toc-number">8.3.</span> <span class="toc-text">8.3 运维监控能力</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E6%8A%80%E6%9C%AF%E6%A0%88"><span class="toc-number">9.</span> <span class="toc-text">9. 技术栈</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E6%9E%B6%E6%9E%84%E7%89%B9%E6%80%A7%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">10. 架构特性总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">11. 总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/02%20%E8%AE%BE%E5%A4%87%E5%81%A5%E5%BA%B7%E5%88%86%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" title="设备健康指数：从诊断结果到退化趋势">设备健康指数：从诊断结果到退化趋势</a><time datetime="2026-10-23T04:33:16.000Z" title="发表于 2026-10-23 12:33:16">2026-10-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/26/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/03%20%E6%95%85%E9%9A%9C%E6%A0%91/%E6%95%85%E9%9A%9C%E6%A0%91%E5%88%86%E6%9E%90%E5%9F%BA%E6%9C%AC%E7%9F%A5%E8%AF%86/" title="故障树分析基本知识">故障树分析基本知识</a><time datetime="2026-09-26T03:22:48.000Z" title="发表于 2026-09-26 11:22:48">2026-09-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD/" title="前端多语言资源按需加载">前端多语言资源按需加载</a><time datetime="2026-08-10T01:51:22.000Z" title="发表于 2026-08-10 09:51:22">2026-08-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/" title="曲线质量分析系统配置解析补充">曲线质量分析系统配置解析补充</a><time datetime="2026-07-13T05:55:00.000Z" title="发表于 2026-07-13 13:55:00">2026-07-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/16/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/03%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E8%8F%9C%E5%8D%95%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" title="曲线质量分析系统菜单工作流程">曲线质量分析系统菜单工作流程</a><time datetime="2026-06-16T09:25:40.000Z" title="发表于 2026-06-16 17:25:40">2026-06-16</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By Luis Chen</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="https://cdn.osyb.cn/static/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

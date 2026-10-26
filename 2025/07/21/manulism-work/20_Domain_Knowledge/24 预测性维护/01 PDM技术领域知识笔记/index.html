@@ -1,0 +1,738 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>预测性维护 PDM 技术实现知识 | Next Station</title><meta name="author" content="Luis Chen"><meta name="copyright" content="Luis Chen"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本文重点说明系统如何支撑业务落地。本文只展开架构和关键技术实现，其他算法、聚合策略和局部实现不再细写，便于后续继续补充。 1. 系统定位PDM 不是单一诊断服务，而是一套围绕“特征配置、模型训练、诊断展示、事件闭环、边缘计算协同”构建的微服务体系。  main_web 负责应用入口、统一启动和基础 Web 能力。 foundation 负责配置、消息队列、定时任务、JWT、Redis 和启动编排。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="预测性维护 PDM 技术实现知识">
+<meta property="og:url" content="https://luischen.github.io/2025/07/21/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/01%20PDM%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="本文重点说明系统如何支撑业务落地。本文只展开架构和关键技术实现，其他算法、聚合策略和局部实现不再细写，便于后续继续补充。 1. 系统定位PDM 不是单一诊断服务，而是一套围绕“特征配置、模型训练、诊断展示、事件闭环、边缘计算协同”构建的微服务体系。  main_web 负责应用入口、统一启动和基础 Web 能力。 foundation 负责配置、消息队列、定时任务、JWT、Redis 和启动编排。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg">
+<meta property="article:published_time" content="2025-07-21T03:44:20.000Z">
+<meta property="article:modified_time" content="2026-10-26T03:57:26.000Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="预测性维护">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "预测性维护 PDM 技术实现知识",
+  "url": "https://luischen.github.io/2025/07/21/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/01%20PDM%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/",
+  "image": "https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg",
+  "datePublished": "2025-07-21T03:44:20.000Z",
+  "dateModified": "2026-10-26T03:57:26.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Luis Chen",
+      "url": "https://luischen.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://luischen.github.io/2025/07/21/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/01%20PDM%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '预测性维护 PDM 技术实现知识',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/site-hero-desktop-v2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Next Station</span></a><a class="nav-page-title" href="/"><span class="site-name">预测性维护 PDM 技术实现知识</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">预测性维护 PDM 技术实现知识</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-07-21T03:44:20.000Z" title="发表于 2025-07-21 11:44:20">2025-07-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-10-26T03:57:26.000Z" title="更新于 2026-10-26 11:57:26">2026-10-26</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B7%A5%E4%BD%9C%E7%AC%94%E8%AE%B0/">工作笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>本文重点说明系统如何支撑业务落地。本文只展开架构和关键技术实现，其他算法、聚合策略和局部实现不再细写，便于后续继续补充。</p>
+<h2 id="1-系统定位"><a href="#1-系统定位" class="headerlink" title="1. 系统定位"></a>1. 系统定位</h2><p>PDM 不是单一诊断服务，而是一套围绕“特征配置、模型训练、诊断展示、事件闭环、边缘计算协同”构建的微服务体系。</p>
+<ul>
+<li><code>main_web</code> 负责应用入口、统一启动和基础 Web 能力。</li>
+<li><code>foundation</code> 负责配置、消息队列、定时任务、JWT、Redis 和启动编排。</li>
+<li><code>data_center</code> 负责共享数据模型、DTO、Mapper 和基础查询接口。</li>
+<li><code>model_manage</code> 负责特征管理、模型管理、训练编排、授权和算法实现。</li>
+<li><code>equip_manage</code> 负责诊断展示、趋势查询、事件管理和设备视角呈现。</li>
+</ul>
+<p>整体上，系统把<strong>业务配置</strong>和<strong>计算执行</strong>分离：云端做编排、校验、授权、持久化和展示，边缘侧做实时计算和结果回调。</p>
+<h2 id="2-基础架构"><a href="#2-基础架构" class="headerlink" title="2. 基础架构"></a>2. 基础架构</h2><h3 id="2-1-微服务与边云通信"><a href="#2-1-微服务与边云通信" class="headerlink" title="2.1 微服务与边云通信"></a>2.1 微服务与边云通信</h3><p>系统同时支持两种调用方式：</p>
+<ul>
+<li>服务名调用，适合云端服务之间通信。</li>
+<li><code>ip + port</code> 直连，适合云端调度边缘节点。</li>
+</ul>
+<p>这为“节点在线&#x2F;离线切换”和“云边协同下发”提供了基础。</p>
+<h3 id="2-2-动态配置与启动编排"><a href="#2-2-动态配置与启动编排" class="headerlink" title="2.2 动态配置与启动编排"></a>2.2 动态配置与启动编排</h3><p>系统通过动态配置支持运行时切换：</p>
+<ul>
+<li>节点模式 &#x2F; 组合模式切换。</li>
+<li>主服务地址变化。</li>
+<li>应用范围变化。</li>
+</ul>
+<p>启动过程采用状态机式编排，不是简单初始化，这样更容易处理定时任务、外部配置和启动降级。</p>
+<h3 id="2-3-基础设施分工"><a href="#2-3-基础设施分工" class="headerlink" title="2.3 基础设施分工"></a>2.3 基础设施分工</h3><ul>
+<li>Redis：计算锁、去重、运行中状态。</li>
+<li>RabbitMQ：异步训练任务。</li>
+<li>Quartz：周期任务和自动流程触发。</li>
+</ul>
+<p>这套组合的核心价值是把“即时请求”和“耗时计算”分离开。</p>
+<h2 id="3-关键技术实现"><a href="#3-关键技术实现" class="headerlink" title="3. 关键技术实现"></a>3. 关键技术实现</h2><p>这一部分只描述本系统最关键的实现，不展开具体算法细节。对应的思想是：<strong>架构负责承载业务，关键技术负责保证系统可控、可扩展、可追溯</strong>。</p>
+<h3 id="3-1-云边协同与调用边界"><a href="#3-1-云边协同与调用边界" class="headerlink" title="3.1 云边协同与调用边界"></a>3.1 云边协同与调用边界</h3><p>系统采用“云端编排，边缘执行”的协同方式。</p>
+<ul>
+<li>云端负责配置管理、授权控制、任务编排、结果汇总和历史追溯。</li>
+<li>边缘节点负责靠近数据源的特征计算、模型计算和结果回调。</li>
+<li>调用层同时支持服务名调用和直连调用，分别适配云内服务通信和节点调度场景。</li>
+</ul>
+<p>这个设计的重点不是“把计算搬到哪里”，而是把<strong>业务控制面</strong>和<strong>计算执行面</strong>分开，避免云端既管规则又管实时计算，从而让系统更容易扩展到多节点、多站点场景。</p>
+<h3 id="3-2-配置管理与启动编排"><a href="#3-2-配置管理与启动编排" class="headerlink" title="3.2 配置管理与启动编排"></a>3.2 配置管理与启动编排</h3><p>系统的配置不是静态常量，而是可动态刷新、可切换运行模式的治理对象。</p>
+<ul>
+<li>运行期配置支持刷新，便于主服务地址、应用范围和运行模式变更。</li>
+<li>启动过程采用状态编排而不是一段式初始化，适合处理定时任务、配置拉取、依赖就绪检查等启动动作。</li>
+<li>配置和启动都强调“可控性”，即先确认环境，再让业务能力逐步进入可用状态。</li>
+</ul>
+<p>这里体现的是一种工程原则：<strong>系统先稳定启动，再稳定提供能力</strong>。</p>
+<h3 id="3-3-任务编排与异步化"><a href="#3-3-任务编排与异步化" class="headerlink" title="3.3 任务编排与异步化"></a>3.3 任务编排与异步化</h3><p>系统中凡是可能耗时的动作，基本都采用异步或分步编排的方式处理。</p>
+<ul>
+<li>训练任务通过消息队列异步下发。</li>
+<li>手动计算通过节点回调更新结果。</li>
+<li>定时任务通过统一调度器触发。</li>
+</ul>
+<p>这样做的核心目的有两个：</p>
+<ol>
+<li>避免前端接口被长时间占用。</li>
+<li>避免训练、补算、同步等任务互相抢占资源。</li>
+</ol>
+<p>从系统设计角度看，这比“在一个接口里把所有事情做完”更适合工业场景。</p>
+<h3 id="3-4-计算锁与结果一致性"><a href="#3-4-计算锁与结果一致性" class="headerlink" title="3.4 计算锁与结果一致性"></a>3.4 计算锁与结果一致性</h3><p>系统在手动计算和补算场景下，引入了运行时锁和结果清理机制。</p>
+<ul>
+<li>Redis 用于标记正在计算的对象，防止重复触发。</li>
+<li>计算前会先清理旧结果，避免新旧结果混杂。</li>
+<li>删除后会做状态确认，降低异步存储带来的脏读风险。</li>
+</ul>
+<p>这一套机制的本质是：<strong>让重算可重复、让结果可验证、让并发可控制</strong>。</p>
+<h3 id="3-5-授权与范围控制"><a href="#3-5-授权与范围控制" class="headerlink" title="3.5 授权与范围控制"></a>3.5 授权与范围控制</h3><p>系统不是默认对所有设备开放计算，而是基于授权范围进行控制。</p>
+<ul>
+<li>设备是否可以进入计算范围，需要先通过授权判断。</li>
+<li>授权数量有上限，超出时会直接拦截。</li>
+<li>节点配置和设备授权共同决定最终可执行范围。</li>
+</ul>
+<p>这使系统具备了清晰的业务边界，避免边缘侧执行范围失控，也避免配置漂移导致资源滥用。</p>
+<h3 id="3-6-历史留痕与可追溯"><a href="#3-6-历史留痕与可追溯" class="headerlink" title="3.6 历史留痕与可追溯"></a>3.6 历史留痕与可追溯</h3><p>系统对关键动作普遍保留历史：</p>
+<ul>
+<li>配置修改有历史。</li>
+<li>训练过程有历史。</li>
+<li>手动计算有历史。</li>
+<li>事件处理也有历史轨迹。</li>
+</ul>
+<p>这并不是附加能力，而是预测性维护系统的基础要求。没有历史，就无法复盘模型效果，也无法解释为什么某次诊断结果发生变化。</p>
+<h3 id="3-7-健康指数的接入边界"><a href="#3-7-健康指数的接入边界" class="headerlink" title="3.7 健康指数的接入边界"></a>3.7 健康指数的接入边界</h3><p>若在现有诊断能力上增加设备健康指数，计算输入应是带时间戳和规则版本的<strong>诊断结果</strong>，而不是把每个模型输入特征直接当作健康因子。健康指数计算层负责因子评分、设备汇总和趋势快照；事件规则仍独立判断是否产生告警或工单。这样既能从总分下钻到诊断证据，也能避免同一信号被重复计入。</p>
+<p>对外结果除总分外，还应提供因子明细、有效因子数或覆盖率、最近更新时间与计算口径版本。补算或规则调整后，历史曲线应能按原口径复核；如按新口径重算，需标明版本变化。具体评分映射、缺失处理及趋势推算统一见<a href="/2026/10/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/02%20%E8%AE%BE%E5%A4%87%E5%81%A5%E5%BA%B7%E5%88%86%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/">设备健康指数设计笔记</a>，本文不重复定义。</p>
+<h2 id="4-本文不展开的部分"><a href="#4-本文不展开的部分" class="headerlink" title="4. 本文不展开的部分"></a>4. 本文不展开的部分</h2><p>为了保持这份笔记聚焦，以下内容只保留概念层，不再展开具体实现：</p>
+<ul>
+<li>特征提取和特征聚合的具体实现。</li>
+<li>各类模型算法的内部训练细节。</li>
+<li>趋势图的时间分组和统计聚合逻辑。</li>
+<li>事件标签、规则命中和诊断结果展示的细节页面逻辑。</li>
+</ul>
+<p>这些内容可以在后续需要时，单独补成“算法说明”或“功能实现说明”。</p>
+<h2 id="5-小结"><a href="#5-小结" class="headerlink" title="5. 小结"></a>5. 小结</h2><p>这份技术笔记作为<a href="/2025/06/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/00%20PDM%E4%B8%9A%E5%8A%A1%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/">00 PDM业务领域知识笔记</a>的补充，重点说明的是系统的承载方式，而不是每一段代码怎么写。当前最重要的技术抓手是三件事：</p>
+<ol>
+<li>云边协同的架构拆分。</li>
+<li>配置、任务、授权、历史的治理机制。</li>
+<li>让计算结果可追溯、可重算、可控制。</li>
+</ol>
+<p>如果后续继续扩展，建议优先补充的也是这些方向的架构图、时序图和数据流说明，而不是进一步堆叠实现细节。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/">预测性维护</a></div><div class="post-share"><div class="social-share" data-image="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/08/27/manulism-work/20_Domain_Knowledge/23%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/01%20%E6%97%B6%E9%97%B4%E6%80%A7%E8%83%BD%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86/" title="时间性能分析系统技术实现知识"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">时间性能分析系统技术实现知识</div></div><div class="info-2"><div class="info-item-1"> 作为业务领域知识的补充，本文聚焦系统架构、关键算法、数据口径与后续实现方向。内容保持在“可指导实现”的层面，不展开到方法级细节。术语沿用业务文档中的定义，但本文只说明实现映射，不重复展开业务语义。  1. 技术定位时间性能系统的技术目标，是把产线时序数据加工成可解释的节拍知识，再进一步沉淀为瓶颈诊断与改善分析的标准输出。系统不是单纯计算某个时长，而是要形成一条稳定的数据链路：  从原始时序数据中提取有效节拍窗口 为不同对象建立可比的节拍基准 将实际节拍拆解为工作、等待...</div></div></div></a><a class="pagination-related" href="/2025/06/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/00%20PDM%E4%B8%9A%E5%8A%A1%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/" title="预测性维护 PDM 业务领域知识"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">预测性维护 PDM 业务领域知识</div></div><div class="info-2"><div class="info-item-1">说明：本文结合当前后端实现整理。若文档描述与系统实现存在差异，以系统实现为准。本文刻意区分“领域知识”和“系统知识”：前者回答预测性维护是什么，后者回答本系统如何承载预测性维护。 1. 领域知识：预测性维护在解决什么问题预测性维护的核心不是把设备故障记录下来，而是在设备状态劣化早期识别风险，让维护从“故障后处理”转向“风险前干预”。 传统维护通常有三种模式：                维护模式       业务特点       主要问题               ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/10/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/02%20%E8%AE%BE%E5%A4%87%E5%81%A5%E5%BA%B7%E5%88%86%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" title="设备健康指数：从诊断结果到退化趋势"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-10-23</div><div class="info-item-2">设备健康指数：从诊断结果到退化趋势</div></div><div class="info-2"><div class="info-item-1">设备健康指数：从诊断结果到退化趋势核心思路设备健康指数（Health Index，HI）将多个诊断信号转换到统一刻度，合成为设备状态，并沿时间轴观察变化。它帮助人判断现在哪里值得关注、哪些信号支撑这一判断、退化是否持续。   为什么需要健康指数预测性维护往往同时使用规则、统计方法和机器学习模型。一个模型输出正常或异常，另一个输出偏离程度，第三个输出连续数值。这些结果的量纲和含义不同，无法直接放在同一张设备列表中比较。 单次报警也只回答“这一刻是否触发条件”。健康指数补上...</div></div></div></a><a class="pagination-related" href="/2025/06/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/00%20PDM%E4%B8%9A%E5%8A%A1%E9%A2%86%E5%9F%9F%E7%9F%A5%E8%AF%86%E7%AC%94%E8%AE%B0/" title="预测性维护 PDM 业务领域知识"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-06-23</div><div class="info-item-2">预测性维护 PDM 业务领域知识</div></div><div class="info-2"><div class="info-item-1">说明：本文结合当前后端实现整理。若文档描述与系统实现存在差异，以系统实现为准。本文刻意区分“领域知识”和“系统知识”：前者回答预测性维护是什么，后者回答本系统如何承载预测性维护。 1. 领域知识：预测性维护在解决什么问题预测性维护的核心不是把设备故障记录下来，而是在设备状态劣化早期识别风险，让维护从“故障后处理”转向“风险前干预”。 传统维护通常有三种模式：                维护模式       业务特点       主要问题               ...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Luis Chen</div><div class="author-info-description">工业智能平台与技术知识沉淀</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%B3%BB%E7%BB%9F%E5%AE%9A%E4%BD%8D"><span class="toc-number">1.</span> <span class="toc-text">1. 系统定位</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">2. 基础架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E4%B8%8E%E8%BE%B9%E4%BA%91%E9%80%9A%E4%BF%A1"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 微服务与边云通信</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%8A%A8%E6%80%81%E9%85%8D%E7%BD%AE%E4%B8%8E%E5%90%AF%E5%8A%A8%E7%BC%96%E6%8E%92"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 动态配置与启动编排</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E5%88%86%E5%B7%A5"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 基础设施分工</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%85%B3%E9%94%AE%E6%8A%80%E6%9C%AF%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.</span> <span class="toc-text">3. 关键技术实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%BA%91%E8%BE%B9%E5%8D%8F%E5%90%8C%E4%B8%8E%E8%B0%83%E7%94%A8%E8%BE%B9%E7%95%8C"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 云边协同与调用边界</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86%E4%B8%8E%E5%90%AF%E5%8A%A8%E7%BC%96%E6%8E%92"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 配置管理与启动编排</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E4%BB%BB%E5%8A%A1%E7%BC%96%E6%8E%92%E4%B8%8E%E5%BC%82%E6%AD%A5%E5%8C%96"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 任务编排与异步化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E8%AE%A1%E7%AE%97%E9%94%81%E4%B8%8E%E7%BB%93%E6%9E%9C%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 计算锁与结果一致性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E6%8E%88%E6%9D%83%E4%B8%8E%E8%8C%83%E5%9B%B4%E6%8E%A7%E5%88%B6"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 授权与范围控制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E5%8E%86%E5%8F%B2%E7%95%99%E7%97%95%E4%B8%8E%E5%8F%AF%E8%BF%BD%E6%BA%AF"><span class="toc-number">3.6.</span> <span class="toc-text">3.6 历史留痕与可追溯</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-%E5%81%A5%E5%BA%B7%E6%8C%87%E6%95%B0%E7%9A%84%E6%8E%A5%E5%85%A5%E8%BE%B9%E7%95%8C"><span class="toc-number">3.7.</span> <span class="toc-text">3.7 健康指数的接入边界</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%9C%AC%E6%96%87%E4%B8%8D%E5%B1%95%E5%BC%80%E7%9A%84%E9%83%A8%E5%88%86"><span class="toc-number">4.</span> <span class="toc-text">4. 本文不展开的部分</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%B0%8F%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">5. 小结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/02%20%E8%AE%BE%E5%A4%87%E5%81%A5%E5%BA%B7%E5%88%86%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" title="设备健康指数：从诊断结果到退化趋势">设备健康指数：从诊断结果到退化趋势</a><time datetime="2026-10-23T04:33:16.000Z" title="发表于 2026-10-23 12:33:16">2026-10-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/26/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/03%20%E6%95%85%E9%9A%9C%E6%A0%91/%E6%95%85%E9%9A%9C%E6%A0%91%E5%88%86%E6%9E%90%E5%9F%BA%E6%9C%AC%E7%9F%A5%E8%AF%86/" title="故障树分析基本知识">故障树分析基本知识</a><time datetime="2026-09-26T03:22:48.000Z" title="发表于 2026-09-26 11:22:48">2026-09-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD/" title="前端多语言资源按需加载">前端多语言资源按需加载</a><time datetime="2026-08-10T01:51:22.000Z" title="发表于 2026-08-10 09:51:22">2026-08-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/" title="曲线质量分析系统配置解析补充">曲线质量分析系统配置解析补充</a><time datetime="2026-07-13T05:55:00.000Z" title="发表于 2026-07-13 13:55:00">2026-07-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/16/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/03%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E8%8F%9C%E5%8D%95%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" title="曲线质量分析系统菜单工作流程">曲线质量分析系统菜单工作流程</a><time datetime="2026-06-16T09:25:40.000Z" title="发表于 2026-06-16 17:25:40">2026-06-16</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By Luis Chen</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="https://cdn.osyb.cn/static/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>

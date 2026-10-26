@@ -1,0 +1,1069 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>边缘数采卡设计与运行机制 | Next Station</title><meta name="author" content="Luis Chen"><meta name="copyright" content="Luis Chen"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="02 数采卡1. 目的数采卡是整个数采系统的现场执行端，负责把 PLC、机器人等设备里的原始数据按配置采集出来，映射成统一的业务字段，再上传到数据目的地。数采卡是基于 C++ 开发的常驻服务，核心能力包括：  解析配置文件并初始化采集任务。 通过协议适配器访问 PLC 或机器人。 把读取到的原始数据按 mem_map 映射成业务字段。 按周期打包并上送到 InfluxDB &#x2F; MQ 等目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="边缘数采卡设计与运行机制">
+<meta property="og:url" content="https://luischen.github.io/2025/01/21/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/02%20%E6%95%B0%E9%87%87%E5%8D%A1/index.html">
+<meta property="og:site_name" content="Next Station">
+<meta property="og:description" content="02 数采卡1. 目的数采卡是整个数采系统的现场执行端，负责把 PLC、机器人等设备里的原始数据按配置采集出来，映射成统一的业务字段，再上传到数据目的地。数采卡是基于 C++ 开发的常驻服务，核心能力包括：  解析配置文件并初始化采集任务。 通过协议适配器访问 PLC 或机器人。 把读取到的原始数据按 mem_map 映射成业务字段。 按周期打包并上送到 InfluxDB &#x2F; MQ 等目">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg">
+<meta property="article:published_time" content="2025-01-21T06:01:58.000Z">
+<meta property="article:modified_time" content="2026-09-23T04:06:28.000Z">
+<meta property="article:author" content="Luis Chen">
+<meta property="article:tag" content="工业数据接入">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "边缘数采卡设计与运行机制",
+  "url": "https://luischen.github.io/2025/01/21/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/02%20%E6%95%B0%E9%87%87%E5%8D%A1/",
+  "image": "https://luischen.github.io/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg",
+  "datePublished": "2025-01-21T06:01:58.000Z",
+  "dateModified": "2026-09-23T04:06:28.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Luis Chen",
+      "url": "https://luischen.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://luischen.github.io/2025/01/21/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/02%20%E6%95%B0%E9%87%87%E5%8D%A1/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '边缘数采卡设计与运行机制',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.2.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/site-hero-desktop-v2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Next Station</span></a><a class="nav-page-title" href="/"><span class="site-name">边缘数采卡设计与运行机制</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">边缘数采卡设计与运行机制</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-01-21T06:01:58.000Z" title="发表于 2025-01-21 14:01:58">2025-01-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-09-23T04:06:28.000Z" title="更新于 2026-09-23 12:06:28">2026-09-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B7%A5%E4%BD%9C%E7%AC%94%E8%AE%B0/">工作笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="02-数采卡"><a href="#02-数采卡" class="headerlink" title="02 数采卡"></a>02 数采卡</h1><h2 id="1-目的"><a href="#1-目的" class="headerlink" title="1. 目的"></a>1. 目的</h2><p>数采卡是整个数采系统的现场执行端，负责把 PLC、机器人等设备里的原始数据按配置采集出来，映射成统一的业务字段，再上传到数据目的地。<br>数采卡是基于 C++ 开发的常驻服务，核心能力包括：</p>
+<ol>
+<li>解析配置文件并初始化采集任务。</li>
+<li>通过协议适配器访问 PLC 或机器人。</li>
+<li>把读取到的原始数据按 <code>mem_map</code> 映射成业务字段。</li>
+<li>按周期打包并上送到 InfluxDB &#x2F; MQ 等目标。</li>
+<li>支持 HTTP 下发配置、备份、回滚与重启采集。</li>
+</ol>
+<h2 id="2-总体架构"><a href="#2-总体架构" class="headerlink" title="2. 总体架构"></a>2. 总体架构</h2><p>可以把数采卡理解为“配置驱动的协议采集引擎”，其内部大致分为 5 层。</p>
+<div style="overflow-x:auto; margin:12px 0 18px 0; padding-bottom:6px;">
+  <div style="display:flex; flex-wrap:nowrap; align-items:stretch; gap:10px; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px; min-width:max-content;">
+    <div style="flex:0 0 150px; padding:10px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff;">
+      <div style="font-weight:700; margin-bottom:4px; font-size:14px;">配置加载层</div>
+      <div style="font-size:12px; line-height:1.5;">读取 JSON<br>校验参数<br>生成任务对象</div>
+    </div>
+    <div style="align-self:center; font-size:24px; color:#666;">→</div>
+    <div style="flex:0 0 150px; padding:10px; border:1px solid #b9d8c0; border-radius:10px; background:#effaf1;">
+      <div style="font-weight:700; margin-bottom:4px; font-size:14px;">设备调度层</div>
+      <div style="font-size:12px; line-height:1.5;">按周期触发<br>维护连接状态<br>控制重连与超时</div>
+    </div>
+    <div style="align-self:center; font-size:24px; color:#666;">→</div>
+    <div style="flex:0 0 150px; padding:10px; border:1px solid #e2c6a6; border-radius:10px; background:#fff7ed;">
+      <div style="font-weight:700; margin-bottom:4px; font-size:14px;">协议适配层</div>
+      <div style="font-size:12px; line-height:1.5;">PLC / Socket / XML<br>统一通讯接口<br>屏蔽协议差异</div>
+    </div>
+    <div style="align-self:center; font-size:24px; color:#666;">→</div>
+    <div style="flex:0 0 150px; padding:10px; border:1px solid #d8b9d8; border-radius:10px; background:#fbf2fb;">
+      <div style="font-weight:700; margin-bottom:4px; font-size:14px;">数据映射层</div>
+      <div style="font-size:12px; line-height:1.5;">按 offset/type 解包<br>位域与字符串转换<br>生成业务字段</div>
+    </div>
+    <div style="align-self:center; font-size:24px; color:#666;">→</div>
+    <div style="flex:0 0 150px; padding:10px; border:1px solid #d4d4d4; border-radius:10px; background:#f7f7f7;">
+      <div style="font-weight:700; margin-bottom:4px; font-size:14px;">数据上送层</div>
+      <div style="font-size:12px; line-height:1.5;">InfluxDB / MQ<br>可扩展目的地<br>统一写出</div>
+    </div>
+  </div>
+</div>
+
+<p>数采卡的数据流向可以进一步理解为：</p>
+<div style="overflow-x:auto; margin:10px 0 18px 0; padding-bottom:6px;">
+  <div style="display:flex; flex-wrap:nowrap; align-items:center; gap:8px; padding:10px 12px; border-left:4px solid #097479; background:#f5fbfb; border-radius:6px; min-width:max-content;">
+    <div style="padding:7px 10px; border:1px solid #cfe5e5; border-radius:999px; background:#ffffff; font-size:13px;">配置文件</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:7px 10px; border:1px solid #cfe5e5; border-radius:999px; background:#ffffff; font-size:13px;">加载器</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:7px 10px; border:1px solid #cfe5e5; border-radius:999px; background:#ffffff; font-size:13px;">设备调度器</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:7px 10px; border:1px solid #cfe5e5; border-radius:999px; background:#ffffff; font-size:13px;">协议适配器</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:7px 10px; border:1px solid #cfe5e5; border-radius:999px; background:#ffffff; font-size:13px;">数据解包器</div>
+    <div style="font-size:20px; color:#777;">→</div>
+    <div style="padding:7px 10px; border:1px solid #cfe5e5; border-radius:999px; background:#ffffff; font-size:13px;">数据上送器</div>
+  </div>
+</div>
+
+<h3 id="2-1-配置加载层"><a href="#2-1-配置加载层" class="headerlink" title="2.1 配置加载层"></a>2.1 配置加载层</h3><p>启动时读取 <code>config.json</code> 或下发后的 <code>card.json</code>，完成以下初始化：</p>
+<ul>
+<li>读取系统参数：<code>edge_ip</code>、<code>edge_mask</code>、<code>edge_gateway</code>、<code>ntp_server_ip</code>、<code>icare_ip</code>。</li>
+<li>读取数据目的地配置：数据库、MQ 账号、端口等。</li>
+<li>读取设备清单 <code>machines</code>。</li>
+<li>读取配方清单 <code>recipes</code>，建立设备与配方的绑定关系。</li>
+</ul>
+<h3 id="2-2-设备调度层"><a href="#2-2-设备调度层" class="headerlink" title="2.2 设备调度层"></a>2.2 设备调度层</h3><p>每个 <code>machine</code> 对应一个采集对象，至少包含：</p>
+<ul>
+<li><code>name</code>：设备编号或产线名称。</li>
+<li><code>protocal</code>：协议类型，如 <code>S7</code>、<code>MODBUS</code>、<code>ABPLC</code>、<code>RAW_SOCKET</code>、<code>XML</code>。</li>
+<li><code>opts</code>：协议参数，如 IP、端口、rack&#x2F;slot、slave_id、interval 等。</li>
+<li><code>recipe_id</code>：关联的配方 ID。</li>
+</ul>
+<p>调度层负责：</p>
+<ul>
+<li>按 <code>interval</code> 周期触发采集。</li>
+<li>按设备维度维护连接状态。</li>
+<li>设备失败时重连、超时、降级或跳过。</li>
+</ul>
+<h3 id="2-3-协议适配层"><a href="#2-3-协议适配层" class="headerlink" title="2.3 协议适配层"></a>2.3 协议适配层</h3><p>协议层是数采卡最关键的部分，建议采用统一接口抽象不同协议：</p>
+<ul>
+<li>PLC 类协议：通过地址读写采集。</li>
+<li>机器人类协议：通过 socket 发送&#x2F;接收 XML。</li>
+</ul>
+<p>适配层屏蔽协议细节，对上层统一暴露“读块数据”“写块数据”“连接”“断开”“健康检查”等能力。</p>
+<h3 id="2-4-数据映射层"><a href="#2-4-数据映射层" class="headerlink" title="2.4 数据映射层"></a>2.4 数据映射层</h3><p>配方里的 <code>tag_list</code> 负责定义“从设备哪里读”，<code>mem_map</code> 负责定义“读回来后怎么拆”。</p>
+<ul>
+<li><code>tag_list</code>：采集块定义，指定 <code>area</code>、<code>DB_num</code>、<code>address</code>、<code>count</code>。</li>
+<li><code>mem_map</code>：字段映射定义，指定 <code>name</code>、<code>offset</code>、<code>type</code>、<code>bit</code>、<code>length</code>、<code>sendway</code>。</li>
+</ul>
+<p>这意味着数采卡不是直接把原始块上送，而是先按配方解析，再生成业务字段集合。</p>
+<h3 id="2-5-数据上送层"><a href="#2-5-数据上送层" class="headerlink" title="2.5 数据上送层"></a>2.5 数据上送层</h3><p>默认上送目标包含：</p>
+<ul>
+<li>InfluxDB：时序数据存储。</li>
+<li>MQ：异步消息分发。</li>
+<li>未来还可能扩展更多目的地。</li>
+</ul>
+<p>因此上送层应该是可插拔的 Writer&#x2F;Publisher 结构，而不是和协议代码耦合在一起。</p>
+<h2 id="3-配置模型"><a href="#3-配置模型" class="headerlink" title="3. 配置模型"></a>3. 配置模型</h2><h3 id="3-1-系统级配置"><a href="#3-1-系统级配置" class="headerlink" title="3.1 系统级配置"></a>3.1 系统级配置</h3><p>这部分是数采卡运行环境和基础服务参数，典型字段有：</p>
+<ul>
+<li>网卡地址、掩码、网关。</li>
+<li>NTP 服务器。</li>
+<li>iCare 平台地址。</li>
+<li>采集包数量 <code>packet_num</code>。</li>
+<li>默认节点 ID <code>default_nodeID</code>。</li>
+<li>是否拼包&#x2F;合包标记 <code>nojoiner</code>。</li>
+</ul>
+<div style="display:grid; grid-template-columns:repeat(2,minmax(240px,1fr)); gap:12px; margin:12px 0 18px 0; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px;">
+  <div style="padding:12px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff;">
+    <div style="font-weight:700; margin-bottom:6px;">网络参数组</div>
+    <div style="font-size:13px; line-height:1.6;">edge_ip / edge_mask / edge_gateway</div>
+    <div style="font-size:13px; color:#555; margin-top:6px;">保证数采卡接入现场网络并访问 PLC、机器人和平台服务。</div>
+  </div>
+  <div style="padding:12px; border:1px solid #b9d8c0; border-radius:10px; background:#effaf1;">
+    <div style="font-weight:700; margin-bottom:6px;">时间同步组</div>
+    <div style="font-size:13px; line-height:1.6;">ntp_server_ip</div>
+    <div style="font-size:13px; color:#555; margin-top:6px;">用于统一时间戳，确保时序数据对齐。</div>
+  </div>
+  <div style="padding:12px; border:1px solid #e2c6a6; border-radius:10px; background:#fff7ed;">
+    <div style="font-weight:700; margin-bottom:6px;">平台对接组</div>
+    <div style="font-size:13px; line-height:1.6;">icare_ip</div>
+    <div style="font-size:13px; color:#555; margin-top:6px;">用于对接上层系统、告警或配置中心。</div>
+  </div>
+  <div style="padding:12px; border:1px solid #d8b9d8; border-radius:10px; background:#fbf2fb;">
+    <div style="font-weight:700; margin-bottom:6px;">采集与拼包组</div>
+    <div style="font-size:13px; line-height:1.6;">packet_num / default_nodeID / nojoiner</div>
+    <div style="font-size:13px; color:#555; margin-top:6px;">控制单次上送的数据量、默认节点和拼包策略。</div>
+  </div>
+</div>
+
+<h3 id="3-2-设备配置"><a href="#3-2-设备配置" class="headerlink" title="3.2 设备配置"></a>3.2 设备配置</h3><p>设备配置体现“一个设备绑定一个配方，或者一台设备绑定多个配方”的关系。<br>从样例看，<code>recipe_id</code> 用来引用 <code>recipes</code> 中的某一个配方。</p>
+<p>不同协议的 <code>opts</code> 不同：</p>
+<ul>
+<li><code>S7</code>：<code>ip</code>、<code>interval</code>、<code>type</code>、<code>rack</code>、<code>slot</code></li>
+<li><code>MODBUS</code>：<code>ip</code>、<code>modbus_port</code>、<code>slave_id</code>、<code>interval</code></li>
+<li><code>RAW_SOCKET</code>：<code>ip</code>、<code>socket_port</code></li>
+<li><code>XML</code>：<code>ip</code>、<code>xml_port</code></li>
+</ul>
+<p>这说明数采卡在初始化时，会按协议类型构造不同的通讯对象。</p>
+<h3 id="3-3-配方配置"><a href="#3-3-配方配置" class="headerlink" title="3.3 配方配置"></a>3.3 配方配置</h3><p>配方是数采卡的核心抽象，建议理解为“协议采集模板”。<br>一个配方至少包括：</p>
+<ul>
+<li><code>protocal</code>：协议类型。</li>
+<li><code>tag_list</code>：原始地址段。</li>
+<li><code>mem_map</code>：字段映射。</li>
+</ul>
+<p>从设计图可以推断，<code>tag_list</code> 只对主动轮询类协议有意义，例如：</p>
+<ul>
+<li><code>ABPLC</code></li>
+<li><code>MODBUS</code></li>
+<li><code>S7</code></li>
+</ul>
+<p>而对于机器人 socket&#x2F;XML 类协议，<code>tag_list</code> 可能为空，数据更偏向主动推送或固定请求响应。</p>
+<div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:12px 0 18px 0; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px;">
+  <div style="padding:12px 14px; border:1px solid #cfe5e5; border-radius:12px; background:#ffffff; min-width:160px; text-align:center;">
+    <div style="font-weight:700;">protocal</div>
+    <div style="font-size:13px; color:#555; margin-top:4px;">协议选择入口</div>
+  </div>
+  <div style="font-size:24px; color:#777;">→</div>
+  <div style="padding:12px 14px; border:1px solid #cfe5e5; border-radius:12px; background:#ffffff; min-width:180px; text-align:center;">
+    <div style="font-weight:700;">tag_list</div>
+    <div style="font-size:13px; color:#555; margin-top:4px;">定义读取块，决定“读什么”</div>
+  </div>
+  <div style="font-size:24px; color:#777;">→</div>
+  <div style="padding:12px 14px; border:1px solid #cfe5e5; border-radius:12px; background:#ffffff; min-width:180px; text-align:center;">
+    <div style="font-weight:700;">mem_map</div>
+    <div style="font-size:13px; color:#555; margin-top:4px;">定义字段拆包规则，决定“怎么解释”</div>
+  </div>
+</div>
+
+<div style="display:flex; flex-wrap:wrap; gap:12px; margin:0 0 18px 0;">
+  <div style="flex:1 1 220px; padding:12px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff;">
+    <div style="font-weight:700;">作用链路</div>
+    <div style="font-size:13px; line-height:1.7; margin-top:6px;">1. 选择协议适配器<br>2. 读取原始块数据<br>3. 按 mem_map 生成业务字段<br>4. 交给上送层</div>
+  </div>
+  <div style="flex:1 1 220px; padding:12px; border:1px solid #e2c6a6; border-radius:10px; background:#fff7ed;">
+    <div style="font-weight:700;">实现建议</div>
+    <div style="font-size:13px; line-height:1.7; margin-top:6px;">tag_list 负责“块读取”<br>mem_map 负责“字段解释”<br>两者分层更利于扩展</div>
+  </div>
+</div>
+
+<h2 id="4-协议实现"><a href="#4-协议实现" class="headerlink" title="4. 协议实现"></a>4. 协议实现</h2><h3 id="4-1-PLC-协议"><a href="#4-1-PLC-协议" class="headerlink" title="4.1 PLC 协议"></a>4.1 PLC 协议</h3><p>PLC 采集的基本模式应当是：</p>
+<ol>
+<li>建立 TCP&#x2F;专用协议连接。</li>
+<li>按 <code>tag_list</code> 指定的地址块读取一段连续内存。</li>
+<li>按 <code>mem_map</code> 的 <code>offset</code> 和 <code>type</code> 拆分字段。</li>
+<li>将字段写入统一数据结构并上送。</li>
+</ol>
+<p><code>S7</code> 配置包含 <code>rack</code>、<code>slot</code>，说明底层应对接西门子 S7 协议栈。<br><code>MODBUS</code> 配置则包含 <code>slave_id</code> 和端口，说明底层会按 Modbus TCP 做寄存器&#x2F;线圈读取。<br><code>ABPLC</code> 看起来像一类面向工厂内部的地址模型，仍然是“按地址块读、按偏移拆字段”的方式。</p>
+<div style="display:flex; flex-wrap:wrap; gap:12px; margin:12px 0 18px 0; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px;">
+  <div style="flex:1 1 180px; min-width:180px; padding:12px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff;">
+    <div style="font-weight:700;">S7</div>
+    <div style="font-size:13px; line-height:1.6; margin-top:6px;">连接方式：TCP + rack/slot</div>
+    <div style="font-size:13px; color:#555;">处理重点：块读取、字节序转换、位拆分</div>
+  </div>
+  <div style="flex:1 1 180px; min-width:180px; padding:12px; border:1px solid #b9d8c0; border-radius:10px; background:#effaf1;">
+    <div style="font-weight:700;">MODBUS</div>
+    <div style="font-size:13px; line-height:1.6; margin-top:6px;">连接方式：TCP + slave_id</div>
+    <div style="font-size:13px; color:#555;">处理重点：寄存器地址计算、类型转换</div>
+  </div>
+  <div style="flex:1 1 180px; min-width:180px; padding:12px; border:1px solid #e2c6a6; border-radius:10px; background:#fff7ed;">
+    <div style="font-weight:700;">ABPLC</div>
+    <div style="font-size:13px; line-height:1.6; margin-top:6px;">连接方式：TCP</div>
+    <div style="font-size:13px; color:#555;">处理重点：统一按地址映射到 mem_map</div>
+  </div>
+</div>
+
+<div style="margin:0 0 18px 0; padding:10px 12px; border-left:4px solid #097479; background:#f5fbfb; border-radius:6px;">
+  说明：该图仅表示 PLC 类协议的采集结构，不包含 Raw Socket 和 XML 方式；后两者属于机器人通讯小节中的独立流程。
+</div>
+
+<h3 id="4-2-机器人-socket-x2F-XML"><a href="#4-2-机器人-socket-x2F-XML" class="headerlink" title="4.2 机器人 socket&#x2F;XML"></a>4.2 机器人 socket&#x2F;XML</h3><p>机器人通信原理是通过 socket 连接设备，再通过 XML 进行请求&#x2F;应答。<br>实现方式如下：</p>
+<ol>
+<li>通过 TCP socket 连接机器人控制器。</li>
+<li>发送 XML 格式的请求报文。</li>
+<li>接收 XML 响应报文。</li>
+<li>从 XML 节点中提取字段值。</li>
+<li>统一映射到 <code>mem_map</code> 指定字段。</li>
+</ol>
+<div style="display:flex; flex-wrap:wrap; align-items:stretch; gap:10px; margin:12px 0 18px 0; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px;">
+  <div style="flex:1 1 140px; min-width:140px; padding:12px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff; text-align:center;">
+    <div style="font-weight:700;">TCP 连接</div>
+    <div style="font-size:13px; margin-top:6px;">建立 socket</div>
+  </div>
+  <div style="align-self:center; font-size:24px; color:#777;">→</div>
+  <div style="flex:1 1 140px; min-width:140px; padding:12px; border:1px solid #b9d8c0; border-radius:10px; background:#effaf1; text-align:center;">
+    <div style="font-weight:700;">发送 XML</div>
+    <div style="font-size:13px; margin-top:6px;">请求报文</div>
+  </div>
+  <div style="align-self:center; font-size:24px; color:#777;">→</div>
+  <div style="flex:1 1 140px; min-width:140px; padding:12px; border:1px solid #e2c6a6; border-radius:10px; background:#fff7ed; text-align:center;">
+    <div style="font-weight:700;">接收 XML</div>
+    <div style="font-size:13px; margin-top:6px;">响应报文</div>
+  </div>
+  <div style="align-self:center; font-size:24px; color:#777;">→</div>
+  <div style="flex:1 1 140px; min-width:140px; padding:12px; border:1px solid #d8b9d8; border-radius:10px; background:#fbf2fb; text-align:center;">
+    <div style="font-weight:700;">节点解析</div>
+    <div style="font-size:13px; margin-top:6px;">字段提取</div>
+  </div>
+  <div style="align-self:center; font-size:24px; color:#777;">→</div>
+  <div style="flex:1 1 140px; min-width:140px; padding:12px; border:1px solid #d4d4d4; border-radius:10px; background:#f7f7f7; text-align:center;">
+    <div style="font-weight:700;">字段映射</div>
+    <div style="font-size:13px; margin-top:6px;">进入 mem_map</div>
+  </div>
+</div>
+
+<p>这种方式更像“应用层协议”，因此相比 PLC 的地址读写，更依赖报文结构解析和字段匹配。</p>
+<h2 id="5-数据映射与字段拆包"><a href="#5-数据映射与字段拆包" class="headerlink" title="5. 数据映射与字段拆包"></a>5. 数据映射与字段拆包</h2><p><code>mem_map</code> 的设计已经很像一个通用解包表：</p>
+<ul>
+<li><code>name</code>：业务字段名，如 <code>AA001</code>、<code>RB12_AA002</code>。</li>
+<li><code>offset</code>：在原始缓冲区中的偏移。</li>
+<li><code>type</code>：字段类型，如 <code>INT16</code>、<code>INT32</code>、<code>FLOAT</code>、<code>BIT</code>、<code>STRING_MAP</code>。</li>
+<li><code>bit</code>：当类型为 <code>BIT</code> 时，指出位号。</li>
+<li><code>length</code>：当类型为字符串映射时，定义长度。</li>
+<li><code>sendway</code>：推断为发送方向或采集方向标识，样例中多为 <code>0</code>。</li>
+</ul>
+<p>从截图可以看到：</p>
+<ul>
+<li><code>count</code> 定义的是“读取长度”，不是字段个数。</li>
+<li>一个读取块内可以拆出多个字段。</li>
+<li>同一偏移可以派生多个 <code>BIT</code> 字段。</li>
+<li><code>STRING_MAP</code> 这类字段属于结构化映射，适合固定长度字符串或枚举码表。</li>
+</ul>
+<div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:12px 0 18px 0; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px;">
+  <div style="padding:12px 14px; border:1px solid #cfe5e5; border-radius:12px; background:#ffffff; min-width:160px; text-align:center;">
+    <div style="font-weight:700;">tag_list</div>
+    <div style="font-size:13px; color:#555; margin-top:4px;">读取块定义</div>
+  </div>
+  <div style="font-size:24px; color:#777;">→</div>
+  <div style="padding:12px 14px; border:1px solid #cfe5e5; border-radius:12px; background:#ffffff; min-width:160px; text-align:center;">
+    <div style="font-weight:700;">原始字节流</div>
+    <div style="font-size:13px; color:#555; margin-top:4px;">PLC / XML / Socket 返回</div>
+  </div>
+  <div style="font-size:24px; color:#777;">→</div>
+  <div style="padding:12px 14px; border:1px solid #cfe5e5; border-radius:12px; background:#ffffff; min-width:160px; text-align:center;">
+    <div style="font-weight:700;">mem_map</div>
+    <div style="font-size:13px; color:#555; margin-top:4px;">按 offset/type/bit 拆包</div>
+  </div>
+  <div style="font-size:24px; color:#777;">→</div>
+  <div style="padding:12px 14px; border:1px solid #cfe5e5; border-radius:12px; background:#ffffff; min-width:160px; text-align:center;">
+    <div style="font-weight:700;">业务字段集</div>
+    <div style="font-size:13px; color:#555; margin-top:4px;">标准化输出</div>
+  </div>
+</div>
+
+<p>因此，数采卡内部很可能有一套统一的字节解析器，负责处理大小端、整数、浮点、位域和字符串转换。</p>
+<h2 id="6-运行流程"><a href="#6-运行流程" class="headerlink" title="6. 运行流程"></a>6. 运行流程</h2><h3 id="6-1-启动流程"><a href="#6-1-启动流程" class="headerlink" title="6.1 启动流程"></a>6.1 启动流程</h3><ol>
+<li>读取本地配置文件。</li>
+<li>校验 JSON 结构和协议参数。</li>
+<li>初始化日志、网络、数据库、MQ、定时器。</li>
+<li>为每台设备创建采集任务。</li>
+<li>根据配方建立地址块与字段映射。</li>
+<li>周期性开始采集与上送。</li>
+</ol>
+<div style="overflow-x:auto; margin:12px 0 18px 0; padding-bottom:6px;">
+  <div style="display:flex; flex-wrap:nowrap; align-items:stretch; gap:8px; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px; min-width:max-content;">
+    <div style="flex:0 0 128px; padding:10px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">1 读取配置</div>
+      <div style="font-size:12px; margin-top:5px;">加载 JSON</div>
+    </div>
+    <div style="align-self:center; font-size:22px; color:#777;">→</div>
+    <div style="flex:0 0 128px; padding:10px; border:1px solid #b9d8c0; border-radius:10px; background:#effaf1; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">2 校验参数</div>
+      <div style="font-size:12px; margin-top:5px;">检查协议与字段</div>
+    </div>
+    <div style="align-self:center; font-size:22px; color:#777;">→</div>
+    <div style="flex:0 0 150px; padding:10px; border:1px solid #e2c6a6; border-radius:10px; background:#fff7ed; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">3 初始化基础服务</div>
+      <div style="font-size:12px; margin-top:5px;">日志 / 网络 / DB / MQ</div>
+    </div>
+    <div style="align-self:center; font-size:22px; color:#777;">→</div>
+    <div style="flex:0 0 132px; padding:10px; border:1px solid #d8b9d8; border-radius:10px; background:#fbf2fb; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">4 创建设备任务</div>
+      <div style="font-size:12px; margin-top:5px;">按 machine 建任务</div>
+    </div>
+    <div style="align-self:center; font-size:22px; color:#777;">→</div>
+    <div style="flex:0 0 132px; padding:10px; border:1px solid #d4d4d4; border-radius:10px; background:#f7f7f7; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">5 绑定配方</div>
+      <div style="font-size:12px; margin-top:5px;">建立地址与字段映射</div>
+    </div>
+    <div style="align-self:center; font-size:22px; color:#777;">→</div>
+    <div style="flex:0 0 140px; padding:10px; border:1px solid #cfe5e5; border-radius:10px; background:#ffffff; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">6 开始周期采集</div>
+      <div style="font-size:12px; margin-top:5px;">进入运行态</div>
+    </div>
+  </div>
+</div>
+
+<h3 id="6-2-周期采集流程"><a href="#6-2-周期采集流程" class="headerlink" title="6.2 周期采集流程"></a>6.2 周期采集流程</h3><ol>
+<li>到达设备采集周期。</li>
+<li>调用协议适配器读取原始数据。</li>
+<li>协议结果进入解包器。</li>
+<li>按 <code>mem_map</code> 生成业务字段。</li>
+<li>打包成统一数据格式。</li>
+<li>写入目的地或消息队列。</li>
+</ol>
+<div style="display:flex; flex-wrap:wrap; align-items:stretch; gap:10px; margin:12px 0 18px 0; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px;">
+  <div style="flex:1 1 150px; min-width:150px; padding:12px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff; text-align:center;">
+    <div style="font-weight:700;">触发采集</div>
+    <div style="font-size:13px; margin-top:6px;">定时器 / 调度器</div>
+  </div>
+  <div style="align-self:center; font-size:24px; color:#777;">→</div>
+  <div style="flex:1 1 150px; min-width:150px; padding:12px; border:1px solid #b9d8c0; border-radius:10px; background:#effaf1; text-align:center;">
+    <div style="font-weight:700;">协议读取</div>
+    <div style="font-size:13px; margin-top:6px;">读取原始字节流 / XML</div>
+  </div>
+  <div style="align-self:center; font-size:24px; color:#777;">→</div>
+  <div style="flex:1 1 150px; min-width:150px; padding:12px; border:1px solid #e2c6a6; border-radius:10px; background:#fff7ed; text-align:center;">
+    <div style="font-weight:700;">字段拆包</div>
+    <div style="font-size:13px; margin-top:6px;">按 mem_map 解析</div>
+  </div>
+  <div style="align-self:center; font-size:24px; color:#777;">→</div>
+  <div style="flex:1 1 150px; min-width:150px; padding:12px; border:1px solid #d8b9d8; border-radius:10px; background:#fbf2fb; text-align:center;">
+    <div style="font-weight:700;">数据组包</div>
+    <div style="font-size:13px; margin-top:6px;">附加时间戳、设备名、配方信息</div>
+  </div>
+  <div style="align-self:center; font-size:24px; color:#777;">→</div>
+  <div style="flex:1 1 150px; min-width:150px; padding:12px; border:1px solid #d4d4d4; border-radius:10px; background:#f7f7f7; text-align:center;">
+    <div style="font-weight:700;">数据上送</div>
+    <div style="font-size:13px; margin-top:6px;">InfluxDB / MQ</div>
+  </div>
+</div>
+
+<h3 id="6-3-配置更新流程"><a href="#6-3-配置更新流程" class="headerlink" title="6.3 配置更新流程"></a>6.3 配置更新流程</h3><p>设计文档明确提到：配置由配置系统通过 HTTP 下发到数采卡。<br>因此数采卡应实现如下机制：</p>
+<ol>
+<li>接收 HTTP 配置更新请求。</li>
+<li>备份当前配置。</li>
+<li>写入新配置文件。</li>
+<li>重启采集服务或重新加载配置。</li>
+<li>若失败则回滚旧配置。</li>
+<li>返回成功&#x2F;失败给配置系统，并标记配置有效性。</li>
+</ol>
+<p>这一点很重要，因为它说明数采卡不是静态程序，而是“可远程维护的边缘采集节点”。</p>
+<div style="overflow-x:auto; margin:12px 0 18px 0; padding-bottom:6px;">
+  <div style="display:flex; flex-wrap:nowrap; align-items:stretch; gap:8px; padding:12px; border:1px solid #d9d9d9; background:#fafafa; border-radius:8px; min-width:max-content;">
+    <div style="flex:0 0 128px; padding:10px; border:1px solid #b8c4d6; border-radius:10px; background:#eef5ff; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">HTTP 下发</div>
+      <div style="font-size:12px; margin-top:5px;">接收更新请求</div>
+    </div>
+    <div style="align-self:center; font-size:22px; color:#777;">→</div>
+    <div style="flex:0 0 128px; padding:10px; border:1px solid #b9d8c0; border-radius:10px; background:#effaf1; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">备份旧配置</div>
+      <div style="font-size:12px; margin-top:5px;">保留回滚点</div>
+    </div>
+    <div style="align-self:center; font-size:22px; color:#777;">→</div>
+    <div style="flex:0 0 128px; padding:10px; border:1px solid #e2c6a6; border-radius:10px; background:#fff7ed; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">写入新配置</div>
+      <div style="font-size:12px; margin-top:5px;">替换当前文件</div>
+    </div>
+    <div style="align-self:center; font-size:22px; color:#777;">→</div>
+    <div style="flex:0 0 128px; padding:10px; border:1px solid #d8b9d8; border-radius:10px; background:#fbf2fb; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">重载或重启</div>
+      <div style="font-size:12px; margin-top:5px;">使配置生效</div>
+    </div>
+    <div style="align-self:center; font-size:22px; color:#777;">→</div>
+    <div style="flex:0 0 128px; padding:10px; border:1px solid #d4d4d4; border-radius:10px; background:#f7f7f7; text-align:center;">
+      <div style="font-weight:700; font-size:14px;">返回结果</div>
+      <div style="font-size:12px; margin-top:5px;">标记有效或回滚</div>
+    </div>
+  </div>
+</div>
+
+<h2 id="7-C-模块划分"><a href="#7-C-模块划分" class="headerlink" title="7. C++ 模块划分"></a>7. C++ 模块划分</h2><p>如果按工程实现拆分，比较合理的 C++ 模块如下：</p>
+<ul>
+<li><code>ConfigLoader</code>：解析和校验配置。</li>
+<li><code>DeviceManager</code>：管理设备实例、连接状态、采集周期。</li>
+<li><code>RecipeManager</code>：管理配方、字段映射、地址块。</li>
+<li><code>IProtocolAdapter</code>：协议抽象接口。</li>
+<li><code>S7Adapter</code> &#x2F; <code>ModbusAdapter</code> &#x2F; <code>AbPlcAdapter</code> &#x2F; <code>SocketXmlAdapter</code>：具体协议实现。</li>
+<li><code>DataParser</code>：原始数据解包。</li>
+<li><code>PacketBuilder</code>：组包、补时间戳、补设备信息。</li>
+<li><code>DataPublisher</code>：写 InfluxDB、发 MQ。</li>
+<li><code>ConfigUpdater</code>：HTTP 配置更新、备份与回滚。</li>
+<li><code>Logger</code>：采集日志、告警日志、通信日志。</li>
+</ul>
+<h2 id="8-关键实现要点"><a href="#8-关键实现要点" class="headerlink" title="8. 关键实现要点"></a>8. 关键实现要点</h2><ol>
+<li>协议与配置要解耦，协议代码不能直接依赖具体业务字段名。</li>
+<li><code>tag_list</code> 和 <code>mem_map</code> 要分层，前者解决“读什么”，后者解决“怎么解释”。</li>
+<li>设备和配方是弱绑定关系，支持一台设备挂多个配方。</li>
+<li>配置更新必须有备份和回滚，避免配置下发失败导致整卡不可用。</li>
+<li>机器人 socket&#x2F;XML 与 PLC 轮询属于不同通讯模型，但最终都要汇聚到统一数据结构。</li>
+<li>上送层最好做成可扩展架构，以支持 InfluxDB 之外的数据目的地。</li>
+</ol>
+<h2 id="9-结论"><a href="#9-结论" class="headerlink" title="9. 结论"></a>9. 结论</h2><p>综合样例配置和设计说明来看，数采卡的本质是一个“配置驱动的多协议采集代理”：</p>
+<ul>
+<li>底层用 C++ 实现高可靠通信与周期调度。</li>
+<li>中间层用配方统一抽象地址块和字段拆包。</li>
+<li>上层通过 HTTP 接收配置下发。</li>
+<li>末端将采集数据上送到数据库或消息系统。</li>
+</ul>
+<p>也就是说，这套系统的核心不是单纯的“读 PLC”，而是“把不同设备的通讯差异收敛到一套可配置的采集模型里”。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/">工业数据接入</a></div><div class="post-share"><div class="social-share" data-image="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/02/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/04%20%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%8E%A5/" title="工业数据对接方案与平台集成"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">工业数据对接方案与平台集成</div></div><div class="info-2"><div class="info-item-1">04 数据对接1. 说明这份文档总结了两种常见的数据对接思路，以及它们更适合的场景：  Node-RED 更偏向流程编排、可视化连接和快速验证。 Airbyte 更偏向数据集成骨架、数据迁移和平台化同步。  2. Node-REDNode-RED 是一种基于流程的编程工具，通过可视化编辑把 IOT 设备、API 和在线服务连接起来，形成事件驱动的应用。它基于 Node.js 构建，因此带有事件驱动和非阻塞的特性。 2.1 基本工作方式它的使用方式很直接：  启动 Nod...</div></div></div></a><a class="pagination-related" href="/2024/12/15/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/01%20%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95/" title="工业数据采集清单设计"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">工业数据采集清单设计</div></div><div class="info-2"><div class="info-item-1"> 脱敏说明：本文基于当前工作区中的《拧紧枪数采清单 V1.2》整理，仅保留通用结构与方法论，不展示公司名称、现场专属 IP、专有标识与可直接定位产线的敏感信息。  1. 什么是数采清单数采清单是数采项目第一阶段最重要的交付物之一。 它不是简单的“点位列表”，而是把现场设备、工位、采集器、协议、字段含义、数据类型和采集频率串起来的连接桥梁。 从工程角度看，数采清单负责回答这几个最关键的问题：  采什么。 从哪里采。 采到的数据代表什么。 按什么频率采。 采出来以后如何变成...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/02/18/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/04%20%E6%95%B0%E6%8D%AE%E5%AF%B9%E6%8E%A5/" title="工业数据对接方案与平台集成"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-18</div><div class="info-item-2">工业数据对接方案与平台集成</div></div><div class="info-2"><div class="info-item-1">04 数据对接1. 说明这份文档总结了两种常见的数据对接思路，以及它们更适合的场景：  Node-RED 更偏向流程编排、可视化连接和快速验证。 Airbyte 更偏向数据集成骨架、数据迁移和平台化同步。  2. Node-REDNode-RED 是一种基于流程的编程工具，通过可视化编辑把 IOT 设备、API 和在线服务连接起来，形成事件驱动的应用。它基于 Node.js 构建，因此带有事件驱动和非阻塞的特性。 2.1 基本工作方式它的使用方式很直接：  启动 Nod...</div></div></div></a><a class="pagination-related" href="/2024/04/19/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/00%20%E6%8E%A5%E5%85%A5%E6%A8%A1%E5%BC%8F/" title="工业数据接入模式与架构设计"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-04-19</div><div class="info-item-2">工业数据接入模式与架构设计</div></div><div class="info-2"><div class="info-item-1">工业数据接入模式阅读导引这篇笔记把 BS350、NodeRed 压机采集、MES&#x2F;SAMS 接口、IOT 中间件和曲线数据上报资料放在一起理解，目标是形成可复用的数据接入设计模式。 核心结论工业数据接入不是简单的数据搬运，而是一个“现场设备语义 → 平台业务语义”的转换过程。好的接入设计要同时解决协议、频率、时间戳、数据完整性、业务主键、异常处理和验收标准。         设备 / 控制器 / MES现场数据源     →     协议适配与接口服务协议转换...</div></div></div></a><a class="pagination-related" href="/2024/11/24/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/03%20%E6%95%B0%E9%87%87%E6%8F%92%E4%BB%B6/" title="工业数采插件设计与扩展"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-11-24</div><div class="info-item-2">工业数采插件设计与扩展</div></div><div class="info-2"><div class="info-item-1"> 说明：本文以当前工作区内的源码实现为准。部分 README 与源码存在不一致的地方，例如 mssql-agent 的 README 会提到 MySQL，但代码实际使用的是 SQL Server；toolsnet 的 README 也更偏旧版描述，但源码已经明确了它的 HTTP 入站、Influx 写入与字段映射逻辑。  总体认知这个仓库里的每个文件夹都可以看作一个独立的工业数采插件。它们的共同目标不是“采集”本身，而是把现场不同形态的数据源，统一变成可追踪、可落库、可...</div></div></div></a><a class="pagination-related" href="/2024/12/15/manulism-work/20_Domain_Knowledge/21%20%E5%B7%A5%E4%B8%9A%E6%95%B0%E6%8D%AE%E6%8E%A5%E5%85%A5/01%20%E6%95%B0%E9%87%87%E6%B8%85%E5%8D%95/" title="工业数据采集清单设计"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-12-15</div><div class="info-item-2">工业数据采集清单设计</div></div><div class="info-2"><div class="info-item-1"> 脱敏说明：本文基于当前工作区中的《拧紧枪数采清单 V1.2》整理，仅保留通用结构与方法论，不展示公司名称、现场专属 IP、专有标识与可直接定位产线的敏感信息。  1. 什么是数采清单数采清单是数采项目第一阶段最重要的交付物之一。 它不是简单的“点位列表”，而是把现场设备、工位、采集器、协议、字段含义、数据类型和采集频率串起来的连接桥梁。 从工程角度看，数采清单负责回答这几个最关键的问题：  采什么。 从哪里采。 采到的数据代表什么。 按什么频率采。 采出来以后如何变成...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/about/%E8%AF%81%E4%BB%B6%E7%85%A71.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Luis Chen</div><div class="author-info-description">工业智能平台与技术知识沉淀</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">62</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#02-%E6%95%B0%E9%87%87%E5%8D%A1"><span class="toc-number">1.</span> <span class="toc-text">02 数采卡</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%9B%AE%E7%9A%84"><span class="toc-number">1.1.</span> <span class="toc-text">1. 目的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">1.2.</span> <span class="toc-text">2. 总体架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E9%85%8D%E7%BD%AE%E5%8A%A0%E8%BD%BD%E5%B1%82"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.1 配置加载层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%AE%BE%E5%A4%87%E8%B0%83%E5%BA%A6%E5%B1%82"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2 设备调度层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%8D%8F%E8%AE%AE%E9%80%82%E9%85%8D%E5%B1%82"><span class="toc-number">1.2.3.</span> <span class="toc-text">2.3 协议适配层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%95%B0%E6%8D%AE%E6%98%A0%E5%B0%84%E5%B1%82"><span class="toc-number">1.2.4.</span> <span class="toc-text">2.4 数据映射层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E6%95%B0%E6%8D%AE%E4%B8%8A%E9%80%81%E5%B1%82"><span class="toc-number">1.2.5.</span> <span class="toc-text">2.5 数据上送层</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E9%85%8D%E7%BD%AE%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.3.</span> <span class="toc-text">3. 配置模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%B3%BB%E7%BB%9F%E7%BA%A7%E9%85%8D%E7%BD%AE"><span class="toc-number">1.3.1.</span> <span class="toc-text">3.1 系统级配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%AE%BE%E5%A4%87%E9%85%8D%E7%BD%AE"><span class="toc-number">1.3.2.</span> <span class="toc-text">3.2 设备配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%85%8D%E6%96%B9%E9%85%8D%E7%BD%AE"><span class="toc-number">1.3.3.</span> <span class="toc-text">3.3 配方配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%8D%8F%E8%AE%AE%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.4.</span> <span class="toc-text">4. 协议实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-PLC-%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.4.1.</span> <span class="toc-text">4.1 PLC 协议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%9C%BA%E5%99%A8%E4%BA%BA-socket-x2F-XML"><span class="toc-number">1.4.2.</span> <span class="toc-text">4.2 机器人 socket&#x2F;XML</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%95%B0%E6%8D%AE%E6%98%A0%E5%B0%84%E4%B8%8E%E5%AD%97%E6%AE%B5%E6%8B%86%E5%8C%85"><span class="toc-number">1.5.</span> <span class="toc-text">5. 数据映射与字段拆包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E8%BF%90%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="toc-number">1.6.</span> <span class="toc-text">6. 运行流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">1.6.1.</span> <span class="toc-text">6.1 启动流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%91%A8%E6%9C%9F%E9%87%87%E9%9B%86%E6%B5%81%E7%A8%8B"><span class="toc-number">1.6.2.</span> <span class="toc-text">6.2 周期采集流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E9%85%8D%E7%BD%AE%E6%9B%B4%E6%96%B0%E6%B5%81%E7%A8%8B"><span class="toc-number">1.6.3.</span> <span class="toc-text">6.3 配置更新流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-C-%E6%A8%A1%E5%9D%97%E5%88%92%E5%88%86"><span class="toc-number">1.7.</span> <span class="toc-text">7. C++ 模块划分</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E5%85%B3%E9%94%AE%E5%AE%9E%E7%8E%B0%E8%A6%81%E7%82%B9"><span class="toc-number">1.8.</span> <span class="toc-text">8. 关键实现要点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E7%BB%93%E8%AE%BA"><span class="toc-number">1.9.</span> <span class="toc-text">9. 结论</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/23/manulism-work/20_Domain_Knowledge/24%20%E9%A2%84%E6%B5%8B%E6%80%A7%E7%BB%B4%E6%8A%A4/02%20%E8%AE%BE%E5%A4%87%E5%81%A5%E5%BA%B7%E5%88%86%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" title="设备健康指数：从诊断结果到退化趋势">设备健康指数：从诊断结果到退化趋势</a><time datetime="2026-10-23T04:33:16.000Z" title="发表于 2026-10-23 12:33:16">2026-10-23</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/26/manulism-work/20_Domain_Knowledge/29%20AI%E4%B8%8E%E6%99%BA%E8%83%BD%E4%BD%93/03%20%E6%95%85%E9%9A%9C%E6%A0%91/%E6%95%85%E9%9A%9C%E6%A0%91%E5%88%86%E6%9E%90%E5%9F%BA%E6%9C%AC%E7%9F%A5%E8%AF%86/" title="故障树分析基本知识">故障树分析基本知识</a><time datetime="2026-09-26T03:22:48.000Z" title="发表于 2026-09-26 11:22:48">2026-09-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/08/10/manulism-work/10_Architecture/14%20%E6%9E%B6%E6%9E%84%E5%92%8C%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF%E5%A4%9A%E8%AF%AD%E8%A8%80%E8%B5%84%E6%BA%90%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD/" title="前端多语言资源按需加载">前端多语言资源按需加载</a><time datetime="2026-08-10T01:51:22.000Z" title="发表于 2026-08-10 09:51:22">2026-08-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/13/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/09%20%E7%B3%BB%E7%BB%9F%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86/" title="曲线质量分析系统配置解析补充">曲线质量分析系统配置解析补充</a><time datetime="2026-07-13T05:55:00.000Z" title="发表于 2026-07-13 13:55:00">2026-07-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/16/manulism-work/20_Domain_Knowledge/22%20%E6%9B%B2%E7%BA%BF%E8%B4%A8%E9%87%8F%E5%88%86%E6%9E%90/03%20%E6%9B%B2%E7%BA%BF%E5%88%86%E6%9E%90%E7%B3%BB%E7%BB%9F%E8%8F%9C%E5%8D%95%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B/" title="曲线质量分析系统菜单工作流程">曲线质量分析系统菜单工作流程</a><time datetime="2026-06-16T09:25:40.000Z" title="发表于 2026-06-16 17:25:40">2026-06-16</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By Luis Chen</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const changeScriptToMath = article => {
+    article.querySelectorAll('script[type^="math/tex"]').forEach(el => {
+      const display = /mode=display/.test(el.type)
+      const node = document.createElement(display ? 'div' : 'span')
+      node.textContent = display
+        ? `$$${el.textContent}$$`
+        : `$${el.textContent}$`
+      el.parentNode.replaceChild(node, el)
+    })
+  }
+
+  const loadMathjax = () => {
+    const article = document.getElementById('article-container')
+    if (!article || article.querySelector('.hbe-container')) return
+    changeScriptToMath(article)
+
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem',
+            'ui/lazy'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          lazyMargin: '200px',
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.typesetClear()
+      MathJax.typesetPromise([ article ])
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (false) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="https://cdn.osyb.cn/static/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.7.0"></script></div></div></body></html>
